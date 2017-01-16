@@ -1,0 +1,13 @@
+[package]
+name = "soa-derive"
+version = "0.1.0"
+authors = ["Luthaf <luthaf@luthaf.fr>"]
+repository = "https://github.com/lumol-org/soa-derive"
+license = "BSD"
+
+[dependencies]
+syn = "0.10"
+quote = "0.3"
+
+[lib]
+proc-macro = true
