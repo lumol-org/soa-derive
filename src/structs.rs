@@ -1,9 +1,10 @@
-use syn::{Body, VariantData, MacroInput, Ident, Field};
+use syn::{Body, VariantData, MacroInput, Ident, Field, Visibility};
 
 /// Representing the struct we are deriving
 pub struct Struct {
     pub name: Ident,
     pub fields: Vec<Field>,
+    pub visibility: Visibility
 }
 
 impl Struct {
@@ -21,6 +22,7 @@ impl Struct {
         Struct {
             name: input.ident,
             fields: fields,
+            visibility: input.vis
         }
     }
 }

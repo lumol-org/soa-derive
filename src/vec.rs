@@ -4,6 +4,7 @@ use structs::Struct;
 
 pub fn derive(input: &Struct) -> Tokens {
     let name = &input.name;
+    let visibility = &input.visibility;
     let vec_name = Ident::from(format!("{}Vec", name));
 
     let vec_fields = input.fields.iter()
@@ -26,7 +27,7 @@ pub fn derive(input: &Struct) -> Tokens {
 
     quote!{
         #[derive(Debug)]
-        struct #vec_name {
+        #visibility struct #vec_name {
             #(#vec_fields,)*
         }
 
