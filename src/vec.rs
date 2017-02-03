@@ -32,10 +32,40 @@ pub fn derive(input: &Struct) -> Tokens {
         }
 
         impl #vec_name {
-            pub fn new() -> Self {
+            pub fn new() -> #vec_name {
                 #vec_name {
                     #(#field_names_1 : Vec::new(),)*
                 }
+            }
+
+            pub fn with_capacity(capacity: usize) -> #vec_name {
+                #vec_name {
+                    #(#field_names_1 : Vec::with_capacity(capacity),)*
+                }
+            }
+
+            pub fn capacity(&self) -> usize {
+                // We use the minimal capacity as the whole capacity
+                let capacities = [
+                    #(self.#field_names_1.capacity(),)*
+                ];
+                *capacities.iter().min().unwrap()
+            }
+
+            pub fn reserve(&mut self, additional: usize) {
+                #(self.#field_names_1.reserve(additional);)*
+            }
+
+            pub fn reserve_exact(&mut self, additional: usize) {
+                #(self.#field_names_1.reserve_exact(additional);)*
+            }
+
+            pub fn shrink_to_fit(&mut self) {
+                #(self.#field_names_1.shrink_to_fit();)*
+            }
+
+            pub fn truncate(&mut self, len: usize) {
+                #(self.#field_names_1.truncate(len);)*
             }
 
             pub fn push(&mut self, value: #name) {
