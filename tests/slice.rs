@@ -80,3 +80,21 @@ fn refs() {
     }
     assert_eq!(particle.mass, 42.0);
 }
+
+#[test]
+fn get() {
+    let mut particles = ParticleVec::new();
+    assert_eq!(particles.as_slice().get(0), None);
+
+    particles.push(Particle::new(String::from("Cl"), 0.0));
+    particles.push(Particle::new(String::from("Na"), 0.0));
+    particles.push(Particle::new(String::from("Br"), 0.0));
+    particles.push(Particle::new(String::from("Zn"), 0.0));
+
+    assert_eq!(particles.as_slice().get(0).unwrap().name, "Cl");
+    assert_eq!(particles.as_slice().get(10), None);
+
+    unsafe {
+        assert_eq!(particles.as_slice().get_unchecked(0).name, "Cl");
+    }
+}

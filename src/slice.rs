@@ -99,6 +99,22 @@ pub fn derive_slice(input: &Struct) -> Tokens {
                 let right = #slice_name{#(#fields_names_1: #slice_names_2),*};
                 (left, right)
             }
+
+            pub fn get(&self, i: usize) -> Option<#ref_name> {
+                if self.is_empty() || i >= self.len() {
+                    None
+                } else {
+                    Some(#ref_name {
+                        #(#fields_names_1: self.#fields_names_2.get(i).unwrap(),)*
+                    })
+                }
+            }
+
+            pub unsafe fn get_unchecked(&self, i: usize) -> #ref_name {
+                #ref_name {
+                    #(#fields_names_1: self.#fields_names_2.get_unchecked(i),)*
+                }
+            }
         }
     }
 }
@@ -108,6 +124,7 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
     let derives = &input.derive;
     let visibility = &input.visibility;
     let slice_mut_name = &input.slice_mut_name();
+    let ref_name = &input.ref_name();
     let ref_mut_name = &input.ref_mut_name();
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
@@ -201,6 +218,44 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
                 let left = #slice_mut_name{#(#fields_names_1: #slice_names_1),*};
                 let right = #slice_mut_name{#(#fields_names_1: #slice_names_2),*};
                 (left, right)
+            }
+
+            pub fn swap(&mut self, a: usize, b: usize) {
+                #(
+                    self.#fields_names_1.swap(a, b);
+                )*
+            }
+
+            pub fn get(&self, i: usize) -> Option<#ref_name> {
+                if self.is_empty() || i >= self.len() {
+                    None
+                } else {
+                    Some(#ref_name {
+                        #(#fields_names_1: self.#fields_names_2.get(i).unwrap(),)*
+                    })
+                }
+            }
+
+            pub unsafe fn get_unchecked(&self, i: usize) -> #ref_name {
+                #ref_name {
+                    #(#fields_names_1: self.#fields_names_2.get_unchecked(i),)*
+                }
+            }
+
+            pub fn get_mut(&mut self, i: usize) -> Option<#ref_mut_name> {
+                if self.is_empty() || i >= self.len() {
+                    None
+                } else {
+                    Some(#ref_mut_name {
+                        #(#fields_names_1: self.#fields_names_2.get_mut(i).unwrap(),)*
+                    })
+                }
+            }
+
+            pub unsafe fn get_unchecked_mut(&mut self, i: usize) -> #ref_mut_name {
+                #ref_mut_name {
+                    #(#fields_names_1: self.#fields_names_2.get_unchecked_mut(i),)*
+                }
             }
         }
     }
