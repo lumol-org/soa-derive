@@ -8,6 +8,7 @@ pub fn derive(input: &Struct) -> Tokens {
     let vec_name = &input.vec_name();
     let slice_name = &input.slice_name();
     let slice_mut_name = &input.slice_mut_name();
+    let ref_name = &input.ref_name();
 
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
@@ -142,6 +143,25 @@ pub fn derive(input: &Struct) -> Tokens {
             pub fn as_mut_slice(&mut self) -> #slice_mut_name {
                 #slice_mut_name {
                     #(#fields_names_1 : &mut self.#fields_names_2, )*
+                }
+            }
+
+            pub fn retain<F>(&mut self, mut f: F) where F: FnMut(#ref_name) -> bool {
+                let len = self.len();
+                let mut del = 0;
+
+                {
+                    let mut slice = self.as_mut_slice();
+                    for i in 0..len {
+                        if !f(slice.get(i).unwrap()) {
+                            del += 1;
+                        } else if del > 0 {
+                            slice.swap(i - del, i);
+                        }
+                    }
+                }
+                if del > 0 {
+                    self.truncate(len - del);
                 }
             }
         }

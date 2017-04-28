@@ -75,3 +75,25 @@ fn split() {
         assert_eq!(end.name[0], "Na");
     }
 }
+
+#[test]
+fn get() {
+    let mut particles = ParticleVec::new();
+    assert_eq!(particles.as_mut_slice().get(0), None);
+    assert_eq!(particles.as_mut_slice().get_mut(0), None);
+
+    particles.push(Particle::new(String::from("Cl"), 0.0));
+    particles.push(Particle::new(String::from("Na"), 0.0));
+    particles.push(Particle::new(String::from("Br"), 0.0));
+    particles.push(Particle::new(String::from("Zn"), 0.0));
+
+    assert_eq!(particles.as_mut_slice().get(0).unwrap().name, "Cl");
+    assert_eq!(particles.as_mut_slice().get_mut(1).unwrap().name, "Na");
+    assert_eq!(particles.as_mut_slice().get(10), None);
+    assert_eq!(particles.as_mut_slice().get_mut(42), None);
+
+    unsafe {
+        assert_eq!(particles.as_mut_slice().get_unchecked(0).name, "Cl");
+        assert_eq!(particles.as_mut_slice().get_unchecked_mut(2).name, "Br");
+    }
+}

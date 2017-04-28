@@ -145,3 +145,17 @@ fn split_off() {
     assert_eq!(other.name[0], "Zn");
     assert_eq!(other.name[1], "Mg");
 }
+
+#[test]
+fn retain() {
+    let mut particles = ParticleVec::new();
+    particles.push(Particle::new(String::from("Cl"), 0.0));
+    particles.push(Particle::new(String::from("Na"), 0.0));
+    particles.push(Particle::new(String::from("Zn"), 0.0));
+    particles.push(Particle::new(String::from("C"), 0.0));
+
+    particles.retain(|particle| particle.name.starts_with("C"));
+    assert_eq!(particles.len(), 2);
+    assert_eq!(particles.name[0], "Cl");
+    assert_eq!(particles.name[1], "C");
+}
