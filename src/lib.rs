@@ -9,6 +9,7 @@ use proc_macro::TokenStream;
 
 mod structs;
 mod vec;
+mod refs;
 
 #[proc_macro_derive(StructOfArray)]
 pub fn soa_derive(input: TokenStream) -> TokenStream {
@@ -18,5 +19,6 @@ pub fn soa_derive(input: TokenStream) -> TokenStream {
 
     let mut generated = quote::Tokens::new();
     generated.append(vec::derive(&input).as_str());
+    generated.append(refs::derive(&input).as_str());
     generated.parse().unwrap()
 }
