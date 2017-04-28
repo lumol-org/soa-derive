@@ -21,6 +21,7 @@ pub fn soa_derive(input: TokenStream) -> TokenStream {
     let mut generated = quote::Tokens::new();
     generated.append(vec::derive(&input).as_str());
     generated.append(refs::derive(&input).as_str());
-    generated.append(slice::derive(&input).as_str());
+    generated.append(slice::derive_slice(&input).as_str());
+    generated.append(slice::derive_slice_mut(&input).as_str());
     generated.parse().unwrap()
 }
