@@ -1,21 +1,8 @@
 #[macro_use]
 extern crate soa_derive;
+mod particles;
 
-#[derive(Debug, PartialEq, StructOfArray)]
-#[soa_derive = "Debug, PartialEq"]
-struct Particle {
-    name: String,
-    mass: f64
-}
-
-impl Particle {
-    pub fn new(name: String, mass: f64) -> Self {
-        Particle {
-            name: name,
-            mass: mass,
-        }
-    }
-}
+use particles::{Particle, ParticleVec};
 
 #[test]
 fn push() {
