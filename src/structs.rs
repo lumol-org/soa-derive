@@ -1,4 +1,5 @@
 use syn::{Body, VariantData, MacroInput, Ident, Field, Visibility};
+use quote;
 
 /// Representing the struct we are deriving
 pub struct Struct {
@@ -24,5 +25,25 @@ impl Struct {
             fields: fields,
             visibility: input.vis
         }
+    }
+
+    pub fn vec_name(&self) -> quote::Ident {
+        quote::Ident::from(format!("{}Vec", self.name))
+    }
+
+    pub fn slice_name(&self) -> quote::Ident {
+        quote::Ident::from(format!("{}Slice", self.name))
+    }
+
+    pub fn slice_mut_name(&self) -> quote::Ident {
+        quote::Ident::from(format!("{}SliceMut", self.name))
+    }
+
+    pub fn ref_name(&self) -> quote::Ident {
+        quote::Ident::from(format!("{}Ref", self.name))
+    }
+
+    pub fn ref_mut_name(&self) -> quote::Ident {
+        quote::Ident::from(format!("{}RefMut", self.name))
     }
 }
