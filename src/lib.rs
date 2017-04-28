@@ -11,7 +11,7 @@ mod structs;
 mod vec;
 mod refs;
 
-#[proc_macro_derive(StructOfArray)]
+#[proc_macro_derive(StructOfArray, attributes(soa_derive))]
 pub fn soa_derive(input: TokenStream) -> TokenStream {
     let source = input.to_string();
     let ast = syn::parse_macro_input(&source).unwrap();

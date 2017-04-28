@@ -2,6 +2,7 @@
 extern crate soa_derive;
 
 #[derive(Debug, PartialEq, StructOfArray)]
+#[soa_derive = "Debug, PartialEq"]
 struct Particle {
     name: String,
     mass: f64

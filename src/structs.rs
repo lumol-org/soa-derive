@@ -1,9 +1,11 @@
-use syn::{Body, VariantData, MacroInput, Ident, Field, Visibility};
+use syn::{Body, VariantData, MacroInput, Ident, Field, Visibility, MetaItem};
+use syn::Lit;
 use quote;
 
 /// Representing the struct we are deriving
 pub struct Struct {
     pub name: Ident,
+    pub derive: Vec<Ident>,
     pub fields: Vec<Field>,
     pub visibility: Visibility
 }
@@ -20,8 +22,23 @@ impl Struct {
             _ => panic!("#[derive(StructOfArray)] only supports structs."),
         };
 
+        let mut derive = Vec::new();
+        'attrs: for attr in input.attrs {
+            if let MetaItem::NameValue(name, value) = attr.value {
+                if name.as_ref() == "soa_derive" {
+                    if let Lit::Str(string, _) = value {
+                        for value in string.split(',') {
+                            derive.push(value.trim().into())
+                        }
+                        break 'attrs;
+                    }
+                }
+            }
+        }
+
         Struct {
             name: input.ident,
+            derive: derive,
             fields: fields,
             visibility: input.vis
         }

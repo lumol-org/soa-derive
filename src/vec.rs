@@ -3,6 +3,7 @@ use structs::Struct;
 
 pub fn derive(input: &Struct) -> Tokens {
     let name = &input.name;
+    let derives = &input.derive;
     let visibility = &input.visibility;
     let vec_name = &input.vec_name();
 
@@ -18,7 +19,7 @@ pub fn derive(input: &Struct) -> Tokens {
                                     .collect::<Vec<_>>();
 
     quote!{
-        #[derive(Debug)]
+        #[derive(#(#derives,)*)]
         #visibility struct #vec_name {
             #(pub #fields_names_1: Vec<#fields_types>,)*
         }
