@@ -1,10 +1,10 @@
-use quote::{Tokens, Ident};
+use quote::Tokens;
 use structs::Struct;
 
 pub fn derive(input: &Struct) -> Tokens {
     let name = &input.name;
     let visibility = &input.visibility;
-    let vec_name = Ident::from(format!("{}Vec", name));
+    let vec_name = &input.vec_name();
 
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
