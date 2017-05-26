@@ -11,6 +11,7 @@ mod structs;
 mod vec;
 mod refs;
 mod slice;
+mod iter;
 
 #[proc_macro_derive(StructOfArray, attributes(soa_derive))]
 pub fn soa_derive(input: TokenStream) -> TokenStream {
@@ -23,5 +24,6 @@ pub fn soa_derive(input: TokenStream) -> TokenStream {
     generated.append(refs::derive(&input).as_str());
     generated.append(slice::derive_slice(&input).as_str());
     generated.append(slice::derive_slice_mut(&input).as_str());
+    generated.append(iter::derive(&input).as_str());
     generated.parse().unwrap()
 }
