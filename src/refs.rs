@@ -18,12 +18,12 @@ pub fn derive(input: &Struct) -> Tokens {
                                     .collect::<Vec<_>>();
 
     quote!{
-        #[derive(#(#derives,)*)]
+        #derives
         #visibility struct #ref_name<'a> {
             #(pub #fields_names_1: &'a #fields_types,)*
         }
 
-        #[derive(#(#derives,)*)]
+        #derives
         #visibility struct #ref_mut_name<'a> {
             #(pub #fields_names_1: &'a mut #fields_types,)*
         }
