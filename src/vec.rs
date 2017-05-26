@@ -22,7 +22,7 @@ pub fn derive(input: &Struct) -> Tokens {
                                     .collect::<Vec<_>>();
 
     quote!{
-        #[derive(#(#derives,)*)]
+        #derives
         #visibility struct #vec_name {
             #(pub #fields_names_1: Vec<#fields_types>,)*
         }
