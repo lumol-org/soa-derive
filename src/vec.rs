@@ -6,6 +6,7 @@ pub fn derive(input: &Struct) -> Tokens {
     let name = &input.name;
     let visibility = &input.visibility;
     let vec_name = Ident::from(format!("{}Vec", name));
+    let slice_name = Ident::from(format!("{}Slice", name));
 
     let vec_fields = input.fields.iter()
         .map(|field| {
@@ -13,6 +14,16 @@ pub fn derive(input: &Struct) -> Tokens {
             let field_ty = &field.ty;
             quote!{
                 pub #field_ident: Vec<#field_ty>
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let slice_fields = input.fields.iter()
+        .map(|field| {
+            let field_ident = field.ident.clone().unwrap();
+            let field_ty = &field.ty;
+            quote!{
+                pub #field_ident: &'a [#field_ty]
             }
         })
         .collect::<Vec<_>>();
@@ -29,6 +40,11 @@ pub fn derive(input: &Struct) -> Tokens {
         #[derive(Debug)]
         #visibility struct #vec_name {
             #(#vec_fields,)*
+        }
+
+        #[derive(Debug)]
+        #visibility struct #slice_name<'a> {
+            #(#slice_fields,)*
         }
 
         impl #vec_name {
@@ -77,6 +93,12 @@ pub fn derive(input: &Struct) -> Tokens {
                 let len = self.#first_field.len();
                 #(debug_assert_eq!(self.#field_names_1.len(), len);)*
                 len
+            }
+
+            pub fn as_slice(&self) -> #slice_name {
+                #slice_name {
+                    #(#field_names_1 : &self.#field_names_2,)*
+                }
             }
         }
     }

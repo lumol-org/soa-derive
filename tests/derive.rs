@@ -63,3 +63,16 @@ fn capacity() {
     assert_eq!(particles.len(), 2);
     assert_eq!(particles.capacity(), 2);
 }
+
+#[test]
+fn as_slice() {
+    let mut particles = ParticleVec::new();
+    assert_eq!(particles.len(), 0);
+
+    particles.push(Particle::new(String::from("Na"), 56.0));
+    particles.push(Particle::new(String::from("Ag"), 45.0));
+    particles.push(Particle::new(String::from("H"), 3.0));
+
+    let particles_slices = particles.as_slice();
+    assert_eq!(particles_slices.mass, &[56.0, 45.0, 3.0]);
+}
