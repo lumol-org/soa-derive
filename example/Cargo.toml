@@ -1,0 +1,13 @@
+[package]
+name = "soa-derive-example"
+version = "0.1.0"
+authors = ["Luthaf <luthaf@luthaf.fr>"]
+repository = "https://github.com/lumol-org/soa-derive"
+license = "BSD"
+publish = false
+
+[dependencies]
+soa-derive = {path = ".."}
+
+[lib]
+path = "lib.rs" 
