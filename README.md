@@ -1,6 +1,7 @@
 # Automatic Struct of Array generation for Rust
 
 [![Build Status](https://travis-ci.org/lumol-org/soa-derive.svg?branch=master)](https://travis-ci.org/lumol-org/soa-derive)
+[![Crates.io](https://img.shields.io/crates/v/soa_derive.svg)](https://crates.io/crates/soa_derive)
 
 This crate provides a custom derive (`#[derive(StructOfArray)]`) to
 automatically generate code from a given struct `T` that allow to replace
