@@ -6,6 +6,11 @@ pub fn derive_slice(input: &Struct) -> Tokens {
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();
     let ref_name = &input.ref_name();
+
+    let slice_name_str = format!("[{}]", input.name);
+    let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
+    let vec_doc_url = format!("[`{0}`](struct.{0}.html)", input.vec_name());
+
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
                                    .collect::<Vec<_>>();
@@ -23,7 +28,12 @@ pub fn derive_slice(input: &Struct) -> Tokens {
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
-    quote!{
+    quote! {
+        /// A slice of
+        #[doc = #doc_url]
+        /// inside a
+        #[doc = #vec_doc_url]
+        /// .
         #derives
         #visibility struct #slice_name<'a> {
             #(pub #fields_names_1: &'a [#fields_types],)*
@@ -31,18 +41,29 @@ pub fn derive_slice(input: &Struct) -> Tokens {
 
         #[allow(dead_code)]
         impl<'a> #slice_name<'a> {
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::len()`](https://doc.rust-lang.org/std/primitive.slice.html#method.len),
+            /// the length of all fields should be the same.
             pub fn len(&self) -> usize {
                 let len = self.#first_field.len();
                 #(debug_assert_eq!(self.#fields_names_1.len(), len);)*
                 len
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::is_empty()`](https://doc.rust-lang.org/std/primitive.slice.html#method.is_empty),
+            /// the length of all fields should be the same.
             pub fn is_empty(&self) -> bool {
                 let empty = self.#first_field.is_empty();
                 #(debug_assert_eq!(self.#fields_names_1.is_empty(), empty);)*
                 empty
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::first()`](https://doc.rust-lang.org/std/primitive.slice.html#method.first).
             pub fn first(&self) -> Option<#ref_name> {
                 if self.is_empty() {
                     None
@@ -54,6 +75,9 @@ pub fn derive_slice(input: &Struct) -> Tokens {
                 }
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::split_first()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_first).
             pub fn split_first(&self) -> Option<(#ref_name, #slice_name)> {
                 if self.is_empty() {
                     None
@@ -67,6 +91,9 @@ pub fn derive_slice(input: &Struct) -> Tokens {
                 }
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::last()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last).
             pub fn last(&self) -> Option<#ref_name> {
                 if self.is_empty() {
                     None
@@ -78,6 +105,9 @@ pub fn derive_slice(input: &Struct) -> Tokens {
                 }
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::split_last()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_last).
             pub fn split_last(&self) -> Option<(#ref_name, #slice_name)> {
                 if self.is_empty() {
                     None
@@ -91,6 +121,9 @@ pub fn derive_slice(input: &Struct) -> Tokens {
                 }
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::split_at()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_at).
             pub fn split_at(&self, mid: usize) -> (#slice_name, #slice_name) {
                 #(
                     let (#slice_names_1, #slice_names_2) = self.#fields_names_2.split_at(mid);
@@ -100,6 +133,9 @@ pub fn derive_slice(input: &Struct) -> Tokens {
                 (left, right)
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
             pub fn get(&self, i: usize) -> Option<#ref_name> {
                 if self.is_empty() || i >= self.len() {
                     None
@@ -110,6 +146,9 @@ pub fn derive_slice(input: &Struct) -> Tokens {
                 }
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
             pub unsafe fn get_unchecked(&self, i: usize) -> #ref_name {
                 #ref_name {
                     #(#fields_names_1: self.#fields_names_2.get_unchecked(i),)*
@@ -126,6 +165,11 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
     let slice_mut_name = &input.slice_mut_name();
     let ref_name = &input.ref_name();
     let ref_mut_name = &input.ref_mut_name();
+
+    let slice_name_str = format!("[{}]", input.name);
+    let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
+    let vec_doc_url = format!("[`{0}`](struct.{0}.html)", input.vec_name());
+
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
                                    .collect::<Vec<_>>();
@@ -143,7 +187,12 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
-    quote!{
+    quote! {
+        /// A mutable slice of
+        #[doc = #doc_url]
+        /// inside a
+        #[doc = #vec_doc_url]
+        /// .
         #derives
         #visibility struct #slice_mut_name<'a> {
             #(pub #fields_names_1: &'a mut [#fields_types],)*
@@ -151,18 +200,29 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
 
         #[allow(dead_code)]
         impl<'a> #slice_mut_name<'a> {
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::len()`](https://doc.rust-lang.org/std/primitive.slice.html#method.len),
+            /// the length of all fields should be the same.
             pub fn len(&self) -> usize {
                 let len = self.#first_field.len();
                 #(debug_assert_eq!(self.#fields_names_1.len(), len);)*
                 len
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::is_empty()`](https://doc.rust-lang.org/std/primitive.slice.html#method.is_empty),
+            /// the length of all fields should be the same.
             pub fn is_empty(&self) -> bool {
                 let empty = self.#first_field.is_empty();
                 #(debug_assert_eq!(self.#fields_names_1.is_empty(), empty);)*
                 empty
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::first_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.first_mut).
             pub fn first_mut(&mut self) -> Option<#ref_mut_name> {
                 if self.is_empty() {
                     None
@@ -174,6 +234,9 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
                 }
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::split_first_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_first_mut).
             pub fn split_first_mut(&mut self) -> Option<(#ref_mut_name, #slice_mut_name)> {
                 if self.is_empty() {
                     None
@@ -187,6 +250,9 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
                 }
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::last_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last_mut).
             pub fn last_mut(&mut self) -> Option<#ref_mut_name> {
                 if self.is_empty() {
                     None
@@ -198,6 +264,9 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
                 }
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::last_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last_mut).
             pub fn split_last_mut(&mut self) -> Option<(#ref_mut_name, #slice_mut_name)> {
                 if self.is_empty() {
                     None
@@ -211,6 +280,9 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
                 }
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::split_at_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_at_mut).
             pub fn split_at_mut(&mut self, mid: usize) -> (#slice_mut_name, #slice_mut_name) {
                 #(
                     let (#slice_names_1, #slice_names_2) = self.#fields_names_2.split_at_mut(mid);
@@ -220,12 +292,18 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
                 (left, right)
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::swap()`](https://doc.rust-lang.org/std/primitive.slice.html#method.swap).
             pub fn swap(&mut self, a: usize, b: usize) {
                 #(
                     self.#fields_names_1.swap(a, b);
                 )*
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
             pub fn get(&self, i: usize) -> Option<#ref_name> {
                 if self.is_empty() || i >= self.len() {
                     None
@@ -236,12 +314,18 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
                 }
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
             pub unsafe fn get_unchecked(&self, i: usize) -> #ref_name {
                 #ref_name {
                     #(#fields_names_1: self.#fields_names_2.get_unchecked(i),)*
                 }
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::get_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_mut).
             pub fn get_mut(&mut self, i: usize) -> Option<#ref_mut_name> {
                 if self.is_empty() || i >= self.len() {
                     None
@@ -252,6 +336,9 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
                 }
             }
 
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::get_unchecked_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked_mut).
             pub unsafe fn get_unchecked_mut(&mut self, i: usize) -> #ref_mut_name {
                 #ref_mut_name {
                     #(#fields_names_1: self.#fields_names_2.get_unchecked_mut(i),)*

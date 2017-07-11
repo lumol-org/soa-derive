@@ -21,7 +21,7 @@ pub fn derive(input: &Struct) -> Tokens {
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
-    quote!{
+    quote! {
         #[allow(non_snake_case)]
         mod #detail_mod {
             use super::{#vec_name, #slice_name, #slice_mut_name, #ref_name, #ref_mut_name};
