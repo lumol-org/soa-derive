@@ -12,6 +12,19 @@ script:
     - cd $TRAVIS_BUILD_DIR
     - cargo test
     - cargo test --release
+    - cd example
+    - cargo doc --no-deps
+    - cp index.html target/doc/
+    - cd $TRAVIS_BUILD_DIR
 
 cache:
   cargo: true
+
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GH_TOKEN
+  local_dir: example/target/doc
+  on:
+    branch: master
+    condition: $TRAVIS_RUST_VERSION == stable
