@@ -1,13 +1,18 @@
 [package]
-name = "soa-derive"
+name = "soa_derive"
 version = "0.1.0"
-authors = ["Luthaf <luthaf@luthaf.fr>"]
+authors = ["Guillaume Fraux <guillaume.fraux@chimie-paristech.fr>"]
+license = "MIT/Apache-2.0"
 repository = "https://github.com/lumol-org/soa-derive"
-license = "BSD"
+homepage = "https://github.com/lumol-org/soa-derive"
+documentation = "https://docs.rs/soa_derive/"
+description = """
+Automatic Struct of Array generation
+"""
+
+[lib]
+proc-macro = true
 
 [dependencies]
 syn = "0.10"
 quote = "0.3"
-
-[lib]
-proc-macro = true

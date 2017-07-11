@@ -7,7 +7,7 @@ license = "BSD"
 publish = false
 
 [dependencies]
-soa-derive = {path = ".."}
+soa_derive = {path = ".."}
 
 [lib]
-path = "lib.rs" 
+path = "lib.rs"
