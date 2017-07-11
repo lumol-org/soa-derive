@@ -9,17 +9,17 @@ fn len() {
     let mut particles = ParticleVec::new();
 
     {
-        let sclice = particles.as_slice();
-        assert!(sclice.is_empty());
-        assert_eq!(sclice.len(), 0);
+        let slice = particles.as_slice();
+        assert!(slice.is_empty());
+        assert_eq!(slice.len(), 0);
     }
 
     particles.push(Particle::new(String::from("Na"), 56.0));
     particles.push(Particle::new(String::from("Na"), 56.0));
     particles.push(Particle::new(String::from("Na"), 56.0));
 
-    let sclice = particles.as_slice();
-    assert_eq!(sclice.len(), 3);
+    let slice = particles.as_slice();
+    assert_eq!(slice.len(), 3);
 }
 
 #[test]
@@ -27,27 +27,27 @@ fn first_last() {
     let mut particles = ParticleVec::new();
 
     {
-        let sclice = particles.as_slice();
-        assert_eq!(sclice.first(), None);
-        assert_eq!(sclice.last(), None);
+        let slice = particles.as_slice();
+        assert_eq!(slice.first(), None);
+        assert_eq!(slice.last(), None);
     }
 
     particles.push(Particle::new(String::from("Na"), 0.0));
     particles.push(Particle::new(String::from("Zn"), 0.0));
     particles.push(Particle::new(String::from("Cl"), 0.0));
 
-    let sclice = particles.as_slice();
-    assert_eq!(sclice.first().unwrap().name, "Na");
-    assert_eq!(sclice.last().unwrap().name, "Cl");
+    let slice = particles.as_slice();
+    assert_eq!(slice.first().unwrap().name, "Na");
+    assert_eq!(slice.last().unwrap().name, "Cl");
 }
 
 #[test]
 fn split() {
     let mut particles = ParticleVec::new();
     {
-        let sclice = particles.as_slice();
-        assert_eq!(sclice.split_first(), None);
-        assert_eq!(sclice.split_last(), None);
+        let slice = particles.as_slice();
+        assert_eq!(slice.split_first(), None);
+        assert_eq!(slice.split_last(), None);
     }
     particles.push(Particle::new(String::from("Cl"), 0.0));
     particles.push(Particle::new(String::from("Na"), 0.0));

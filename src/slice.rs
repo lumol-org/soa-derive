@@ -162,12 +162,15 @@ pub fn derive_slice(input: &Struct) -> Tokens {
 pub fn derive_slice_mut(input: &Struct) -> Tokens {
     let derives = &input.derive;
     let visibility = &input.visibility;
+    let slice_name = &input.slice_name();
     let slice_mut_name = &input.slice_mut_name();
     let ref_name = &input.ref_name();
     let ref_mut_name = &input.ref_mut_name();
 
     let slice_name_str = format!("[{}]", input.name);
     let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
+    let slice_doc_url = format!("[`{0}`](struct.{0}.html)", slice_name);
+    let slice_mut_doc_url = format!("[`{0}`](struct.{0}.html)", slice_mut_name);
     let vec_doc_url = format!("[`{0}`](struct.{0}.html)", input.vec_name());
 
     let fields_names = input.fields.iter()
@@ -200,6 +203,18 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
 
         #[allow(dead_code)]
         impl<'a> #slice_mut_name<'a> {
+            /// Convert a
+            #[doc = #slice_mut_doc_url]
+            /// to a
+            #[doc = #slice_doc_url]
+            /// in order to be able to use the methods on the non mutable
+            /// version of the slices.
+            pub fn as_ref(&self) -> #slice_name {
+                #slice_name {
+                    #(#fields_names_1: self.#fields_names_2,)*
+                }
+            }
+
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::len()`](https://doc.rust-lang.org/std/primitive.slice.html#method.len),
