@@ -42,11 +42,9 @@ pub fn derive(input: &Struct) -> Tokens {
             }
 
             pub fn capacity(&self) -> usize {
-                // We use the minimal capacity as the whole capacity
-                let capacities = [
-                    #(self.#fields_names_1.capacity(),)*
-                ];
-                *capacities.iter().min().unwrap()
+                let capacity = self.#first_field.capacity();
+                #(debug_assert_eq!(self.#fields_names_1.capacity(), capacity);)*
+                capacity
             }
 
             pub fn reserve(&mut self, additional: usize) {

@@ -34,9 +34,6 @@ fn capacity() {
     assert_eq!(particles.len(), 0);
     assert_eq!(particles.capacity(), 9);
 
-    particles.name.reserve_exact(30);
-    assert_eq!(particles.capacity(), 9);
-
     particles.reserve(42);
     assert!(particles.capacity() >= 42);
 
