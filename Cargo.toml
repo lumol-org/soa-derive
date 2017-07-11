@@ -17,3 +17,10 @@ proc-macro = true
 [dependencies]
 syn = "0.10"
 quote = "0.3"
+
+[dev-dependencies]
+bencher = "0.1"
+
+[[bench]]
+name = "soa"
+harness = false
