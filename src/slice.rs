@@ -34,6 +34,7 @@ pub fn derive_slice(input: &Struct) -> Tokens {
         /// inside a
         #[doc = #vec_doc_url]
         /// .
+        #[allow(dead_code)]
         #derives
         #visibility struct #slice_name<'a> {
             #(pub #fields_names_1: &'a [#fields_types],)*
@@ -196,6 +197,7 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
         /// inside a
         #[doc = #vec_doc_url]
         /// .
+        #[allow(dead_code)]
         #derives
         #visibility struct #slice_mut_name<'a> {
             #(pub #fields_names_1: &'a mut [#fields_types],)*

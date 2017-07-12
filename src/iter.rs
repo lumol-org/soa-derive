@@ -22,7 +22,7 @@ pub fn derive(input: &Struct) -> Tokens {
                                     .collect::<Vec<_>>();
 
     quote! {
-        #[allow(non_snake_case)]
+        #[allow(non_snake_case, dead_code)]
         mod #detail_mod {
             use super::*;
             use std::slice;

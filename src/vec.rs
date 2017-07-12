@@ -26,6 +26,7 @@ pub fn derive(input: &Struct) -> Tokens {
         /// An analog to `
         #[doc = #vec_name_str]
         /// ` with Struct of Array (SoA) layout
+        #[allow(dead_code)]
         #derives
         #visibility struct #vec_name {
             #(pub #fields_names_1: Vec<#fields_types>,)*
