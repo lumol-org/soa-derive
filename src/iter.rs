@@ -24,7 +24,7 @@ pub fn derive(input: &Struct) -> Tokens {
     quote! {
         #[allow(non_snake_case)]
         mod #detail_mod {
-            use super::{#vec_name, #slice_name, #slice_mut_name, #ref_name, #ref_mut_name};
+            use super::*;
             use std::slice;
 
             pub struct Iter<'a> {
