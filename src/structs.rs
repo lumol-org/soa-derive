@@ -6,6 +6,7 @@ use quote;
 pub struct Struct {
     pub name: Ident,
     pub derive: Ident,
+    pub derive_no_clone: Ident,
     pub fields: Vec<Field>,
     pub visibility: Visibility
 }
@@ -36,18 +37,22 @@ impl Struct {
             }
         }
 
-        let derive = if derives.is_empty() {
-            "".into()
-        } else {
-            let mut derive = String::from("#[derive(");
-            derive += &derives.join(", ");
-            derive += ")]";
-            derive
-        };
+        let mut derive = String::from("#[derive(");
+        derive += &derives.join(", ");
+        derive += ")]";
+
+        let mut derive_no_clone = String::from("#[derive(");
+        derive_no_clone += &derives.iter()
+                                   .cloned()
+                                   .filter(|trai| trai != "Clone")
+                                   .collect::<Vec<_>>()
+                                   .join(", ");
+        derive_no_clone += ")]";
 
         Struct {
             name: input.ident,
             derive: derive.into(),
+            derive_no_clone: derive_no_clone.into(),
             fields: fields,
             visibility: input.vis
         }

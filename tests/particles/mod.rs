@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-#[derive(Debug, PartialEq, StructOfArray)]
-#[soa_derive = "Debug, PartialEq"]
+#[derive(Debug, Clone, PartialEq, StructOfArray)]
+#[soa_derive = "Debug, Clone, PartialEq"]
 pub struct Particle {
     pub name: String,
     pub mass: f64

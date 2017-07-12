@@ -4,7 +4,7 @@ use structs::Struct;
 pub fn derive(input: &Struct) -> Tokens {
     let name = &input.name;
     let visibility = &input.visibility;
-    let derives = &input.derive;
+    let derives = &input.derive_no_clone;
     let ref_name = &input.ref_name();
     let ref_mut_name = &input.ref_mut_name();
 
