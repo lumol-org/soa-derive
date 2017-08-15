@@ -14,6 +14,7 @@ script:
     - cargo test --release
     - cd example
     - cargo doc --no-deps
+    - cargo bench --no-run
     - cp index.html target/doc/
     - cd $TRAVIS_BUILD_DIR
 
