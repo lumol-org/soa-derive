@@ -14,3 +14,9 @@ fn private() {
     let p = Private {inner: 42.0};
     assert_eq!(p.inner, 42.0);
 }
+
+pub struct Empty;
+#[derive(StructOfArray)]
+pub struct NoTraits {
+    inner: Empty,
+}

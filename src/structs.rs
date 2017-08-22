@@ -4,10 +4,13 @@ use quote;
 
 /// Representing the struct we are deriving
 pub struct Struct {
+    /// The input struct name
     pub name: Ident,
-    pub derive: Ident,
-    pub derive_no_clone: Ident,
+    /// The list of traits to derive passed to `soa_derive` attribute
+    pub derives: Vec<String>,
+    /// The list of fields in the struct
     pub fields: Vec<Field>,
+    /// The struct overall visibility
     pub visibility: Visibility
 }
 
@@ -37,25 +40,36 @@ impl Struct {
             }
         }
 
-        let mut derive = String::from("#[derive(");
-        derive += &derives.join(", ");
-        derive += ")]";
-
-        let mut derive_no_clone = String::from("#[derive(");
-        derive_no_clone += &derives.iter()
-                                   .cloned()
-                                   .filter(|trai| trai != "Clone")
-                                   .collect::<Vec<_>>()
-                                   .join(", ");
-        derive_no_clone += ")]";
-
         Struct {
             name: input.ident,
-            derive: derive.into(),
-            derive_no_clone: derive_no_clone.into(),
+            derives: derives,
             fields: fields,
             visibility: input.vis
         }
+    }
+
+    pub fn derive(&self) -> quote::Ident {
+        if self.derives.is_empty() {
+            return "".into();
+        }
+        let mut ident = String::from("#[derive(");
+        ident += &self.derives.join(", ");
+        ident += ")]";
+        return ident.into();
+    }
+
+    pub fn derive_no_clone(&self) -> quote::Ident {
+        if self.derives.is_empty() {
+            return "".into();
+        }
+        let mut ident = String::from("#[derive(");
+        ident += &self.derives.iter()
+                              .cloned()
+                              .filter(|trai| trai != "Clone")
+                              .collect::<Vec<_>>()
+                              .join(", ");
+        ident += ")]";
+        return ident.into();
     }
 
     pub fn vec_name(&self) -> quote::Ident {

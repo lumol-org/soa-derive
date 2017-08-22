@@ -4,7 +4,7 @@ use structs::Struct;
 pub fn derive(input: &Struct) -> Tokens {
     let name = &input.name;
     let vec_name_str = format!("Vec<{}>", name);
-    let derives = &input.derive;
+    let other_derive = &input.derive();
     let visibility = &input.visibility;
     let vec_name = &input.vec_name();
     let slice_name = &input.slice_name();
@@ -22,12 +22,12 @@ pub fn derive(input: &Struct) -> Tokens {
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
-    quote! {
+    let mut generated = quote! {
         /// An analog to `
         #[doc = #vec_name_str]
         /// ` with Struct of Array (SoA) layout
         #[allow(dead_code)]
-        #derives
+        #other_derive
         #visibility struct #vec_name {
             #(pub #fields_names_1: Vec<#fields_types>,)*
         }
@@ -183,15 +183,6 @@ pub fn derive(input: &Struct) -> Tokens {
 
             /// Similar to [`
             #[doc = #vec_name_str]
-            /// ::resize()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.resize).
-            pub fn resize<T>(&mut self, new_len: usize, value: #name) {
-                #(
-                    self.#fields_names_1.resize(new_len, value.#fields_names_2);
-                )*
-            }
-
-            /// Similar to [`
-            #[doc = #vec_name_str]
             /// ::split_off()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.split_off).
             pub fn split_off(&mut self, at: usize) -> #vec_name {
                 #vec_name {
@@ -239,5 +230,23 @@ pub fn derive(input: &Struct) -> Tokens {
                 }
             }
         }
+    };
+
+    if input.derives.contains(&"Clone".into()) {
+        generated.append(quote!{
+            #[allow(dead_code)]
+            impl #vec_name {
+                /// Similar to [`
+                #[doc = #vec_name_str]
+                /// ::resize()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.resize).
+                pub fn resize<T>(&mut self, new_len: usize, value: #name) {
+                    #(
+                        self.#fields_names_1.resize(new_len, value.#fields_names_2);
+                    )*
+                }
+            }
+        });
     }
+
+    return generated;
 }

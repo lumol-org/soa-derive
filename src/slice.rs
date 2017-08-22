@@ -2,7 +2,7 @@ use quote::{Tokens, Ident};
 use structs::Struct;
 
 pub fn derive_slice(input: &Struct) -> Tokens {
-    let derives = &input.derive_no_clone;
+    let other_derive = &input.derive_no_clone();
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();
     let vec_name = &input.vec_name();
@@ -29,14 +29,14 @@ pub fn derive_slice(input: &Struct) -> Tokens {
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
-    quote! {
+    let mut generated = quote! {
         /// A slice of
         #[doc = #doc_url]
         /// inside a
         #[doc = #vec_doc_url]
         /// .
         #[allow(dead_code)]
-        #derives
+        #other_derive
         #visibility struct #slice_name<'a> {
             #(pub #fields_names_1: &'a [#fields_types],)*
         }
@@ -156,22 +156,31 @@ pub fn derive_slice(input: &Struct) -> Tokens {
                     #(#fields_names_1: self.#fields_names_2.get_unchecked(i),)*
                 }
             }
+        }
+    };
 
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::to_vec()`](https://doc.rust-lang.org/std/primitive.slice.html#method.to_vec).
-            pub fn to_vec(&self) -> #vec_name {
-                #vec_name {
-                    #(#fields_names_1: self.#fields_names_2.to_vec(),)*
+    if input.derives.contains(&"Clone".into()) {
+        generated.append(quote!{
+            #[allow(dead_code)]
+            impl<'a> #slice_name<'a> {
+                /// Similar to [`
+                #[doc = #slice_name_str]
+                /// ::to_vec()`](https://doc.rust-lang.org/std/primitive.slice.html#method.to_vec).
+                pub fn to_vec(&self) -> #vec_name {
+                    #vec_name {
+                        #(#fields_names_1: self.#fields_names_2.to_vec(),)*
+                    }
                 }
             }
-        }
+        });
     }
+
+    return generated;
 }
 
 
 pub fn derive_slice_mut(input: &Struct) -> Tokens {
-    let derives = &input.derive_no_clone;
+    let other_derive = &input.derive_no_clone();
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();
     let slice_mut_name = &input.slice_mut_name();
@@ -208,7 +217,7 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
         #[doc = #vec_doc_url]
         /// .
         #[allow(dead_code)]
-        #derives
+        #other_derive
         #visibility struct #slice_mut_name<'a> {
             #(pub #fields_names_1: &'a mut [#fields_types],)*
         }

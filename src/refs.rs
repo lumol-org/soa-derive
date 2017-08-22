@@ -4,7 +4,7 @@ use structs::Struct;
 pub fn derive(input: &Struct) -> Tokens {
     let name = &input.name;
     let visibility = &input.visibility;
-    let derives = &input.derive_no_clone;
+    let other_derive = &input.derive_no_clone();
     let ref_name = &input.ref_name();
     let ref_mut_name = &input.ref_mut_name();
 
@@ -26,7 +26,7 @@ pub fn derive(input: &Struct) -> Tokens {
         /// A reference to a
         #[doc = #doc_url]
         /// with struct of array layout.
-        #derives
+        #other_derive
         #visibility struct #ref_name<'a> {
             #(pub #fields_names_1: &'a #fields_types,)*
         }
@@ -34,7 +34,7 @@ pub fn derive(input: &Struct) -> Tokens {
         /// A mutable reference to a
         #[doc = #doc_url]
         /// with struct of array layout.
-        #derives
+        #other_derive
         #visibility struct #ref_mut_name<'a> {
             #(pub #fields_names_1: &'a mut #fields_types,)*
         }
