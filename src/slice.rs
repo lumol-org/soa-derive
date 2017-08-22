@@ -5,6 +5,7 @@ pub fn derive_slice(input: &Struct) -> Tokens {
     let derives = &input.derive_no_clone;
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();
+    let vec_name = &input.vec_name();
     let ref_name = &input.ref_name();
 
     let slice_name_str = format!("[{}]", input.name);
@@ -153,6 +154,15 @@ pub fn derive_slice(input: &Struct) -> Tokens {
             pub unsafe fn get_unchecked(&self, i: usize) -> #ref_name {
                 #ref_name {
                     #(#fields_names_1: self.#fields_names_2.get_unchecked(i),)*
+                }
+            }
+
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::to_vec()`](https://doc.rust-lang.org/std/primitive.slice.html#method.to_vec).
+            pub fn to_vec(&self) -> #vec_name {
+                #vec_name {
+                    #(#fields_names_1: self.#fields_names_2.to_vec(),)*
                 }
             }
         }
