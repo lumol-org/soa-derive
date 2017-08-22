@@ -3,6 +3,7 @@ use structs::Struct;
 
 pub fn derive(input: &Struct) -> Tokens {
     let name = &input.name;
+    let visibility = &input.visibility;
     let detail_mod = Ident::from(format!("__detail_{}", name));
     let vec_name = &input.vec_name();
     let slice_name = &input.slice_name();
@@ -27,7 +28,7 @@ pub fn derive(input: &Struct) -> Tokens {
             use super::*;
             use std::slice;
 
-            pub struct Iter<'a> {
+            #visibility struct Iter<'a> {
                 #(#fields_names_1: slice::Iter<'a, #fields_types>,)*
             }
 
@@ -46,7 +47,7 @@ pub fn derive(input: &Struct) -> Tokens {
             }
 
             impl #vec_name {
-                pub fn iter(&self) -> Iter {
+                #visibility fn iter(&self) -> Iter {
                     Iter {
                         #(#fields_names_1: self.#fields_names_2.iter(),)*
                     }
@@ -54,14 +55,14 @@ pub fn derive(input: &Struct) -> Tokens {
             }
 
             impl<'a> #slice_name<'a> {
-                pub fn iter(&self) -> Iter {
+                #visibility fn iter(&self) -> Iter {
                     Iter {
                         #(#fields_names_1: self.#fields_names_2.iter(),)*
                     }
                 }
             }
 
-            pub struct IterMut<'a> {
+            #visibility struct IterMut<'a> {
                 #(#fields_names_1: slice::IterMut<'a, #fields_types>,)*
             }
 
@@ -80,7 +81,7 @@ pub fn derive(input: &Struct) -> Tokens {
             }
 
             impl #vec_name {
-                pub fn iter_mut(&mut self) -> IterMut {
+                #visibility fn iter_mut(&mut self) -> IterMut {
                     IterMut {
                         #(#fields_names_1: self.#fields_names_2.iter_mut(),)*
                     }
@@ -88,7 +89,7 @@ pub fn derive(input: &Struct) -> Tokens {
             }
 
             impl<'a> #slice_mut_name<'a> {
-                pub fn iter_mut(&mut self) -> IterMut {
+                #visibility fn iter_mut(&mut self) -> IterMut {
                     IterMut {
                         #(#fields_names_1: self.#fields_names_2.iter_mut(),)*
                     }

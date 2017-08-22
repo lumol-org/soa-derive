@@ -39,13 +39,14 @@ pub fn derive(input: &Struct) -> Tokens {
             #(pub #fields_names_1: &'a mut #fields_types,)*
         }
 
+        #[allow(dead_code)]
         impl #name {
             /// Create a
             #[doc = #ref_doc_url]
             /// from a borrowed
             #[doc = #doc_url]
             /// .
-            pub fn as_ref(&self) -> #ref_name {
+            #visibility fn as_ref(&self) -> #ref_name {
                 #ref_name {
                     #(#fields_names_1: & self.#fields_names_2, )*
                 }
@@ -56,7 +57,7 @@ pub fn derive(input: &Struct) -> Tokens {
             /// from a mutably borrowed
             #[doc = #doc_url]
             /// .
-            pub fn as_mut(&mut self) -> #ref_mut_name {
+            #visibility fn as_mut(&mut self) -> #ref_mut_name {
                 #ref_mut_name {
                     #(#fields_names_1: &mut self.#fields_names_2, )*
                 }
