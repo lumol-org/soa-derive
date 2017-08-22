@@ -184,6 +184,7 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();
     let slice_mut_name = &input.slice_mut_name();
+    let vec_name = &input.vec_name();
     let ref_name = &input.ref_name();
     let ref_mut_name = &input.ref_mut_name();
 
@@ -210,7 +211,7 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
-    quote! {
+    let mut generated = quote! {
         /// A mutable slice of
         #[doc = #doc_url]
         /// inside a
@@ -381,5 +382,23 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
                 }
             }
         }
+    };
+
+    if input.derives.contains(&"Clone".into()) {
+        generated.append(quote!{
+            #[allow(dead_code)]
+            impl<'a> #slice_mut_name<'a> {
+                /// Similar to [`
+                #[doc = #slice_name_str]
+                /// ::to_vec()`](https://doc.rust-lang.org/std/primitive.slice.html#method.to_vec).
+                pub fn to_vec(&self) -> #vec_name {
+                    #vec_name {
+                        #(#fields_names_1: self.#fields_names_2.to_vec(),)*
+                    }
+                }
+            }
+        });
     }
+
+    return generated;
 }
