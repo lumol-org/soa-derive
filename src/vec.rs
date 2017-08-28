@@ -208,6 +208,22 @@ pub fn derive(input: &Struct) -> Tokens {
                 }
             }
 
+            /// Create a slice of this vector matching the given `range`. This
+            /// is analogous to `Index<Range<usize>>`.
+            pub fn slice(&self, range: ::std::ops::Range<usize>) -> #slice_name {
+                #slice_name {
+                    #(#fields_names_1 : &self.#fields_names_2[range.clone()], )*
+                }
+            }
+
+            /// Create a mutable slice of this vector matching the given
+            /// `range`. This is analogous to `IndexMut<Range<usize>>`.
+            pub fn slice_mut(&mut self, range: ::std::ops::Range<usize>) -> #slice_mut_name {
+                #slice_mut_name {
+                    #(#fields_names_1 : &mut self.#fields_names_2[range.clone()], )*
+                }
+            }
+
             /// Similar to [`
             #[doc = #vec_name_str]
             /// ::retain()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.retain).
