@@ -1,4 +1,5 @@
 use quote::{Tokens, Ident};
+use syn::Visibility;
 use structs::Struct;
 
 pub fn derive(input: &Struct) -> Tokens {
@@ -22,7 +23,7 @@ pub fn derive(input: &Struct) -> Tokens {
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
-    quote! {
+    let mut generated = quote! {
         #[allow(non_snake_case, dead_code)]
         mod #detail_mod {
             use super::*;
@@ -89,6 +90,12 @@ pub fn derive(input: &Struct) -> Tokens {
             }
 
             impl<'a> #slice_mut_name<'a> {
+                #visibility fn iter(&mut self) -> Iter {
+                    Iter {
+                        #(#fields_names_1: self.#fields_names_2.iter(),)*
+                    }
+                }
+
                 #visibility fn iter_mut(&mut self) -> IterMut {
                     IterMut {
                         #(#fields_names_1: self.#fields_names_2.iter_mut(),)*
@@ -96,5 +103,47 @@ pub fn derive(input: &Struct) -> Tokens {
                 }
             }
         }
+    };
+
+    if let Visibility::Public = *visibility {
+        generated.append(quote!{
+            impl<'a> IntoIterator for &'a #slice_name<'a> {
+                type Item = #ref_name<'a>;
+                type IntoIter = #detail_mod::Iter<'a>;
+
+                fn into_iter(self) -> Self::IntoIter {
+                    self.iter()
+                }
+            }
+
+            impl<'a> IntoIterator for &'a #vec_name {
+                type Item = #ref_name<'a>;
+                type IntoIter = #detail_mod::Iter<'a>;
+
+                fn into_iter(self) -> Self::IntoIter {
+                    self.iter()
+                }
+            }
+
+            impl<'a> IntoIterator for &'a mut #slice_mut_name<'a> {
+                type Item = #ref_mut_name<'a>;
+                type IntoIter = #detail_mod::IterMut<'a>;
+
+                fn into_iter(self) -> Self::IntoIter {
+                    self.iter_mut()
+                }
+            }
+
+            impl<'a> IntoIterator for &'a mut #vec_name {
+                type Item = #ref_mut_name<'a>;
+                type IntoIter = #detail_mod::IterMut<'a>;
+
+                fn into_iter(self) -> Self::IntoIter {
+                    self.iter_mut()
+                }
+            }
+        });
     }
+
+    return generated;
 }
