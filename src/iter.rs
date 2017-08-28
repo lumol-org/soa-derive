@@ -30,7 +30,7 @@ pub fn derive(input: &Struct) -> Tokens {
             use std::slice;
 
             #visibility struct Iter<'a> {
-                #(#fields_names_1: slice::Iter<'a, #fields_types>,)*
+                #(pub(super) #fields_names_1: slice::Iter<'a, #fields_types>,)*
             }
 
             impl<'a> Iterator for Iter<'a> {
@@ -64,7 +64,7 @@ pub fn derive(input: &Struct) -> Tokens {
             }
 
             #visibility struct IterMut<'a> {
-                #(#fields_names_1: slice::IterMut<'a, #fields_types>,)*
+                #(pub(super) #fields_names_1: slice::IterMut<'a, #fields_types>,)*
             }
 
             impl<'a> Iterator for IterMut<'a> {
@@ -107,12 +107,14 @@ pub fn derive(input: &Struct) -> Tokens {
 
     if let Visibility::Public = *visibility {
         generated.append(quote!{
-            impl<'a> IntoIterator for &'a #slice_name<'a> {
+            impl<'a> IntoIterator for #slice_name<'a> {
                 type Item = #ref_name<'a>;
                 type IntoIter = #detail_mod::Iter<'a>;
 
                 fn into_iter(self) -> Self::IntoIter {
-                    self.iter()
+                    Self::IntoIter {
+                        #(#fields_names_1: self.#fields_names_2.iter(),)*
+                    }
                 }
             }
 
@@ -121,16 +123,20 @@ pub fn derive(input: &Struct) -> Tokens {
                 type IntoIter = #detail_mod::Iter<'a>;
 
                 fn into_iter(self) -> Self::IntoIter {
-                    self.iter()
+                    Self::IntoIter {
+                        #(#fields_names_1: self.#fields_names_2.iter(),)*
+                    }
                 }
             }
 
-            impl<'a> IntoIterator for &'a mut #slice_mut_name<'a> {
+            impl<'a> IntoIterator for #slice_mut_name<'a> {
                 type Item = #ref_mut_name<'a>;
                 type IntoIter = #detail_mod::IterMut<'a>;
 
                 fn into_iter(self) -> Self::IntoIter {
-                    self.iter_mut()
+                    Self::IntoIter {
+                        #(#fields_names_1: self.#fields_names_2.iter_mut(),)*
+                    }
                 }
             }
 
@@ -139,7 +145,9 @@ pub fn derive(input: &Struct) -> Tokens {
                 type IntoIter = #detail_mod::IterMut<'a>;
 
                 fn into_iter(self) -> Self::IntoIter {
-                    self.iter_mut()
+                    Self::IntoIter {
+                        #(#fields_names_1: self.#fields_names_2.iter_mut(),)*
+                    }
                 }
             }
         });
