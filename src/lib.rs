@@ -64,6 +64,8 @@
 //! example and the documentation of all the generated code.
 
 extern crate proc_macro;
+extern crate case;
+extern crate permutohedron;
 extern crate syn;
 #[macro_use]
 extern crate quote;
@@ -75,6 +77,7 @@ mod vec;
 mod refs;
 mod slice;
 mod iter;
+mod zip;
 
 #[proc_macro_derive(StructOfArray, attributes(soa_derive))]
 pub fn soa_derive(input: TokenStream) -> TokenStream {
@@ -88,5 +91,6 @@ pub fn soa_derive(input: TokenStream) -> TokenStream {
     generated.append(slice::derive_slice(&input).as_str());
     generated.append(slice::derive_slice_mut(&input).as_str());
     generated.append(iter::derive(&input).as_str());
+    generated.append(zip::derive(&input).as_str());
     generated.parse().unwrap()
 }
