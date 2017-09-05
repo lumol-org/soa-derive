@@ -3,8 +3,10 @@
 #[derive(Debug, Clone, PartialEq, StructOfArray)]
 #[soa_derive = "Debug, Clone, PartialEq"]
 pub struct Particle {
+    #[soa_derive(zip)]
     pub name: String,
-    pub mass: f64
+    #[soa_derive(zip)]
+    pub mass: f64,
 }
 
 impl Particle {

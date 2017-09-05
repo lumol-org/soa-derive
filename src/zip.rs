@@ -17,7 +17,18 @@ pub fn derive(input: &Struct) -> Tokens {
     let mut generated = generate_traits(&idents.details_mod);
 
     generated.append(generate_markers(input, &idents));
-    for permutation in all_permutations(&input.fields) {
+
+    let zip_fields = zippable_fields(&input.fields);
+    if zip_fields.len() > 4 {
+        panic!(
+            "Too many fields ({}) with #[soa_derive(zip)] for `{}`.
+            The generated code will take multiple minutes to compile.
+            Please open an issue (https://github.com/lumol-org/soa-derive/issues/new)
+            if you need more than 4 fields.",
+            zip_fields.len(), input.name
+        )
+    }
+    for permutation in all_permutations(&zip_fields) {
         generated.append(generate_impl(permutation, &idents));
     }
     generated.append(generate_functions(&idents));
@@ -103,7 +114,7 @@ fn generate_markers(input: &Struct, idents: &GeneratedIdents) -> Tokens {
     let vec_zip_url = format!("[`{0}::zip()`](../struct.{0}.html#method.zip)", idents.vec_name);
 
     let mut generated = Tokens::new();
-    for field in &input.fields {
+    for field in zippable_fields(&input.fields) {
         let name_str = field.ident.clone().map(|id| id.as_ref().to_owned()).expect("no field name");
         let marker = Ident::from(name_str.to_camel());
 
@@ -414,4 +425,24 @@ fn mutability_permutations(n: usize) -> BTreeSet<Vec<bool>> {
     }
 
     return permutations;
+}
+
+fn zippable_fields(fields: &[Field]) -> Vec<Field> {
+    use syn::{MetaItem, NestedMetaItem};
+
+    fields.iter().filter(|field| {
+        for attr in &field.attrs {
+            if let syn::MetaItem::List(ref name, ref values) = attr.value {
+                if name != "soa_derive" {
+                    continue;
+                }
+                if let NestedMetaItem::MetaItem(MetaItem::Word(ref zip)) = values[0] {
+                    if zip == "zip" {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }).cloned().collect()
 }
