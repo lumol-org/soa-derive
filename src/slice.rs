@@ -29,6 +29,10 @@ pub fn derive_slice(input: &Struct) -> Tokens {
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
+    let fields_doc = fields_names.iter()
+                                 .map(|field| format!("A slice of `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
+                                 .collect::<Vec<_>>();
+
     let mut generated = quote! {
         /// A slice of
         #[doc = #doc_url]
@@ -38,7 +42,10 @@ pub fn derive_slice(input: &Struct) -> Tokens {
         #[allow(dead_code)]
         #other_derive
         #visibility struct #slice_name<'a> {
-            #(pub #fields_names_1: &'a [#fields_types],)*
+            #(
+                #[doc = #fields_doc]
+                pub #fields_names_1: &'a [#fields_types],
+            )*
         }
 
         #[allow(dead_code)]
@@ -211,6 +218,10 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
+    let fields_doc = fields_names.iter()
+                                 .map(|field| format!("A mutable slice of `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
+                                 .collect::<Vec<_>>();
+
     let mut generated = quote! {
         /// A mutable slice of
         #[doc = #doc_url]
@@ -220,7 +231,10 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
         #[allow(dead_code)]
         #other_derive
         #visibility struct #slice_mut_name<'a> {
-            #(pub #fields_names_1: &'a mut [#fields_types],)*
+            #(
+                #[doc = #fields_doc]
+                pub #fields_names_1: &'a mut [#fields_types],
+            )*
         }
 
         #[allow(dead_code)]

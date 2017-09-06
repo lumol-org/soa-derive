@@ -18,6 +18,10 @@ pub fn derive(input: &Struct) -> Tokens {
     let fields_names_2 = &fields_names;
     let first_field = &fields_names[0];
 
+    let fields_doc = fields_names.iter()
+                                 .map(|field| format!("A vector of `{0}` from a [`{1}`](struct.{1}.html)", field, name))
+                                 .collect::<Vec<_>>();
+
     let fields_types = &input.fields.iter()
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
@@ -29,7 +33,10 @@ pub fn derive(input: &Struct) -> Tokens {
         #[allow(dead_code)]
         #other_derive
         #visibility struct #vec_name {
-            #(pub #fields_names_1: Vec<#fields_types>,)*
+            #(
+                #[doc = #fields_doc]
+                pub #fields_names_1: Vec<#fields_types>,
+            )*
         }
 
         #[allow(dead_code)]

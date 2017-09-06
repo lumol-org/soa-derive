@@ -19,6 +19,8 @@
 //!
 //! [soa_derive]: https://github.com/lumol-org/soa-derive/
 
+#![deny(missing_docs)]
+
 #[macro_use]
 extern crate soa_derive;
 
@@ -26,9 +28,14 @@ extern crate soa_derive;
 #[derive(Debug, PartialEq, StructOfArray)]
 #[soa_derive = "Debug, PartialEq"]
 pub struct Particle {
+    /// The x field
     pub x: f64,
+    /// The y field
     pub y: f64,
+    /// The z field
     pub z: f64,
+    /// The mass field
     pub mass: f64,
+    /// The name field
     pub name: String,
 }

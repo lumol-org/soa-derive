@@ -12,6 +12,9 @@ pub fn derive(input: &Struct) -> Tokens {
     let ref_name = &input.ref_name();
     let ref_mut_name = &input.ref_mut_name();
 
+    let ref_doc_url = format!("[`{0}`](struct.{0}.html)", ref_name);
+    let ref_mut_doc_url = format!("[`{0}`](struct.{0}.html)", ref_mut_name);
+
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
                                    .collect::<Vec<_>>();
@@ -48,6 +51,9 @@ pub fn derive(input: &Struct) -> Tokens {
             }
 
             impl #vec_name {
+                /// Get an iterator over the
+                #[doc = #ref_doc_url]
+                /// in this vector
                 #visibility fn iter(&self) -> Iter {
                     Iter {
                         #(#fields_names_1: self.#fields_names_2.iter(),)*
@@ -56,6 +62,9 @@ pub fn derive(input: &Struct) -> Tokens {
             }
 
             impl<'a> #slice_name<'a> {
+                /// Get an iterator over the
+                #[doc = #ref_doc_url]
+                /// in this slice.
                 #visibility fn iter(&self) -> Iter {
                     Iter {
                         #(#fields_names_1: self.#fields_names_2.iter(),)*
@@ -82,6 +91,9 @@ pub fn derive(input: &Struct) -> Tokens {
             }
 
             impl #vec_name {
+                /// Get a mutable iterator over the
+                #[doc = #ref_mut_doc_url]
+                /// in this vector
                 #visibility fn iter_mut(&mut self) -> IterMut {
                     IterMut {
                         #(#fields_names_1: self.#fields_names_2.iter_mut(),)*
@@ -90,12 +102,18 @@ pub fn derive(input: &Struct) -> Tokens {
             }
 
             impl<'a> #slice_mut_name<'a> {
+                /// Get an iterator over the
+                #[doc = #ref_doc_url]
+                /// in this vector
                 #visibility fn iter(&mut self) -> Iter {
                     Iter {
                         #(#fields_names_1: self.#fields_names_2.iter(),)*
                     }
                 }
 
+                /// Get a mutable iterator over the
+                #[doc = #ref_mut_doc_url]
+                /// in this vector
                 #visibility fn iter_mut(&mut self) -> IterMut {
                     IterMut {
                         #(#fields_names_1: self.#fields_names_2.iter_mut(),)*
