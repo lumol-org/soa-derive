@@ -4,6 +4,7 @@
 //! ```no_run
 //! #[macro_use]
 //! extern crate soa_derive;
+//! # fn main() {
 //!
 //! /// A basic Particle type
 //! #[derive(Debug, PartialEq, StructOfArray)]
@@ -24,6 +25,7 @@
 //!     /// The name field
 //!     pub name: String,
 //! }
+//! # }
 //! ```
 //!
 //! [soa_derive]: https://github.com/lumol-org/soa-derive/

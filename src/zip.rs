@@ -132,6 +132,9 @@ fn generate_markers(input: &Struct, idents: &GeneratedIdents) -> Tokens {
 
     let markers_mod = &idents.markers_mod;
     quote!{
+        /// This module contains the marker types for the
+        #[doc = #vec_zip_url]
+        /// functionality.
         pub mod #markers_mod {
             #generated
         }
@@ -211,14 +214,100 @@ fn generate_functions(idents: &GeneratedIdents) -> Tokens {
     let slice_name = &idents.slice_name;
     let slice_mut_name = &idents.slice_mut_name;
 
+    let vec_name_string = &format!("{}", vec_name);
+    let slice_name_string = &format!("{}", slice_name);
+    let slice_mut_name_string = &format!("{}", slice_mut_name);
+    let markers_mod_url = &format!("[`{0}`]({0}/index.html)", idents.markers_mod);
+
     quote! {
         impl #vec_name {
+            /// Get an iterator over multiple fields of this `
+            #[doc = #vec_name_string]
+            /// `.
+            ///
+            /// Use the `data` argument to request specific fields. This
+            /// argument can be a reference to any of the marker types in the
+            #[doc = #markers_mod_url]
+            /// module; or a tuple of reference to types in this module. Only
+            /// fields marked with `#[soa_derive(zip)]` are available.
+            ///
+            /// This function is only generated when the main struct is public.
+            ///
+            /// # Examples
+            ///
+            /// ```no_run
+            /// # #[macro_use] extern crate soa_derive;
+            /// #[derive(StructOfArray)]
+            /// pub struct Example {
+            ///     #[soa_derive(zip)]
+            ///     mass: f64,
+            ///     #[soa_derive(zip)]
+            ///     label: String,
+            ///     #[soa_derive(zip)]
+            ///     position: [f64; 3],
+            /// }
+            ///
+            /// use self::zip_example::{Mass, Label, Position};
+            /// # fn main() {
+            /// let vector = ExampleVec::new();
+            /// for mass in vector.zip(&Mass) {
+            ///     // ...
+            /// }
+            ///
+            /// for (mass, position, label) in vector.zip((&Mass, &Position, &Label)) {
+            ///     // ...
+            /// }
+            /// # }
+            /// ```
             pub fn zip<'a, D>(&'a self, data: D) -> <Self as #details::Zip<'a, D>>::Iterator
                 where Self: #details::Zip<'a, D>
             {
                 <Self as #details::Zip<'a, D>>::zip(self, data)
             }
 
+            /// Get an iterator over multiple fields of this `
+            #[doc = #vec_name_string]
+            /// `.
+            ///
+            /// Use the `data` argument to request specific fields. This
+            /// argument can be a reference or a mutable reference to any of
+            /// the marker types in the
+            #[doc = #markers_mod_url]
+            /// module; or a tuple of reference or mutable reference to types
+            /// in this module. Only fields marked with `#[soa_derive(zip)]`
+            /// are available.
+            ///
+            /// This function is only generated when the main struct is public.
+            ///
+            /// # Examples
+            ///
+            /// ```no_run
+            /// # #[macro_use] extern crate soa_derive;
+            /// #[derive(StructOfArray)]
+            /// pub struct Example {
+            ///     #[soa_derive(zip)]
+            ///     mass: f64,
+            ///     #[soa_derive(zip)]
+            ///     label: String,
+            ///     #[soa_derive(zip)]
+            ///     position: [f64; 3],
+            /// }
+            ///
+            /// use self::zip_example::{Mass, Label, Position};
+            /// # fn main() {
+            /// let mut vector = ExampleVec::new();
+            /// for mass in vector.zip_mut(&mut Mass) {
+            ///     *mass += 3.0;
+            /// }
+            ///
+            /// // Mutable position, immutable mass and label
+            /// for (&mass, position, label) in vector.zip_mut((&Mass, &mut Position, &Label)) {
+            ///     if label == "foo" {
+            ///         position[0] -= mass;
+            ///     }
+            /// }
+            /// # }
+            /// ```
             pub fn zip_mut<'a, D>(&'a mut self, data: D) -> <Self as #details::ZipMut<'a, D>>::Iterator
                 where Self: #details::ZipMut<'a, D>
             {
@@ -227,6 +316,46 @@ fn generate_functions(idents: &GeneratedIdents) -> Tokens {
         }
 
         impl<'b> #slice_name<'b> {
+            /// Get an iterator over multiple fields of this `
+            #[doc = #slice_name_string]
+            /// `.
+            ///
+            /// Use the `data` argument to request specific fields. This
+            /// argument can be a reference to any of the marker types in the
+            #[doc = #markers_mod_url]
+            /// module; or a tuple of reference to types in this module. Only
+            /// fields marked with `#[soa_derive(zip)]` are available.
+            ///
+            /// This function is only generated when the main struct is public.
+            ///
+            /// # Examples
+            ///
+            /// ```no_run
+            /// # #[macro_use] extern crate soa_derive;
+            /// #[derive(StructOfArray)]
+            /// pub struct Example {
+            ///     #[soa_derive(zip)]
+            ///     mass: f64,
+            ///     #[soa_derive(zip)]
+            ///     label: String,
+            ///     #[soa_derive(zip)]
+            ///     position: [f64; 3],
+            /// }
+            ///
+            /// use self::zip_example::{Mass, Label, Position};
+            /// # fn main() {
+            /// let vector = ExampleVec::new();
+            ///
+            /// let slice = vector.as_slice();
+            /// for mass in slice.zip(&Mass) {
+            ///     // ...
+            /// }
+            ///
+            /// for (mass, position, label) in slice.zip((&Mass, &Position, &Label)) {
+            ///     // ...
+            /// }
+            /// # }
+            /// ```
             pub fn zip<'a, D>(&'a self, data: D) -> <Self as #details::Zip<'a, D>>::Iterator
                 where Self: #details::Zip<'a, D>
             {
@@ -235,12 +364,97 @@ fn generate_functions(idents: &GeneratedIdents) -> Tokens {
         }
 
         impl<'b> #slice_mut_name<'b> {
+            /// Get an iterator over multiple fields of this `
+            #[doc = #slice_mut_name_string]
+            /// `.
+            ///
+            /// Use the `data` argument to request specific fields. This
+            /// argument can be a reference to any of the marker types in the
+            #[doc = #markers_mod_url]
+            /// module; or a tuple of reference to types in this module. Only
+            /// fields marked with `#[soa_derive(zip)]` are available.
+            ///
+            /// This function is only generated when the main struct is public.
+            ///
+            /// # Examples
+            ///
+            /// ```no_run
+            /// # #[macro_use] extern crate soa_derive;
+            /// #[derive(StructOfArray)]
+            /// pub struct Example {
+            ///     #[soa_derive(zip)]
+            ///     mass: f64,
+            ///     #[soa_derive(zip)]
+            ///     label: String,
+            ///     #[soa_derive(zip)]
+            ///     position: [f64; 3],
+            /// }
+            ///
+            /// use self::zip_example::{Mass, Label, Position};
+            /// # fn main() {
+            /// let mut vector = ExampleVec::new();
+            ///
+            /// let slice = vector.as_mut_slice();
+            /// for mass in slice.zip(&Mass) {
+            ///     // ...
+            /// }
+            ///
+            /// for (mass, position, label) in slice.zip((&Mass, &Position, &Label)) {
+            ///     // ...
+            /// }
+            /// # }
+            /// ```
             pub fn zip<'a, D>(&'a self, data: D) -> <Self as #details::Zip<'a, D>>::Iterator
                 where Self: #details::Zip<'a, D>
             {
                 <Self as #details::Zip<'a, D>>::zip(self, data)
             }
 
+            /// Get an iterator over multiple fields of this `
+            #[doc = #slice_mut_name_string]
+            /// `.
+            ///
+            /// Use the `data` argument to request specific fields. This
+            /// argument can be a reference or a mutable reference to any of
+            /// the marker types in the
+            #[doc = #markers_mod_url]
+            /// module; or a tuple of reference or mutable reference to types
+            /// in this module. Only fields marked with `#[soa_derive(zip)]`
+            /// are available.
+            ///
+            /// This function is only generated when the main struct is public.
+            ///
+            /// # Examples
+            ///
+            /// ```no_run
+            /// # #[macro_use] extern crate soa_derive;
+            /// #[derive(StructOfArray)]
+            /// pub struct Example {
+            ///     #[soa_derive(zip)]
+            ///     mass: f64,
+            ///     #[soa_derive(zip)]
+            ///     label: String,
+            ///     #[soa_derive(zip)]
+            ///     position: [f64; 3],
+            /// }
+            ///
+            /// use self::zip_example::{Mass, Label, Position};
+            /// # fn main() {
+            /// let mut vector = ExampleVec::new();
+            ///
+            /// let mut slice = vector.as_mut_slice();
+            /// for mass in slice.zip_mut(&mut Mass) {
+            ///     *mass += 3.0;
+            /// }
+            ///
+            /// // Mutable position, immutable mass and label
+            /// for (&mass, position, label) in slice.zip_mut((&Mass, &mut Position, &Label)) {
+            ///     if label == "foo" {
+            ///         position[0] -= mass;
+            ///     }
+            /// }
+            /// # }
+            /// ```
             pub fn zip_mut<'a, D>(&'a mut self, data: D) -> <Self as #details::ZipMut<'a, D>>::Iterator
                 where Self: #details::ZipMut<'a, D>
             {

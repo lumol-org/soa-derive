@@ -12,9 +12,11 @@ script:
     - cd $TRAVIS_BUILD_DIR
     - cargo test
     - cargo test --release
+    - cargo bench --no-run
+    # Testing and documenting the example
     - cd example
     - cargo doc --no-deps
-    - cargo bench --no-run
+    - cargo test
     - cp index.html target/doc/
     - cd $TRAVIS_BUILD_DIR
 
