@@ -1,6 +1,6 @@
 [package]
 name = "soa-derive-example"
-version = "0.1.0"
+version = "0.0.0"
 authors = ["Luthaf <luthaf@luthaf.fr>"]
 repository = "https://github.com/lumol-org/soa-derive"
 license = "BSD"
