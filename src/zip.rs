@@ -141,7 +141,7 @@ fn generate_markers(input: &Struct, idents: &GeneratedIdents) -> Tokens {
     }
 }
 
-fn generate_impl(permutation: MarkerPermutation, idents: &GeneratedIdents) -> Tokens {
+fn generate_impl(permutation: ZipArgPermutation, idents: &GeneratedIdents) -> Tokens {
     let details = &idents.details_mod;
     let markers = &idents.markers_mod;
 
@@ -490,85 +490,98 @@ impl GeneratedIdents {
     }
 }
 
-struct MarkerPermutation {
-    names: Vec<syn::Ident>,
-    types: Vec<syn::Ty>,
-    mutables: Vec<bool>,
+struct ZipArg {
+    name: syn::Ident,
+    typ: syn::Ty,
+    mutable: bool,
 }
 
-impl MarkerPermutation {
-    fn needs_mut(&self) -> bool {
-        self.mutables.iter().any(|&x| x)
-    }
+impl ZipArg {
+    fn marker(&self, module: &Ident) -> Tokens {
+        let name: Ident = self.name.as_ref().to_camel().into();
 
-    fn markers(&self, module: &Ident) -> Tokens {
-        let names: Vec<Ident> = self.names
-                                    .iter()
-                                    .map(|name| name.as_ref()
-                                                    .to_camel()
-                                                    .into())
-                                    .collect();
-        let mut markers = Vec::new();
-        for (marker, &mu) in names.iter().zip(&self.mutables) {
-            markers.push(if mu {
-                quote!{&'a mut #module::#marker}
-            } else {
-                quote!{&'a #module::#marker}
-            })
-        }
-
-        if markers.len() == 1 {
-            markers[0].clone()
+        if self.mutable {
+            quote!{&'a mut #module::#name}
         } else {
-            quote! {(#(#markers,)*)}
+            quote!{&'a #module::#name}
         }
     }
 
     fn item(&self) -> Tokens {
-        let mut types = Vec::new();
-        for (ty, &mu) in self.types.iter().zip(&self.mutables) {
-            types.push(if mu {
-                quote!{&'a mut #ty}
-            } else {
-                quote!{&'a #ty}
-            })
-        }
-
-        if types.len() == 1 {
-            types[0].clone()
+        let ty = &self.typ;
+        if self.mutable {
+            quote!{&'a mut #ty}
         } else {
-            quote! {(#(#types,)*)}
+            quote!{&'a #ty}
+        }
+    }
+
+    fn iterator(&self) -> Tokens {
+        let ty = &self.typ;
+        if self.mutable {
+            quote!{::std::slice::IterMut<'a, #ty>}
+        } else {
+            quote!{::std::slice::Iter<'a, #ty>}
+        }
+    }
+
+    fn code(&self) -> Tokens {
+        let name = &self.name;
+        if self.mutable {
+            quote!{self.#name.iter_mut()}
+        } else {
+            quote!{self.#name.iter()}
+        }
+    }
+}
+
+struct ZipArgPermutation {
+    args: Vec<ZipArg>,
+}
+
+impl ZipArgPermutation {
+    fn iter(&self) -> ::std::slice::Iter<ZipArg> {
+        self.args.iter()
+    }
+
+    fn needs_mut(&self) -> bool {
+        self.iter().any(|arg| arg.mutable)
+    }
+
+    fn markers(&self, module: &Ident) -> Tokens {
+        let args = self.iter().map(|arg| arg.marker(module)).collect::<Vec<_>>();
+
+        if args.len() == 1 {
+            args[0].clone()
+        } else {
+            quote! {(#(#args,)*)}
+        }
+    }
+
+    fn item(&self) -> Tokens {
+        let items = self.iter().map(|arg| arg.item()).collect::<Vec<_>>();
+
+        if items.len() == 1 {
+            items[0].clone()
+        } else {
+            quote! {(#(#items,)*)}
         }
     }
 
     fn iterator(&self, module: &Ident) -> Tokens {
-        let mut types = Vec::new();
-        for (ty, &mu) in self.types.iter().zip(&self.mutables) {
-            types.push(if mu {
-                quote!{::std::slice::IterMut<'a, #ty>}
-            } else {
-                quote!{::std::slice::Iter<'a, #ty>}
-            })
-        }
+        let iters = self.iter().map(|arg| arg.iterator()).collect::<Vec<_>>();
 
-        if types.len() == 1 {
-            types[0].clone()
+        if iters.len() == 1 {
+            iters[0].clone()
         } else {
             quote! {
-                #module::Multizip<(#(#types,)*)>
+                #module::Multizip<(#(#iters,)*)>
             }
         }
     }
 
     fn code(&self, module: &Ident) -> Tokens {
-        let mut code = Vec::new();
-        for (name, &mu) in self.names.iter().zip(&self.mutables) {
-            code.push(if mu {
-                quote!{self.#name.iter_mut()}
-            } else {
-                quote!{self.#name.iter()}
-            })
-        }
+        let code = self.iter().map(|arg| arg.code()).collect::<Vec<_>>();
 
         if code.len() == 1 {
             code[0].clone()
@@ -580,7 +593,7 @@ impl MarkerPermutation {
     }
 }
 
-fn all_permutations(fields: &[Field]) -> Vec<MarkerPermutation> {
+fn all_permutations(fields: &[Field]) -> Vec<ZipArgPermutation> {
     let mut all = Vec::new();
     for (i1, f1) in fields.iter().enumerate() {
         for (i2, f2) in fields.iter().enumerate().skip(i1 + 1) {
@@ -606,7 +619,7 @@ fn all_permutations(fields: &[Field]) -> Vec<MarkerPermutation> {
     return all;
 }
 
-fn permutations_for(fields: &[&Field]) -> Vec<MarkerPermutation> {
+fn permutations_for(fields: &[&Field]) -> Vec<ZipArgPermutation> {
     let mut data = fields.iter().map(|field| {
         (field.ident.clone().expect("missing field name"), field.ty.clone())
     }).collect::<Vec<_>>();
@@ -614,11 +627,15 @@ fn permutations_for(fields: &[&Field]) -> Vec<MarkerPermutation> {
     let mut permutations = Vec::new();
     heap_recursive(&mut data, |permutation| {
         for mutables in mutability_permutations(fields.len()) {
-            permutations.push(MarkerPermutation {
-                names: permutation.iter().cloned().map(|p| p.0).collect(),
-                types: permutation.iter().cloned().map(|p| p.1).collect(),
-                mutables: mutables,
-            })
+            let mut args = Vec::new();
+            for (&mutable, perm) in mutables.iter().zip(permutation.iter()) {
+                args.push(ZipArg {
+                    name: perm.0.clone(),
+                    typ: perm.1.clone(),
+                    mutable: mutable,
+                });
+            }
+            permutations.push(ZipArgPermutation { args: args });
         }
     });
 
