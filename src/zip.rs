@@ -2,7 +2,9 @@ use quote::{Tokens, Ident};
 use syn::{self, Visibility, Field};
 use case::CaseExt;
 use permutohedron::heap_recursive;
+
 use std::collections::BTreeSet;
+use std::iter;
 
 use structs::Struct;
 
@@ -145,10 +147,13 @@ fn generate_impl(permutation: ZipArgPermutation, idents: &GeneratedIdents) -> To
     let details = &idents.details_mod;
     let markers = &idents.markers_mod;
 
-    let markers = permutation.markers(markers);
+    let typ = permutation.typ(markers);
     let item = permutation.item();
     let iterator = permutation.iterator(details);
     let code = permutation.code(details);
+    let generics = permutation.generics();
+    let where_clause = permutation.where_clause();
+    let arg = permutation.argument();
 
     let vec_name = &idents.vec_name;
     let slice_name = &idents.slice_name;
@@ -156,49 +161,54 @@ fn generate_impl(permutation: ZipArgPermutation, idents: &GeneratedIdents) -> To
 
     if permutation.needs_mut() {
         quote!{
-            impl<'a> #details::ZipMut<'a, #markers> for #vec_name {
+            impl<'a, #generics> #details::ZipMut<'a, #typ> for #vec_name where #where_clause {
                 type Item = #item;
                 type Iterator = #iterator;
 
-                fn zip_mut(&'a mut self, _: #markers) -> Self::Iterator {
+                #[allow(non_snake_case)]
+                fn zip_mut(&'a mut self, #arg: #typ) -> Self::Iterator {
                     #code
                 }
             }
 
-            impl<'a, 'b> #details::ZipMut<'a, #markers> for #slice_mut_name<'b> {
+            impl<'a, 'b, #generics> #details::ZipMut<'a, #typ> for #slice_mut_name<'b> where #where_clause {
                 type Item = #item;
                 type Iterator = #iterator;
 
-                fn zip_mut(&'a mut self, _: #markers) -> Self::Iterator {
+                #[allow(non_snake_case)]
+                fn zip_mut(&'a mut self, #arg: #typ) -> Self::Iterator {
                     #code
                 }
             }
         }
     } else {
         quote!{
-            impl<'a> #details::Zip<'a, #markers> for #vec_name {
+            impl<'a, #generics> #details::Zip<'a, #typ> for #vec_name where #where_clause {
                 type Item = #item;
                 type Iterator = #iterator;
 
-                fn zip(&'a self, _: #markers) -> Self::Iterator {
+                #[allow(non_snake_case)]
+                fn zip(&'a self, #arg: #typ) -> Self::Iterator {
                     #code
                 }
             }
 
-            impl<'a, 'b> #details::Zip<'a, #markers> for #slice_name<'b> {
+            impl<'a, 'b, #generics> #details::Zip<'a, #typ> for #slice_name<'b> where #where_clause {
                 type Item = #item;
                 type Iterator = #iterator;
 
-                fn zip(&'a self, _: #markers) -> Self::Iterator {
+                #[allow(non_snake_case)]
+                fn zip(&'a self, #arg: #typ) -> Self::Iterator {
                     #code
                 }
             }
 
-            impl<'a, 'b> #details::Zip<'a, #markers> for #slice_mut_name<'b> {
+            impl<'a, 'b, #generics> #details::Zip<'a, #typ> for #slice_mut_name<'b> where #where_clause {
                 type Item = #item;
                 type Iterator = #iterator;
 
-                fn zip(&'a self, _: #markers) -> Self::Iterator {
+                #[allow(non_snake_case)]
+                fn zip(&'a self, #arg: #typ) -> Self::Iterator {
                     #code
                 }
             }
@@ -229,11 +239,14 @@ fn generate_functions(idents: &GeneratedIdents) -> Tokens {
             /// argument can be a reference to any of the marker types in the
             #[doc = #markers_mod_url]
             /// module; or a tuple of reference to types in this module. Only
-            /// fields marked with `#[soa_derive(zip)]` are available.
+            /// fields marked with `#[soa_derive(zip)]` are available. It is
+            /// also possible to pass any type implementing `IntoIterator`
+            /// after the marker types, and the corresponding values will be
+            /// forwarded.
             ///
             /// This function is only generated when the main struct is public.
             ///
-            /// # Examples
+            #[doc = "# Examples"]
             ///
             /// ```no_run
             /// # #[macro_use] extern crate soa_derive;
@@ -257,6 +270,12 @@ fn generate_functions(idents: &GeneratedIdents) -> Tokens {
             /// for (mass, position, label) in vector.zip((&Mass, &Position, &Label)) {
             ///     // ...
             /// }
+            ///
+            /// // Using other data in the `zip` function
+            /// let data = vec![3.3; 4];
+            /// for (mass, data) in vector.zip((&Mass, &data)) {
+            ///     // ...
+            /// }
             /// # }
             /// ```
             pub fn zip<'a, D>(&'a self, data: D) -> <Self as #details::Zip<'a, D>>::Iterator
@@ -275,11 +294,13 @@ fn generate_functions(idents: &GeneratedIdents) -> Tokens {
             #[doc = #markers_mod_url]
             /// module; or a tuple of reference or mutable reference to types
             /// in this module. Only fields marked with `#[soa_derive(zip)]`
-            /// are available.
+            /// are available. It is also possible to pass any type
+            /// implementing `IntoIterator` after the marker types, and the
+            /// corresponding values will be forwarded.
             ///
             /// This function is only generated when the main struct is public.
             ///
-            /// # Examples
+            #[doc = "# Examples"]
             ///
             /// ```no_run
             /// # #[macro_use] extern crate soa_derive;
@@ -306,6 +327,12 @@ fn generate_functions(idents: &GeneratedIdents) -> Tokens {
             ///         position[0] -= mass;
             ///     }
             /// }
+            ///
+            /// // Using other data in the `zip` function
+            /// let data = vec![3.3; 4];
+            /// for (mass, data) in vector.zip((&Mass, &data)) {
+            ///     // ...
+            /// }
             /// # }
             /// ```
             pub fn zip_mut<'a, D>(&'a mut self, data: D) -> <Self as #details::ZipMut<'a, D>>::Iterator
@@ -324,11 +351,14 @@ fn generate_functions(idents: &GeneratedIdents) -> Tokens {
             /// argument can be a reference to any of the marker types in the
             #[doc = #markers_mod_url]
             /// module; or a tuple of reference to types in this module. Only
-            /// fields marked with `#[soa_derive(zip)]` are available.
+            /// fields marked with `#[soa_derive(zip)]` are available. It is
+            /// also possible to pass any type implementing `IntoIterator`
+            /// after the marker types, and the corresponding values will be
+            /// forwarded.
             ///
             /// This function is only generated when the main struct is public.
             ///
-            /// # Examples
+            #[doc = "# Examples"]
             ///
             /// ```no_run
             /// # #[macro_use] extern crate soa_derive;
@@ -372,11 +402,14 @@ fn generate_functions(idents: &GeneratedIdents) -> Tokens {
             /// argument can be a reference to any of the marker types in the
             #[doc = #markers_mod_url]
             /// module; or a tuple of reference to types in this module. Only
-            /// fields marked with `#[soa_derive(zip)]` are available.
+            /// fields marked with `#[soa_derive(zip)]` are available. It is
+            /// also possible to pass any type implementing `IntoIterator`
+            /// after the marker types, and the corresponding values will be
+            /// forwarded.
             ///
             /// This function is only generated when the main struct is public.
             ///
-            /// # Examples
+            #[doc = "# Examples"]
             ///
             /// ```no_run
             /// # #[macro_use] extern crate soa_derive;
@@ -420,11 +453,13 @@ fn generate_functions(idents: &GeneratedIdents) -> Tokens {
             #[doc = #markers_mod_url]
             /// module; or a tuple of reference or mutable reference to types
             /// in this module. Only fields marked with `#[soa_derive(zip)]`
-            /// are available.
+            /// are available. It is also possible to pass any type
+            /// implementing `IntoIterator` after the marker types, and the
+            /// corresponding values will be forwarded.
             ///
             /// This function is only generated when the main struct is public.
             ///
-            /// # Examples
+            #[doc = "# Examples"]
             ///
             /// ```no_run
             /// # #[macro_use] extern crate soa_derive;
@@ -490,6 +525,7 @@ impl GeneratedIdents {
     }
 }
 
+#[derive(Clone, Debug)]
 struct ZipArg {
     name: syn::Ident,
     typ: syn::Ty,
@@ -497,7 +533,7 @@ struct ZipArg {
 }
 
 impl ZipArg {
-    fn marker(&self, module: &Ident) -> Tokens {
+    fn typ(&self, module: &Ident) -> Tokens {
         let name: Ident = self.name.as_ref().to_camel().into();
 
         if self.mutable {
@@ -535,8 +571,10 @@ impl ZipArg {
     }
 }
 
+#[derive(Clone, Debug)]
 struct ZipArgPermutation {
     args: Vec<ZipArg>,
+    generics: Vec<Ident>,
 }
 
 impl ZipArgPermutation {
@@ -548,18 +586,48 @@ impl ZipArgPermutation {
         self.iter().any(|arg| arg.mutable)
     }
 
-    fn markers(&self, module: &Ident) -> Tokens {
-        let args = self.iter().map(|arg| arg.marker(module)).collect::<Vec<_>>();
+    fn generics(&self) -> Tokens {
+        let generics = &self.generics;
+        quote!{#(#generics,)*}
+    }
+
+    fn where_clause(&self) -> Tokens {
+        let generics_1 = &self.generics;
+        let generics_2 = &self.generics;
+        quote!{#(#generics_1: IntoIterator, #generics_2::Item: 'a,)*}
+    }
+
+    fn argument(&self) -> Tokens {
+        let mut args = iter::repeat(quote!{_}).take(self.args.len()).collect::<Vec<_>>();
+        args.extend(self.generics.iter().map(|g| quote!{#g}));
+
+        if args.len() == 1 {
+            quote!{_}
+        } else {
+            quote!{(#(#args,)*)}
+        }
+    }
+
+    fn typ(&self, module: &Ident) -> Tokens {
+        let mut args = self.iter().map(|arg| arg.typ(module)).collect::<Vec<_>>();
+
+        let generics = self.generics.iter()
+                                    .map(|g| quote!{#g});
+        args.extend(generics);
 
         if args.len() == 1 {
             args[0].clone()
         } else {
-            quote! {(#(#args,)*)}
+            quote!{(#(#args,)*)}
         }
     }
 
     fn item(&self) -> Tokens {
-        let items = self.iter().map(|arg| arg.item()).collect::<Vec<_>>();
+        let mut items = self.iter().map(|arg| arg.item()).collect::<Vec<_>>();
+
+        let generics = self.generics.iter()
+                                    .map(|g| quote!{#g::Item});
+        items.extend(generics);
 
         if items.len() == 1 {
             items[0].clone()
@@ -569,7 +637,11 @@ impl ZipArgPermutation {
     }
 
     fn iterator(&self, module: &Ident) -> Tokens {
-        let iters = self.iter().map(|arg| arg.iterator()).collect::<Vec<_>>();
+        let mut iters = self.iter().map(|arg| arg.iterator()).collect::<Vec<_>>();
+
+        let generics = self.generics.iter()
+                                    .map(|g| quote!{#g::IntoIter});
+        iters.extend(generics);
 
         if iters.len() == 1 {
             iters[0].clone()
@@ -581,7 +653,11 @@ impl ZipArgPermutation {
     }
 
     fn code(&self, module: &Ident) -> Tokens {
-        let code = self.iter().map(|arg| arg.code()).collect::<Vec<_>>();
+        let mut code = self.iter().map(|arg| arg.code()).collect::<Vec<_>>();
+
+        let generics = self.generics.iter()
+                                    .map(|g| quote!{#g.into_iter()});
+        code.extend(generics);
 
         if code.len() == 1 {
             code[0].clone()
@@ -635,7 +711,15 @@ fn permutations_for(fields: &[&Field]) -> Vec<ZipArgPermutation> {
                     mutable: mutable,
                 });
             }
-            permutations.push(ZipArgPermutation { args: args });
+
+            let generics_names: &[Ident] = &["A".into(), "B".into(), "C".into()];
+            for n in 0..3 {
+                let generics = generics_names[..n].to_vec();
+                permutations.push(ZipArgPermutation {
+                    args: args.clone(),
+                    generics: generics,
+                });
+            }
         }
     });
 

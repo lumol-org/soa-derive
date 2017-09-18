@@ -30,7 +30,6 @@ pub struct VeryBig {
     y: f64,
     #[soa_derive(zip)]
     z: f64,
-    #[soa_derive(zip)]
     vx: f64,
     vy: f64,
     vz: f64,

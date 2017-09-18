@@ -128,3 +128,21 @@ fn slice_mut() {
     for (_, _) in particles.zip_mut((&mut Mass, &Name)) {}
     for (_, _) in particles.zip_mut((&Mass, &mut Name)) {}
 }
+
+#[test]
+fn external() {
+    let mut particles = ParticleVec::new();
+    particles.push(Particle::new(String::from("Na"), 56.0));
+    particles.push(Particle::new(String::from("Na"), 56.0));
+    particles.push(Particle::new(String::from("Na"), 56.0));
+    particles.push(Particle::new(String::from("Na"), 56.0));
+
+    let bar = vec![42.0; 4];
+    for (mass, &bar) in particles.zip_mut((&mut Mass, &bar)) {
+        *mass = bar;
+    }
+
+    for &mass in &particles.mass {
+        assert_eq!(mass, 42.0);
+    }
+}
