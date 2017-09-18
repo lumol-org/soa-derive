@@ -10,19 +10,16 @@
 //! #[derive(Debug, PartialEq, StructOfArray)]
 //! #[soa_derive = "Debug, PartialEq"]
 //! pub struct Particle {
-//!     /// The x field
-//!     #[soa_derive(zip)]
-//!     pub x: f64,
-//!     /// The y field
-//!     #[soa_derive(zip)]
-//!     pub y: f64,
-//!     /// The z field
-//!     #[soa_derive(zip)]
-//!     pub z: f64,
-//!     /// The mass field
+//!     /// Mass of the particle
 //!     #[soa_derive(zip)]
 //!     pub mass: f64,
-//!     /// The name field
+//!     /// Position of the particle
+//!     #[soa_derive(zip)]
+//!     pub position: [f64; 3],
+//!     /// Kind of the particle
+//!     #[soa_derive(zip)]
+//!     pub kind: usize,
+//!     /// Name of the particle
 //!     pub name: String,
 //! }
 //! # }
@@ -39,18 +36,15 @@ extern crate soa_derive;
 #[derive(Debug, PartialEq, StructOfArray)]
 #[soa_derive = "Debug, PartialEq"]
 pub struct Particle {
-    /// The x field
-    #[soa_derive(zip)]
-    pub x: f64,
-    /// The y field
-    #[soa_derive(zip)]
-    pub y: f64,
-    /// The z field
-    #[soa_derive(zip)]
-    pub z: f64,
-    /// The mass field
+    /// Mass of the particle
     #[soa_derive(zip)]
     pub mass: f64,
-    /// The name field
+    /// Position of the particle
+    #[soa_derive(zip)]
+    pub position: [f64; 3],
+    /// Kind of the particle
+    #[soa_derive(zip)]
+    pub kind: usize,
+    /// Name of the particle
     pub name: String,
 }
