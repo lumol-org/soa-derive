@@ -139,7 +139,7 @@ test soa_small_push          ... bench:          24 ns/iter (+/- 6)
 ```
 
 Benchmarks tests exist for soa (struct of array) and aos (array of struct)
-versions of the same code, using a samll and a big struct.
+versions of the same code, using a small and a big struct.
 
 You can run the same benchmarks on your own system by cloning this repository
 and running `cargo bench`.
