@@ -3,7 +3,6 @@ extern crate soa_derive;
 mod particles;
 
 use particles::{Particle, ParticleVec};
-use particles::zip_particle::{Mass, Name};
 
 #[test]
 fn vec() {
@@ -13,42 +12,31 @@ fn vec() {
     particles.push(Particle::new(String::from("Na"), 56.0));
     particles.push(Particle::new(String::from("Na"), 56.0));
 
-    for name in particles.zip(&Name) {
+    for name in soa_zip!(particles, [name]) {
         assert_eq!(name, "Na");
     }
 
-    for &mass in particles.zip(&Mass) {
+    for &mass in soa_zip!(particles, [mass]) {
         assert_eq!(mass, 56.0);
     }
 
-    assert_eq!(particles.zip(&Name).count(), 4);
-    assert_eq!(particles.zip(&Mass).count(), 4);
-
-    for (name, &mass) in particles.zip((&Name, &Mass)) {
+    for (name, &mass) in soa_zip!(particles, [name, mass]) {
         assert_eq!(name, "Na");
         assert_eq!(mass, 56.0);
     }
-    assert_eq!(particles.zip((&Name, &Mass)).count(), 4);
 
-
-    for (_, mass) in particles.zip_mut((&Name, &mut Mass)) {
+    for (_, mass) in soa_zip!(particles, [name, mut mass]) {
         *mass = 42.0;
     }
 
-    for (name, _) in particles.zip_mut((&mut Name, &mut Mass)) {
+    for (name, _) in soa_zip!(particles, [mut name, mut mass]) {
         *name = "Fe".into();
     }
 
-    for (name, &mass) in particles.zip((&Name, &Mass)) {
+    for (name, &mass) in soa_zip!(particles, [name, mass]) {
         assert_eq!(name, "Fe");
         assert_eq!(mass, 42.0);
     }
-
-    // Checking that other variations also compiles
-    for (_, _) in particles.zip((&Mass, &Name)) {}
-    for (_, _) in particles.zip_mut((&mut Name, &Mass)) {}
-    for (_, _) in particles.zip_mut((&mut Mass, &Name)) {}
-    for (_, _) in particles.zip_mut((&Mass, &mut Name)) {}
 }
 
 #[test]
@@ -61,23 +49,18 @@ fn slice() {
 
     let particles = particles.as_slice();
 
-    for name in particles.zip(&Name) {
+    for name in soa_zip!(particles, [name]) {
         assert_eq!(name, "Na");
     }
 
-    for &mass in particles.zip(&Mass) {
+    for &mass in soa_zip!(particles, [mass]) {
         assert_eq!(mass, 56.0);
     }
 
-    assert_eq!(particles.zip(&Name).count(), 4);
-    assert_eq!(particles.zip(&Mass).count(), 4);
-
-    for (name, &mass) in particles.zip((&Name, &Mass)) {
+    for (name, &mass) in soa_zip!(particles, [name, mass]) {
         assert_eq!(name, "Na");
         assert_eq!(mass, 56.0);
     }
-    assert_eq!(particles.zip((&Name, &Mass)).count(), 4);
-    for (_, _) in particles.zip((&Mass, &Name)) {}
 }
 
 #[test]
@@ -88,45 +71,33 @@ fn slice_mut() {
     particles.push(Particle::new(String::from("Na"), 56.0));
     particles.push(Particle::new(String::from("Na"), 56.0));
 
-    let mut particles = particles.as_mut_slice();
+    let particles = particles.as_mut_slice();
 
-    for name in particles.zip(&Name) {
+    for name in soa_zip!(particles, [name]) {
         assert_eq!(name, "Na");
     }
 
-    for &mass in particles.zip(&Mass) {
+    for &mass in soa_zip!(particles, [mass]) {
         assert_eq!(mass, 56.0);
     }
 
-    assert_eq!(particles.zip(&Name).count(), 4);
-    assert_eq!(particles.zip(&Mass).count(), 4);
-
-    for (name, &mass) in particles.zip((&Name, &Mass)) {
+    for (name, &mass) in soa_zip!(particles, [name, mass]) {
         assert_eq!(name, "Na");
         assert_eq!(mass, 56.0);
     }
-    assert_eq!(particles.zip((&Name, &Mass)).count(), 4);
 
-
-    for (_, mass) in particles.zip_mut((&Name, &mut Mass)) {
+    for (_, mass) in soa_zip!(particles, [name, mut mass]) {
         *mass = 42.0;
     }
 
-    for (name, _) in particles.zip_mut((&mut Name, &mut Mass)) {
+    for (name, _) in soa_zip!(particles, [mut name, mut mass]) {
         *name = "Fe".into();
     }
 
-    for (name, &mass) in particles.zip((&Name, &Mass)) {
+    for (name, &mass) in soa_zip!(particles, [name, mass]) {
         assert_eq!(name, "Fe");
         assert_eq!(mass, 42.0);
     }
-
-
-    // Checking that other variations also compiles
-    for (_, _) in particles.zip((&Mass, &Name)) {}
-    for (_, _) in particles.zip_mut((&mut Name, &Mass)) {}
-    for (_, _) in particles.zip_mut((&mut Mass, &Name)) {}
-    for (_, _) in particles.zip_mut((&Mass, &mut Name)) {}
 }
 
 #[test]
@@ -138,7 +109,7 @@ fn external() {
     particles.push(Particle::new(String::from("Na"), 56.0));
 
     let bar = vec![42.0; 4];
-    for (mass, &bar) in particles.zip_mut((&mut Mass, &bar)) {
+    for (mass, &bar) in soa_zip!(particles, [mut mass], &bar) {
         *mass = bar;
     }
 

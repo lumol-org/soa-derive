@@ -24,11 +24,8 @@ pub struct NoTraits {
 
 #[derive(StructOfArray)]
 pub struct VeryBig {
-    #[soa_derive(zip)]
     x: f64,
-    #[soa_derive(zip)]
     y: f64,
-    #[soa_derive(zip)]
     z: f64,
     vx: f64,
     vy: f64,
