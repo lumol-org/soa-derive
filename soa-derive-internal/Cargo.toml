@@ -1,27 +1,21 @@
 [package]
-name = "soa_derive"
+name = "soa_derive_internal"
 version = "0.4.1"
 authors = ["Guillaume Fraux <guillaume.fraux@chimie-paristech.fr>"]
 license = "MIT/Apache-2.0"
-readme = "README.md"
+readme = "../README.md"
 repository = "https://github.com/lumol-org/soa-derive"
 homepage = "https://github.com/lumol-org/soa-derive"
 documentation = "https://docs.rs/soa_derive/"
 description = """
-Automatic Struct of Array generation
+Internal crate implementation for soa-derive
 """
 
-[workspace]
-members = [
-    "soa-derive-internal",
-]
+[lib]
+proc-macro = true
 
 [dependencies]
-soa_derive_internal = {path = "soa-derive-internal"}
-
-[dev-dependencies]
-bencher = "0.1"
-
-[[bench]]
-name = "soa"
-harness = false
+syn = "0.10"
+quote = "0.3"
+case = "0.1"
+permutohedron = "0.2"
