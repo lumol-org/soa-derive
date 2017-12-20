@@ -14,6 +14,7 @@ Automatic Struct of Array generation
 [workspace]
 members = [
     "soa-derive-internal",
+    "example",
 ]
 
 [dependencies]

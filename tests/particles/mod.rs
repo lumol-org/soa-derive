@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+#![forbid(warnings)]
 
 #[derive(Debug, Clone, PartialEq, StructOfArray)]
 #[soa_derive = "Debug, Clone, PartialEq"]

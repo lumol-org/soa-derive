@@ -11,13 +11,10 @@
 //! #[soa_derive = "Debug, PartialEq"]
 //! pub struct Particle {
 //!     /// Mass of the particle
-//!     #[soa_derive(zip)]
 //!     pub mass: f64,
 //!     /// Position of the particle
-//!     #[soa_derive(zip)]
 //!     pub position: [f64; 3],
 //!     /// Kind of the particle
-//!     #[soa_derive(zip)]
 //!     pub kind: usize,
 //!     /// Name of the particle
 //!     pub name: String,
@@ -37,13 +34,10 @@ extern crate soa_derive;
 #[soa_derive = "Debug, PartialEq"]
 pub struct Particle {
     /// Mass of the particle
-    #[soa_derive(zip)]
     pub mass: f64,
     /// Position of the particle
-    #[soa_derive(zip)]
     pub position: [f64; 3],
     /// Kind of the particle
-    #[soa_derive(zip)]
     pub kind: usize,
     /// Name of the particle
     pub name: String,
