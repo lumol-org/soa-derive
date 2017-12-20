@@ -36,6 +36,7 @@ pub fn derive(input: &Struct) -> Tokens {
         #[doc = #doc_url]
         /// with struct of array layout.
         #other_derive
+        #[derive(Copy, Clone)]
         #visibility struct #ref_name<'a> {
             #(
                 #[doc = #fields_doc]
