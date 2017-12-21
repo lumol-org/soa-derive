@@ -147,7 +147,7 @@
 //! # let mut vec = CheeseVec::new();
 //! # vec.push(Cheese::new("stilton"));
 //! # vec.push(Cheese::new("brie"));
-//! for (name, smell, color) in soa_zip!(vec, [name, mut smell, color]) {
+//! for (name, smell, color) in soa_zip!(&mut vec, [name, mut smell, color]) {
 //!     println!("this is {}, with color {:#?}", name, color);
 //!     // smell is a mutable reference
 //!     *smell += 1.0;
@@ -186,12 +186,12 @@ pub use soa_derive_internal::*;
 /// // fill the vector
 ///
 /// // Iterate over immutable references
-/// for (mass, size, name) in soa_zip!(vec, [mass, size, name]) {
+/// for (mass, size, name) in soa_zip!(&vec, [mass, size, name]) {
 ///     println!("got {} kg and {} cm of {}", mass, size, name);
 /// }
 ///
 /// // Iterate over mutable references
-/// for (mass, name) in soa_zip!(vec, [mut mass, name]) {
+/// for (mass, name) in soa_zip!(&mut vec, [mut mass, name]) {
 ///     println!("got {} kg of {}, eating 1 kg", mass, name);
 ///     *mass -= 1.0;
 /// }
@@ -216,16 +216,17 @@ pub use soa_derive_internal::*;
 /// let mut vec = CheeseVec::new();
 /// let mut cellars = Vec::<Cellar>::new();
 ///
-/// for (name, mass, cellar) in soa_zip!(vec, [name, mass], &cellars) {
+/// for (name, mass, cellar) in soa_zip!(&vec, [name, mass], &cellars) {
 ///     println!("we have {} kg of {} in {:#?}", mass, name, cellar);
 /// }
 /// # }
 /// ```
 #[macro_export]
 macro_rules! soa_zip {
-    ($self: expr, [$($fields: tt)*] $(, $external: expr)* $(,)*) => {
-        soa_zip_impl!(@munch $self, {$($fields)*} -> [] $($external ,)*)
-    };
+    ($self: expr, [$($fields: tt)*] $(, $external: expr)* $(,)*) => {{
+        let this = $self;
+        soa_zip_impl!(@munch this, {$($fields)*} -> [] $($external ,)*)
+    }};
 }
 
 #[macro_export]
