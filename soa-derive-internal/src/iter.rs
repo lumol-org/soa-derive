@@ -136,6 +136,17 @@ pub fn derive(input: &Struct) -> Tokens {
                 }
             }
 
+            impl<'a> IntoIterator for &'a #slice_name<'a> {
+                type Item = #ref_name<'a>;
+                type IntoIter = #detail_mod::Iter<'a>;
+
+                fn into_iter(self) -> Self::IntoIter {
+                    Self::IntoIter {
+                        #(#fields_names_1: self.#fields_names_2.iter(),)*
+                    }
+                }
+            }
+
             impl<'a> IntoIterator for &'a #vec_name {
                 type Item = #ref_name<'a>;
                 type IntoIter = #detail_mod::Iter<'a>;
