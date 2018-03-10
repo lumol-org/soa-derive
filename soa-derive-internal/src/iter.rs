@@ -136,7 +136,7 @@ pub fn derive(input: &Struct) -> Tokens {
                 }
             }
 
-            impl<'a> IntoIterator for &'a #slice_name<'a> {
+            impl<'a,'b> IntoIterator for &'a #slice_name<'b> {
                 type Item = #ref_name<'a>;
                 type IntoIter = #detail_mod::Iter<'a>;
 
