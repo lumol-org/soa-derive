@@ -2,7 +2,7 @@ use quote::{Tokens, Ident};
 use structs::Struct;
 
 pub fn derive_slice(input: &Struct) -> Tokens {
-    let other_derive = &input.derive_no_clone();
+    let other_derive = &input.derive_with_exceptions();
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();
     let vec_name = &input.vec_name();
@@ -187,7 +187,7 @@ pub fn derive_slice(input: &Struct) -> Tokens {
 
 
 pub fn derive_slice_mut(input: &Struct) -> Tokens {
-    let other_derive = &input.derive_no_clone();
+    let other_derive = &input.derive_with_exceptions();
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();
     let slice_mut_name = &input.slice_mut_name();

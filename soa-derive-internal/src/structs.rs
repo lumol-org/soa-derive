@@ -58,7 +58,7 @@ impl Struct {
         return ident.into();
     }
 
-    pub fn derive_no_clone(&self) -> quote::Ident {
+    pub fn derive_with_exceptions(&self) -> quote::Ident {
         if self.derives.is_empty() {
             return "".into();
         }
@@ -66,6 +66,7 @@ impl Struct {
         ident += &self.derives.iter()
                               .cloned()
                               .filter(|trai| trai != "Clone")
+                              .filter(|trai| trai != "Deserialize")
                               .collect::<Vec<_>>()
                               .join(", ");
         ident += ")]";
