@@ -90,6 +90,16 @@ pub fn derive(input: &Struct) -> Tokens {
                 }
             }
 
+            impl<'a> DoubleEndedIterator for Iter<'a> {
+                fn next_back(&mut self) -> Option<#ref_name<'a>> {
+                    self.0.next_back().and_then(|#iter_pat|
+                        Some(#ref_name{
+                            #(#fields_names,)*
+                        })
+                    )
+                }
+            }
+
             impl #vec_name {
                 /// Get an iterator over the
                 #[doc = #ref_doc_url]
@@ -114,6 +124,16 @@ pub fn derive(input: &Struct) -> Tokens {
                 type Item = #ref_mut_name<'a>;
                 fn next(&mut self) -> Option<#ref_mut_name<'a>> {
                     self.0.next().and_then(|#iter_pat|
+                        Some(#ref_mut_name{
+                            #(#fields_names,)*
+                        })
+                    )
+                }
+            }
+
+            impl<'a> DoubleEndedIterator for IterMut<'a> {
+                fn next_back(&mut self) -> Option<#ref_mut_name<'a>> {
+                    self.0.next_back().and_then(|#iter_pat|
                         Some(#ref_mut_name{
                             #(#fields_names,)*
                         })
