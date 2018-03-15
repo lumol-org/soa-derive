@@ -88,6 +88,10 @@ pub fn derive(input: &Struct) -> Tokens {
                         })
                     )
                 }
+
+                fn size_hint(&self) -> (usize, Option<usize>) {
+                    self.0.size_hint()
+                }
             }
 
             impl<'a> DoubleEndedIterator for Iter<'a> {
@@ -128,6 +132,10 @@ pub fn derive(input: &Struct) -> Tokens {
                             #(#fields_names,)*
                         })
                     )
+                }
+
+                fn size_hint(&self) -> (usize, Option<usize>) {
+                    self.0.size_hint()
                 }
             }
 
