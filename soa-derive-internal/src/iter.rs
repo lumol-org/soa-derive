@@ -15,38 +15,78 @@ pub fn derive(input: &Struct) -> Tokens {
     let ref_doc_url = format!("[`{0}`](struct.{0}.html)", ref_name);
     let ref_mut_doc_url = format!("[`{0}`](struct.{0}.html)", ref_mut_name);
 
-    let fields_names = input.fields.iter()
-                                   .map(|field| field.ident.clone().unwrap())
-                                   .collect::<Vec<_>>();
-    let fields_names_1 = &fields_names;
-    let fields_names_2 = &fields_names;
+    let fields_names = &input.fields.iter()
+                                    .map(|field| field.ident.clone().unwrap())
+                                    .collect::<Vec<_>>();
     let first_field = &fields_names[0];
 
     let fields_types = &input.fields.iter()
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
+    let first_field_type = &fields_types[0];
+
+    let mut iter_type = quote!{
+        slice::Iter<'a, #first_field_type>
+    };
+    let mut iter_pat = quote!{
+        #first_field
+    };
+    let mut create_iter = quote!{
+        self.#first_field.iter()
+    };
+
+    let mut iter_mut_type = quote!{
+        slice::IterMut<'a, #first_field_type>
+    };
+    let mut create_iter_mut = quote!{
+        self.#first_field.iter_mut()
+    };
+
+    if fields_types.len() > 1 {
+        for field in &input.fields[1..] {
+            let field_name = &field.ident;
+            let field_type = &field.ty;
+
+            iter_pat = quote!{
+                (#iter_pat, #field_name)
+            };
+
+            iter_type = quote!{
+                iter::Zip<#iter_type, slice::Iter<'a, #field_type>>
+            };
+
+            create_iter = quote!{
+                #create_iter.zip(self.#field_name.iter())
+            };
+
+            iter_mut_type = quote!{
+                iter::Zip<#iter_mut_type, slice::IterMut<'a, #field_type>>
+            };
+
+            create_iter_mut = quote!{
+                #create_iter_mut.zip(self.#field_name.iter_mut())
+            };
+        }
+    }
 
     let mut generated = quote! {
         #[allow(non_snake_case, dead_code)]
         mod #detail_mod {
             use super::*;
             use std::slice;
+            #[allow(unused_imports)]
+            use std::iter;
 
-            #visibility struct Iter<'a> {
-                #(pub(super) #fields_names_1: slice::Iter<'a, #fields_types>,)*
-            }
+            #visibility struct Iter<'a>(pub(super) #iter_type);
 
             impl<'a> Iterator for Iter<'a> {
                 type Item = #ref_name<'a>;
                 fn next(&mut self) -> Option<#ref_name<'a>> {
-                    #(let #fields_names_1 = self.#fields_names_2.next();)*
-                    if #first_field.is_none() {
-                        None
-                    } else {
-                        Some(#ref_name {
-                            #(#fields_names_1: #fields_names_2.unwrap(),)*
+                    self.0.next().and_then(|#iter_pat|
+                        Some(#ref_name{
+                            #(#fields_names,)*
                         })
-                    }
+                    )
                 }
             }
 
@@ -55,9 +95,7 @@ pub fn derive(input: &Struct) -> Tokens {
                 #[doc = #ref_doc_url]
                 /// in this vector
                 #visibility fn iter(&self) -> Iter {
-                    Iter {
-                        #(#fields_names_1: self.#fields_names_2.iter(),)*
-                    }
+                    Iter(#create_iter)
                 }
             }
 
@@ -66,27 +104,20 @@ pub fn derive(input: &Struct) -> Tokens {
                 #[doc = #ref_doc_url]
                 /// in this slice.
                 #visibility fn iter(&self) -> Iter {
-                    Iter {
-                        #(#fields_names_1: self.#fields_names_2.iter(),)*
-                    }
+                    Iter(#create_iter)
                 }
             }
 
-            #visibility struct IterMut<'a> {
-                #(pub(super) #fields_names_1: slice::IterMut<'a, #fields_types>,)*
-            }
+            #visibility struct IterMut<'a>(pub(super) #iter_mut_type);
 
             impl<'a> Iterator for IterMut<'a> {
                 type Item = #ref_mut_name<'a>;
                 fn next(&mut self) -> Option<#ref_mut_name<'a>> {
-                    #(let #fields_names_1 = self.#fields_names_2.next();)*
-                    if #first_field.is_none() {
-                        None
-                    } else {
-                        Some(#ref_mut_name {
-                            #(#fields_names_1: #fields_names_2.unwrap(),)*
+                    self.0.next().and_then(|#iter_pat|
+                        Some(#ref_mut_name{
+                            #(#fields_names,)*
                         })
-                    }
+                    )
                 }
             }
 
@@ -95,9 +126,7 @@ pub fn derive(input: &Struct) -> Tokens {
                 #[doc = #ref_mut_doc_url]
                 /// in this vector
                 #visibility fn iter_mut(&mut self) -> IterMut {
-                    IterMut {
-                        #(#fields_names_1: self.#fields_names_2.iter_mut(),)*
-                    }
+                    IterMut(#create_iter_mut)
                 }
             }
 
@@ -106,18 +135,14 @@ pub fn derive(input: &Struct) -> Tokens {
                 #[doc = #ref_doc_url]
                 /// in this vector
                 #visibility fn iter(&mut self) -> Iter {
-                    Iter {
-                        #(#fields_names_1: self.#fields_names_2.iter(),)*
-                    }
+                    Iter(#create_iter)
                 }
 
                 /// Get a mutable iterator over the
                 #[doc = #ref_mut_doc_url]
                 /// in this vector
                 #visibility fn iter_mut(&mut self) -> IterMut {
-                    IterMut {
-                        #(#fields_names_1: self.#fields_names_2.iter_mut(),)*
-                    }
+                    IterMut(#create_iter_mut)
                 }
             }
         }
@@ -130,9 +155,7 @@ pub fn derive(input: &Struct) -> Tokens {
                 type IntoIter = #detail_mod::Iter<'a>;
 
                 fn into_iter(self) -> Self::IntoIter {
-                    Self::IntoIter {
-                        #(#fields_names_1: self.#fields_names_2.iter(),)*
-                    }
+                    #detail_mod::Iter(#create_iter)
                 }
             }
 
@@ -141,9 +164,7 @@ pub fn derive(input: &Struct) -> Tokens {
                 type IntoIter = #detail_mod::Iter<'a>;
 
                 fn into_iter(self) -> Self::IntoIter {
-                    Self::IntoIter {
-                        #(#fields_names_1: self.#fields_names_2.iter(),)*
-                    }
+                    #detail_mod::Iter(#create_iter)
                 }
             }
 
@@ -152,9 +173,7 @@ pub fn derive(input: &Struct) -> Tokens {
                 type IntoIter = #detail_mod::Iter<'a>;
 
                 fn into_iter(self) -> Self::IntoIter {
-                    Self::IntoIter {
-                        #(#fields_names_1: self.#fields_names_2.iter(),)*
-                    }
+                    #detail_mod::Iter(#create_iter)
                 }
             }
 
@@ -163,9 +182,7 @@ pub fn derive(input: &Struct) -> Tokens {
                 type IntoIter = #detail_mod::IterMut<'a>;
 
                 fn into_iter(self) -> Self::IntoIter {
-                    Self::IntoIter {
-                        #(#fields_names_1: self.#fields_names_2.iter_mut(),)*
-                    }
+                    #detail_mod::IterMut(#create_iter_mut)
                 }
             }
 
@@ -174,9 +191,7 @@ pub fn derive(input: &Struct) -> Tokens {
                 type IntoIter = #detail_mod::IterMut<'a>;
 
                 fn into_iter(self) -> Self::IntoIter {
-                    Self::IntoIter {
-                        #(#fields_names_1: self.#fields_names_2.iter_mut(),)*
-                    }
+                    #detail_mod::IterMut(#create_iter_mut)
                 }
             }
         });
