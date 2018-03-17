@@ -81,6 +81,8 @@ pub fn derive(input: &Struct) -> Tokens {
 
             impl<'a> Iterator for Iter<'a> {
                 type Item = #ref_name<'a>;
+
+                #[inline]
                 fn next(&mut self) -> Option<#ref_name<'a>> {
                     self.0.next().and_then(|#iter_pat|
                         Some(#ref_name{
@@ -89,12 +91,15 @@ pub fn derive(input: &Struct) -> Tokens {
                     )
                 }
 
+                #[inline]
                 fn size_hint(&self) -> (usize, Option<usize>) {
                     self.0.size_hint()
                 }
             }
 
             impl<'a> DoubleEndedIterator for Iter<'a> {
+
+                #[inline]
                 fn next_back(&mut self) -> Option<#ref_name<'a>> {
                     self.0.next_back().and_then(|#iter_pat|
                         Some(#ref_name{
@@ -126,6 +131,8 @@ pub fn derive(input: &Struct) -> Tokens {
 
             impl<'a> Iterator for IterMut<'a> {
                 type Item = #ref_mut_name<'a>;
+
+                #[inline]
                 fn next(&mut self) -> Option<#ref_mut_name<'a>> {
                     self.0.next().and_then(|#iter_pat|
                         Some(#ref_mut_name{
@@ -134,12 +141,15 @@ pub fn derive(input: &Struct) -> Tokens {
                     )
                 }
 
+                #[inline]
                 fn size_hint(&self) -> (usize, Option<usize>) {
                     self.0.size_hint()
                 }
             }
 
             impl<'a> DoubleEndedIterator for IterMut<'a> {
+
+                #[inline]
                 fn next_back(&mut self) -> Option<#ref_mut_name<'a>> {
                     self.0.next_back().and_then(|#iter_pat|
                         Some(#ref_mut_name{
