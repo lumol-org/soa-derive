@@ -256,7 +256,7 @@ pub fn derive(input: &Struct) -> Tokens {
     };
 
     if input.derives.contains(&"Clone".into()) {
-        generated.append(quote!{
+        generated.append_all(quote!{
             #[allow(dead_code)]
             impl #vec_name {
                 /// Similar to [`

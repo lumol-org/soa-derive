@@ -1,4 +1,5 @@
-use quote::{Tokens, Ident};
+use quote::Tokens;
+use syn::Ident;
 use structs::Struct;
 
 pub fn derive_slice(input: &Struct) -> Tokens {
@@ -167,7 +168,7 @@ pub fn derive_slice(input: &Struct) -> Tokens {
     };
 
     if input.derives.contains(&"Clone".into()) {
-        generated.append(quote!{
+        generated.append_all(quote!{
             #[allow(dead_code)]
             impl<'a> #slice_name<'a> {
                 /// Similar to [`
@@ -399,7 +400,7 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
     };
 
     if input.derives.contains(&"Clone".into()) {
-        generated.append(quote!{
+        generated.append_all(quote!{
             #[allow(dead_code)]
             impl<'a> #slice_mut_name<'a> {
                 /// Similar to [`

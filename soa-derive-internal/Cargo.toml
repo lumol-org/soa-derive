@@ -1,6 +1,6 @@
 [package]
 name = "soa_derive_internal"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["Guillaume Fraux <guillaume.fraux@chimie-paristech.fr>"]
 license = "MIT/Apache-2.0"
 readme = "../README.md"
@@ -15,6 +15,5 @@ Internal crate implementation for soa-derive
 proc-macro = true
 
 [dependencies]
-syn = "0.10"
-quote = "0.3"
-case = "0.1"
+syn = "0.13"
+quote = "0.5"

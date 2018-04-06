@@ -1,13 +1,12 @@
-use syn::{Body, VariantData, MacroInput, Ident, Field, Visibility, MetaItem};
-use syn::Lit;
-use quote;
+use syn::{Data, DeriveInput, Ident, Field, Visibility, Meta, Lit};
+use quote::{Tokens, ToTokens};
 
 /// Representing the struct we are deriving
 pub struct Struct {
     /// The input struct name
     pub name: Ident,
     /// The list of traits to derive passed to `soa_derive` attribute
-    pub derives: Vec<String>,
+    pub derives: Vec<Ident>,
     /// The list of fields in the struct
     pub fields: Vec<Field>,
     /// The struct overall visibility
@@ -15,26 +14,26 @@ pub struct Struct {
 }
 
 impl Struct {
-    pub fn new(input: MacroInput) -> Struct {
-        let fields = match input.body {
-            Body::Struct(data) => {
-                match data {
-                    VariantData::Struct(fields) => fields,
-                    _ => panic!("#[derive(StructOfArray)] only supports structs."),
-                }
+    pub fn new(input: DeriveInput) -> Struct {
+        let fields = match input.data {
+            Data::Struct(s) => {
+                s.fields.iter().cloned().collect::<Vec<_>>()
             }
             _ => panic!("#[derive(StructOfArray)] only supports structs."),
         };
 
-        let mut derives: Vec<String> = vec![];
-        'attrs: for attr in input.attrs {
-            if let MetaItem::NameValue(name, value) = attr.value {
-                if name.as_ref() == "soa_derive" {
-                    if let Lit::Str(string, _) = value {
-                        for value in string.split(',') {
-                            derives.push(value.trim().into())
+        let mut derives: Vec<Ident> = vec![];
+        for attr in input.attrs {
+            if let Some(meta) = attr.interpret_meta() {
+                if meta.name() == "soa_derive" {
+                    if let Meta::NameValue(meta) = meta {
+                        if let Lit::Str(string) = meta.lit {
+                            for value in string.value().split(',') {
+                                derives.push(value.trim().into())
+                            }
                         }
-                        break 'attrs;
+                    } else {
+                        panic!("expected #[soa_derive = \"Traits, To, Derive\"], got {}", meta.into_tokens())
                     }
                 }
             }
@@ -48,48 +47,53 @@ impl Struct {
         }
     }
 
-    pub fn derive(&self) -> quote::Ident {
+    pub fn derive(&self) -> Tokens {
         if self.derives.is_empty() {
-            return "".into();
+            Tokens::new()
+        } else {
+            let derives = &self.derives;
+            quote!(
+                #[derive(
+                    #(#derives,)*
+                )]
+            )
         }
-        let mut ident = String::from("#[derive(");
-        ident += &self.derives.join(", ");
-        ident += ")]";
-        return ident.into();
     }
 
-    pub fn derive_with_exceptions(&self) -> quote::Ident {
+    pub fn derive_with_exceptions(&self) -> Tokens {
         if self.derives.is_empty() {
-            return "".into();
+            Tokens::new()
+        } else {
+            let derives = &self.derives.iter()
+                                       .cloned()
+                                       .filter(|name| name != "Clone")
+                                       .filter(|name| name != "Deserialize")
+                                       .collect::<Vec<_>>();
+            quote!(
+                #[derive(
+                    #(#derives,)*
+                )]
+            )
         }
-        let mut ident = String::from("#[derive(");
-        ident += &self.derives.iter()
-                              .cloned()
-                              .filter(|trai| trai != "Clone")
-                              .filter(|trai| trai != "Deserialize")
-                              .collect::<Vec<_>>()
-                              .join(", ");
-        ident += ")]";
-        return ident.into();
     }
 
-    pub fn vec_name(&self) -> quote::Ident {
-        quote::Ident::from(format!("{}Vec", self.name))
+    pub fn vec_name(&self) -> Ident {
+        format!("{}Vec", self.name).into()
     }
 
-    pub fn slice_name(&self) -> quote::Ident {
-        quote::Ident::from(format!("{}Slice", self.name))
+    pub fn slice_name(&self) -> Ident {
+        format!("{}Slice", self.name).into()
     }
 
-    pub fn slice_mut_name(&self) -> quote::Ident {
-        quote::Ident::from(format!("{}SliceMut", self.name))
+    pub fn slice_mut_name(&self) -> Ident {
+        format!("{}SliceMut", self.name).into()
     }
 
-    pub fn ref_name(&self) -> quote::Ident {
-        quote::Ident::from(format!("{}Ref", self.name))
+    pub fn ref_name(&self) -> Ident {
+        format!("{}Ref", self.name).into()
     }
 
-    pub fn ref_mut_name(&self) -> quote::Ident {
-        quote::Ident::from(format!("{}RefMut", self.name))
+    pub fn ref_mut_name(&self) -> Ident {
+        format!("{}RefMut", self.name).into()
     }
 }

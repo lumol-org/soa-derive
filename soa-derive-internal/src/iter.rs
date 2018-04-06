@@ -1,5 +1,5 @@
-use quote::{Tokens, Ident};
-use syn::Visibility;
+use quote::Tokens;
+use syn::{Ident, Visibility};
 use structs::Struct;
 
 pub fn derive(input: &Struct) -> Tokens {
@@ -186,8 +186,8 @@ pub fn derive(input: &Struct) -> Tokens {
         }
     };
 
-    if let Visibility::Public = *visibility {
-        generated.append(quote!{
+    if let Visibility::Public(_) = *visibility {
+        generated.append_all(quote!{
             impl<'a> IntoIterator for #slice_name<'a> {
                 type Item = #ref_name<'a>;
                 type IntoIter = #detail_mod::Iter<'a>;
