@@ -1,7 +1,8 @@
-use quote::Tokens;
+use proc_macro2::TokenStream;
+
 use structs::Struct;
 
-pub fn derive(input: &Struct) -> Tokens {
+pub fn derive(input: &Struct) -> TokenStream {
     let name = &input.name;
     let visibility = &input.visibility;
     let other_derive = &input.derive_with_exceptions();

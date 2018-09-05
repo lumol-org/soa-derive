@@ -1,11 +1,14 @@
 #![recursion_limit="512"]
 
 extern crate proc_macro;
+extern crate proc_macro2;
+
 extern crate syn;
 #[macro_use]
 extern crate quote;
 
-use proc_macro::TokenStream;
+use proc_macro2::TokenStream;
+use quote::TokenStreamExt;
 
 mod structs;
 mod vec;
@@ -14,11 +17,11 @@ mod slice;
 mod iter;
 
 #[proc_macro_derive(StructOfArray, attributes(soa_derive))]
-pub fn soa_derive(input: TokenStream) -> TokenStream {
+pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let ast = syn::parse(input).unwrap();
     let input = structs::Struct::new(ast);
 
-    let mut generated = quote::Tokens::new();
+    let mut generated = TokenStream::new();
     generated.append_all(vec::derive(&input));
     generated.append_all(refs::derive(&input));
     generated.append_all(slice::derive_slice(&input));

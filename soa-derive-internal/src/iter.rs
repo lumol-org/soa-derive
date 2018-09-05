@@ -1,11 +1,13 @@
-use quote::Tokens;
+use proc_macro2::{Span, TokenStream};
 use syn::{Ident, Visibility};
+use quote::TokenStreamExt;
+
 use structs::Struct;
 
-pub fn derive(input: &Struct) -> Tokens {
+pub fn derive(input: &Struct) -> TokenStream {
     let name = &input.name;
     let visibility = &input.visibility;
-    let detail_mod = Ident::from(format!("__detail_iter_{}", name.as_ref().to_lowercase()));
+    let detail_mod = Ident::new(&format!("__detail_iter_{}", name.to_string().to_lowercase()), Span::call_site());
     let vec_name = &input.vec_name();
     let slice_name = &input.slice_name();
     let slice_mut_name = &input.slice_mut_name();
