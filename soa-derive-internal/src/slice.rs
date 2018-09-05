@@ -41,6 +41,7 @@ pub fn derive_slice(input: &Struct) -> Tokens {
         #[doc = #vec_doc_url]
         /// .
         #[allow(dead_code)]
+        #[derive(Copy, Clone)]
         #other_derive
         #visibility struct #slice_name<'a> {
             #(
