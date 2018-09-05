@@ -1,5 +1,6 @@
+use proc_macro2::{Span, TokenStream};
+
 use syn::{Data, DeriveInput, Ident, Field, Visibility, Meta, Lit};
-use quote::{Tokens, ToTokens};
 
 /// Representing the struct we are deriving
 pub struct Struct {
@@ -29,11 +30,11 @@ impl Struct {
                     if let Meta::NameValue(meta) = meta {
                         if let Lit::Str(string) = meta.lit {
                             for value in string.value().split(',') {
-                                derives.push(value.trim().into())
+                                derives.push(Ident::new(value.trim(), Span::call_site()));
                             }
                         }
                     } else {
-                        panic!("expected #[soa_derive = \"Traits, To, Derive\"], got {}", meta.into_tokens())
+                        panic!("expected #[soa_derive = \"Traits, To, Derive\"], got {}", "meta TODO")
                     }
                 }
             }
@@ -47,9 +48,9 @@ impl Struct {
         }
     }
 
-    pub fn derive(&self) -> Tokens {
+    pub fn derive(&self) -> TokenStream {
         if self.derives.is_empty() {
-            Tokens::new()
+            TokenStream::new()
         } else {
             let derives = &self.derives;
             quote!(
@@ -60,9 +61,9 @@ impl Struct {
         }
     }
 
-    pub fn derive_with_exceptions(&self) -> Tokens {
+    pub fn derive_with_exceptions(&self) -> TokenStream {
         if self.derives.is_empty() {
-            Tokens::new()
+            TokenStream::new()
         } else {
             let derives = &self.derives.iter()
                                        .cloned()
@@ -78,22 +79,22 @@ impl Struct {
     }
 
     pub fn vec_name(&self) -> Ident {
-        format!("{}Vec", self.name).into()
+        Ident::new(&format!("{}Vec", self.name), Span::call_site())
     }
 
     pub fn slice_name(&self) -> Ident {
-        format!("{}Slice", self.name).into()
+        Ident::new(&format!("{}Slice", self.name), Span::call_site())
     }
 
     pub fn slice_mut_name(&self) -> Ident {
-        format!("{}SliceMut", self.name).into()
+        Ident::new(&format!("{}SliceMut", self.name), Span::call_site())
     }
 
     pub fn ref_name(&self) -> Ident {
-        format!("{}Ref", self.name).into()
+        Ident::new(&format!("{}Ref", self.name), Span::call_site())
     }
 
     pub fn ref_mut_name(&self) -> Ident {
-        format!("{}RefMut", self.name).into()
+        Ident::new(&format!("{}RefMut", self.name), Span::call_site())
     }
 }

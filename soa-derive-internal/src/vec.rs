@@ -1,7 +1,10 @@
-use quote::Tokens;
+use proc_macro2::{Span, TokenStream};
+use syn::Ident;
+use quote::TokenStreamExt;
+
 use structs::Struct;
 
-pub fn derive(input: &Struct) -> Tokens {
+pub fn derive(input: &Struct) -> TokenStream {
     let name = &input.name;
     let vec_name_str = format!("Vec<{}>", name);
     let other_derive = &input.derive();
@@ -255,7 +258,7 @@ pub fn derive(input: &Struct) -> Tokens {
         }
     };
 
-    if input.derives.contains(&"Clone".into()) {
+    if input.derives.contains(&Ident::new("Clone", Span::call_site())) {
         generated.append_all(quote!{
             #[allow(dead_code)]
             impl #vec_name {

@@ -1,8 +1,10 @@
-use quote::Tokens;
+use proc_macro2::{Span, TokenStream};
 use syn::Ident;
+use quote::TokenStreamExt;
+
 use structs::Struct;
 
-pub fn derive_slice(input: &Struct) -> Tokens {
+pub fn derive_slice(input: &Struct) -> TokenStream {
     let other_derive = &input.derive_with_exceptions();
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();
@@ -19,11 +21,13 @@ pub fn derive_slice(input: &Struct) -> Tokens {
     let fields_names_1 = &fields_names;
     let fields_names_2 = &fields_names;
     let first_field = &fields_names[0];
-    let slice_names_1 = &input.fields.iter().map(|field|
-        Ident::from(format!("{}_slice_1", field.ident.as_ref().unwrap())))
+    let slice_names_1 = &input.fields.iter()
+        .map(|field| field.ident.as_ref().unwrap().to_string())
+        .map(|ident| Ident::new(&format!("{}_slice_1", ident), Span::call_site()))
         .collect::<Vec<_>>();
-    let slice_names_2 = &input.fields.iter().map(|field|
-        Ident::from(format!("{}_slice_2", field.ident.as_ref().unwrap())))
+    let slice_names_2 = &input.fields.iter()
+        .map(|field| field.ident.as_ref().unwrap().to_string())
+        .map(|ident| Ident::new(&format!("{}_slice_2", ident), Span::call_site()))
         .collect::<Vec<_>>();
 
     let fields_types = &input.fields.iter()
@@ -168,7 +172,7 @@ pub fn derive_slice(input: &Struct) -> Tokens {
         }
     };
 
-    if input.derives.contains(&"Clone".into()) {
+    if input.derives.contains(&Ident::new("Clone", Span::call_site())) {
         generated.append_all(quote!{
             #[allow(dead_code)]
             impl<'a> #slice_name<'a> {
@@ -187,8 +191,7 @@ pub fn derive_slice(input: &Struct) -> Tokens {
     return generated;
 }
 
-
-pub fn derive_slice_mut(input: &Struct) -> Tokens {
+pub fn derive_slice_mut(input: &Struct) -> TokenStream {
     let other_derive = &input.derive_with_exceptions();
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();
@@ -209,11 +212,13 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
     let fields_names_1 = &fields_names;
     let fields_names_2 = &fields_names;
     let first_field = &fields_names[0];
-    let slice_names_1 = &input.fields.iter().map(|field|
-        Ident::from(format!("{}_slice_1", field.ident.as_ref().unwrap())))
+    let slice_names_1 = &input.fields.iter()
+        .map(|field| field.ident.as_ref().unwrap().to_string())
+        .map(|ident| Ident::new(&format!("{}_slice_1", ident), Span::call_site()))
         .collect::<Vec<_>>();
-    let slice_names_2 = &input.fields.iter().map(|field|
-        Ident::from(format!("{}_slice_2", field.ident.as_ref().unwrap())))
+    let slice_names_2 = &input.fields.iter()
+        .map(|field| field.ident.as_ref().unwrap().to_string())
+        .map(|ident| Ident::new(&format!("{}_slice_2", ident), Span::call_site()))
         .collect::<Vec<_>>();
 
     let fields_types = &input.fields.iter()
@@ -400,7 +405,7 @@ pub fn derive_slice_mut(input: &Struct) -> Tokens {
         }
     };
 
-    if input.derives.contains(&"Clone".into()) {
+    if input.derives.contains(&Ident::new("Clone", Span::call_site())) {
         generated.append_all(quote!{
             #[allow(dead_code)]
             impl<'a> #slice_mut_name<'a> {
