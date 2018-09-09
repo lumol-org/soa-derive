@@ -2,9 +2,9 @@ use proc_macro2::{Span, TokenStream};
 use syn::Ident;
 use quote::TokenStreamExt;
 
-use structs::Struct;
+use input::Input;
 
-pub fn derive_slice(input: &Struct) -> TokenStream {
+pub fn derive_slice(input: &Input) -> TokenStream {
     let other_derive = &input.derive_with_exceptions();
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();
@@ -191,7 +191,7 @@ pub fn derive_slice(input: &Struct) -> TokenStream {
     return generated;
 }
 
-pub fn derive_slice_mut(input: &Struct) -> TokenStream {
+pub fn derive_slice_mut(input: &Input) -> TokenStream {
     let other_derive = &input.derive_with_exceptions();
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();

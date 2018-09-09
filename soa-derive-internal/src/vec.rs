@@ -2,9 +2,9 @@ use proc_macro2::{Span, TokenStream};
 use syn::Ident;
 use quote::TokenStreamExt;
 
-use structs::Struct;
+use input::Input;
 
-pub fn derive(input: &Struct) -> TokenStream {
+pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
     let vec_name_str = format!("Vec<{}>", name);
     let other_derive = &input.derive();

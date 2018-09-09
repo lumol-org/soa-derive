@@ -3,7 +3,7 @@ use proc_macro2::{Span, TokenStream};
 use syn::{Data, DeriveInput, Ident, Field, Visibility, Meta, Lit};
 
 /// Representing the struct we are deriving
-pub struct Struct {
+pub struct Input {
     /// The input struct name
     pub name: Ident,
     /// The list of traits to derive passed to `soa_derive` attribute
@@ -14,8 +14,8 @@ pub struct Struct {
     pub visibility: Visibility
 }
 
-impl Struct {
-    pub fn new(input: DeriveInput) -> Struct {
+impl Input {
+    pub fn new(input: DeriveInput) -> Input {
         let fields = match input.data {
             Data::Struct(s) => {
                 s.fields.iter().cloned().collect::<Vec<_>>()
@@ -40,7 +40,7 @@ impl Struct {
             }
         }
 
-        Struct {
+        Input {
             name: input.ident,
             derives: derives,
             fields: fields,
