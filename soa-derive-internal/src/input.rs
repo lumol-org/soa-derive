@@ -97,4 +97,12 @@ impl Input {
     pub fn ref_mut_name(&self) -> Ident {
         Ident::new(&format!("{}RefMut", self.name), Span::call_site())
     }
+
+    pub fn ptr_name(&self) -> Ident {
+        Ident::new(&format!("{}Ptr", self.name), Span::call_site())
+    }
+
+    pub fn ptr_mut_name(&self) -> Ident {
+        Ident::new(&format!("{}PtrMut", self.name), Span::call_site())
+    }
 }

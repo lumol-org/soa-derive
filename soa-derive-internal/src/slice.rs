@@ -10,6 +10,7 @@ pub fn derive_slice(input: &Input) -> TokenStream {
     let slice_name = &input.slice_name();
     let vec_name = &input.vec_name();
     let ref_name = &input.ref_name();
+    let ptr_name = &input.ptr_name();
 
     let slice_name_str = format!("[{}]", input.name);
     let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
@@ -169,6 +170,22 @@ pub fn derive_slice(input: &Input) -> TokenStream {
                     #(#fields_names_1: self.#fields_names_2.get_unchecked(i),)*
                 }
             }
+
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::as_ptr()`](https://doc.rust-lang.org/std/primitive.slice.html#method.as_ptr).
+            pub fn as_ptr(&self) -> #ptr_name {
+                #ptr_name {
+                    #(#fields_names_1: self.#fields_names_2.as_ptr(),)*
+                }
+            }
+
+            /// Similar to [`std::slice::from_raw_parts()`](https://doc.rust-lang.org/std/slice/fn.from_raw_parts.html).
+            pub unsafe fn from_raw_parts<'b>(data: #ptr_name, len: usize) -> #slice_name<'b> {
+                #slice_name {
+                    #(#fields_names_1: ::std::slice::from_raw_parts(data.#fields_names_2, len),)*
+                }
+            }
         }
     };
 
@@ -199,6 +216,8 @@ pub fn derive_slice_mut(input: &Input) -> TokenStream {
     let vec_name = &input.vec_name();
     let ref_name = &input.ref_name();
     let ref_mut_name = &input.ref_mut_name();
+    let ptr_name = &input.ptr_name();
+    let ptr_mut_name = &input.ptr_mut_name();
 
     let slice_name_str = format!("[{}]", input.name);
     let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
@@ -400,6 +419,31 @@ pub fn derive_slice_mut(input: &Input) -> TokenStream {
             pub unsafe fn get_unchecked_mut(&mut self, i: usize) -> #ref_mut_name {
                 #ref_mut_name {
                     #(#fields_names_1: self.#fields_names_2.get_unchecked_mut(i),)*
+                }
+            }
+
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::as_ptr()`](https://doc.rust-lang.org/std/primitive.slice.html#method.as_ptr).
+            pub fn as_ptr(&self) -> #ptr_name {
+                #ptr_name {
+                    #(#fields_names_1: self.#fields_names_2.as_ptr(),)*
+                }
+            }
+
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::as_mut_ptr()`](https://doc.rust-lang.org/std/primitive.slice.html#method.as_mut_ptr).
+            pub fn as_mut_ptr(&mut self) -> #ptr_mut_name {
+                #ptr_mut_name {
+                    #(#fields_names_1: self.#fields_names_2.as_mut_ptr(),)*
+                }
+            }
+
+            /// Similar to [`std::slice::from_raw_parts_mut()`](https://doc.rust-lang.org/std/slice/fn.from_raw_parts_mut.html).
+            pub unsafe fn from_raw_parts_mut<'b>(data: #ptr_mut_name, len: usize) -> #slice_mut_name<'b> {
+                #slice_mut_name {
+                    #(#fields_names_1: ::std::slice::from_raw_parts_mut(data.#fields_names_2, len),)*
                 }
             }
         }

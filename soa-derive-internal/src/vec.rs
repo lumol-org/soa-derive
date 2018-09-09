@@ -13,6 +13,8 @@ pub fn derive(input: &Input) -> TokenStream {
     let slice_name = &input.slice_name();
     let slice_mut_name = &input.slice_mut_name();
     let ref_name = &input.ref_name();
+    let ptr_name = &input.ptr_name();
+    let ptr_mut_name = &input.ptr_mut_name();
 
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
@@ -253,6 +255,33 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
                 if del > 0 {
                     self.truncate(len - del);
+                }
+            }
+
+            /// Similar to [`
+            #[doc = #vec_name_str]
+            /// ::as_ptr()`](https://doc.rust-lang.org/std/struct.Vec.html#method.as_ptr).
+            pub fn as_ptr(&self) -> #ptr_name {
+                #ptr_name {
+                    #(#fields_names_1: self.#fields_names_2.as_ptr(),)*
+                }
+            }
+
+            /// Similar to [`
+            #[doc = #vec_name_str]
+            /// ::as_mut_ptr()`](https://doc.rust-lang.org/std/struct.Vec.html#method.as_mut_ptr).
+            pub fn as_mut_ptr(&mut self) -> #ptr_mut_name {
+                #ptr_mut_name {
+                    #(#fields_names_1: self.#fields_names_2.as_mut_ptr(),)*
+                }
+            }
+
+            /// Similar to [`
+            #[doc = #vec_name_str]
+            /// ::from_raw_parts()`](https://doc.rust-lang.org/std/struct.Vec.html#method.from_raw_parts).
+            pub unsafe fn from_raw_parts(data: #ptr_mut_name, len: usize, capacity: usize) -> #vec_name {
+                #vec_name {
+                    #(#fields_names_1: Vec::from_raw_parts(data.#fields_names_2, len, capacity),)*
                 }
             }
         }

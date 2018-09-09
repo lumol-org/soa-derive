@@ -13,6 +13,7 @@ use quote::TokenStreamExt;
 mod input;
 mod vec;
 mod refs;
+mod ptr;
 mod slice;
 mod iter;
 
@@ -24,6 +25,7 @@ pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut generated = TokenStream::new();
     generated.append_all(vec::derive(&input));
     generated.append_all(refs::derive(&input));
+    generated.append_all(ptr::derive(&input));
     generated.append_all(slice::derive_slice(&input));
     generated.append_all(slice::derive_slice_mut(&input));
     generated.append_all(iter::derive(&input));
