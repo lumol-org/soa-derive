@@ -170,7 +170,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `*mut T as *const T` transformation
             #visibility fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2 as *const _, )*
+                    #(#fields_names_1: self.#fields_names_2, )*
                 }
             }
 
@@ -302,7 +302,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `&T as *const T` transformation
             #visibility fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2 as *const _, )*
+                    #(#fields_names_1: self.#fields_names_2, )*
                 }
             }
         }
@@ -316,7 +316,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `&mut T as *const T` transformation
             #visibility fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2 as *const _, )*
+                    #(#fields_names_1: self.#fields_names_2, )*
                 }
             }
 
@@ -327,7 +327,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `&mut T as *mut T` transformation
             #visibility fn as_mut_ptr(&mut self) -> #ptr_mut_name {
                 #ptr_mut_name {
-                    #(#fields_names_1: self.#fields_names_2 as *mut _, )*
+                    #(#fields_names_1: self.#fields_names_2, )*
                 }
             }
         }

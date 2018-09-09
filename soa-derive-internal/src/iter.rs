@@ -79,6 +79,7 @@ pub fn derive(input: &Input) -> TokenStream {
             #[allow(unused_imports)]
             use std::iter;
 
+            #[allow(missing_debug_implementations)]
             #visibility struct Iter<'a>(pub(super) #iter_type);
 
             impl<'a> Iterator for Iter<'a> {
@@ -129,6 +130,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
 
+            #[allow(missing_debug_implementations)]
             #visibility struct IterMut<'a>(pub(super) #iter_mut_type);
 
             impl<'a> Iterator for IterMut<'a> {
@@ -199,7 +201,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
 
-            impl<'a,'b> IntoIterator for &'a #slice_name<'b> {
+            impl<'a, 'b> IntoIterator for &'a #slice_name<'b> {
                 type Item = #ref_name<'a>;
                 type IntoIter = #detail_mod::Iter<'a>;
 
