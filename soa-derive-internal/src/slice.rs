@@ -80,7 +80,7 @@ pub fn derive_slice(input: &Input) -> TokenStream {
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::first()`](https://doc.rust-lang.org/std/primitive.slice.html#method.first).
-            pub fn first(&self) -> Option<#ref_name> {
+            pub fn first(&self) -> Option<#ref_name<'a>> {
                 if self.is_empty() {
                     None
                 } else {
@@ -94,7 +94,7 @@ pub fn derive_slice(input: &Input) -> TokenStream {
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::split_first()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_first).
-            pub fn split_first(&self) -> Option<(#ref_name, #slice_name)> {
+            pub fn split_first(&self) -> Option<(#ref_name<'a>, #slice_name<'a>)> {
                 if self.is_empty() {
                     None
                 } else {
@@ -110,7 +110,7 @@ pub fn derive_slice(input: &Input) -> TokenStream {
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::last()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last).
-            pub fn last(&self) -> Option<#ref_name> {
+            pub fn last(&self) -> Option<#ref_name<'a>> {
                 if self.is_empty() {
                     None
                 } else {
@@ -124,7 +124,7 @@ pub fn derive_slice(input: &Input) -> TokenStream {
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::split_last()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_last).
-            pub fn split_last(&self) -> Option<(#ref_name, #slice_name)> {
+            pub fn split_last(&self) -> Option<(#ref_name<'a>, #slice_name<'a>)> {
                 if self.is_empty() {
                     None
                 } else {
@@ -140,7 +140,7 @@ pub fn derive_slice(input: &Input) -> TokenStream {
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::split_at()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_at).
-            pub fn split_at(&self, mid: usize) -> (#slice_name, #slice_name) {
+            pub fn split_at(&self, mid: usize) -> (#slice_name<'a>, #slice_name<'a>) {
                 #(
                     let (#slice_names_1, #slice_names_2) = self.#fields_names_2.split_at(mid);
                 )*
