@@ -1,6 +1,7 @@
 use proc_macro2::TokenStream;
+use quote::quote;
 
-use input::Input;
+use crate::input::Input;
 
 pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;

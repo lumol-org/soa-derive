@@ -1,6 +1,6 @@
 use proc_macro2::{Span, TokenStream};
-
 use syn::{Data, DeriveInput, Ident, Field, Visibility, Meta, Lit};
+use quote::quote;
 
 /// Representing the struct we are deriving
 pub struct Input {

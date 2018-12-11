@@ -1,6 +1,7 @@
 [package]
 name = "soa_derive_internal"
-version = "0.6.3"
+version = "0.8.0"
+edition = "2018"
 authors = ["Guillaume Fraux <guillaume.fraux@chimie-paristech.fr>"]
 license = "MIT/Apache-2.0"
 readme = "../README.md"

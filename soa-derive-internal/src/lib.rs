@@ -1,11 +1,6 @@
 #![recursion_limit="512"]
 
 extern crate proc_macro;
-extern crate proc_macro2;
-
-extern crate syn;
-#[macro_use]
-extern crate quote;
 
 use proc_macro2::TokenStream;
 use quote::TokenStreamExt;

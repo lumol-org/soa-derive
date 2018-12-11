@@ -1,8 +1,9 @@
 use proc_macro2::{Span, TokenStream};
 use syn::Ident;
 use quote::TokenStreamExt;
+use quote::quote;
 
-use input::Input;
+use crate::input::Input;
 
 pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
