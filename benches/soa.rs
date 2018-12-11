@@ -1,9 +1,6 @@
-#[macro_use]
-extern crate bencher;
-#[macro_use]
-extern crate soa_derive;
+use soa_derive::StructOfArray;
 
-use bencher::Bencher;
+use bencher::{Bencher, benchmark_group, benchmark_main};
 
 #[derive(StructOfArray)]
 pub struct Small {
