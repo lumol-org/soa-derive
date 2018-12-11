@@ -1,5 +1,11 @@
 #![recursion_limit="512"]
 
+#![warn(clippy::all, clippy::pedantic)]
+#![allow(clippy::needless_return, clippy::redundant_field_names)]
+#![allow(clippy::stutter, clippy::use_self)]
+// TODO: improve the code and make it simpler to read
+#![allow(clippy::cyclomatic_complexity)]
+
 extern crate proc_macro;
 
 use proc_macro2::TokenStream;
