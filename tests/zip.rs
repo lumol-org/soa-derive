@@ -1,8 +1,6 @@
-#[macro_use]
-extern crate soa_derive;
+use soa_derive::soa_zip;
 mod particles;
-
-use particles::{Particle, ParticleVec, ParticleSlice, ParticleSliceMut};
+use self::particles::{Particle, ParticleVec, ParticleSlice, ParticleSliceMut};
 
 #[test]
 fn vec() {

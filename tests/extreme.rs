@@ -1,7 +1,6 @@
 #![deny(warnings)]
 
-#[macro_use]
-extern crate soa_derive;
+use soa_derive::StructOfArray;
 
 // This test checks that the derive code works even in some extreme cases
 

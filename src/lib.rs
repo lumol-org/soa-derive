@@ -158,11 +158,7 @@
 // The proc macro is implemented in soa_derive_internal, and re-exported by this
 // crate. This is because a single crate can not define both a proc macro and a
 // macro_rules macro.
-#[allow(unused_imports)]
-#[macro_use]
-extern crate soa_derive_internal;
-#[doc(hidden)]
-pub use soa_derive_internal::*;
+pub use soa_derive_internal::StructOfArray;
 
 /// Create an iterator over multiple fields in a Struct of array style vector.
 ///
@@ -225,7 +221,7 @@ pub use soa_derive_internal::*;
 macro_rules! soa_zip {
     ($self: expr, [$($fields: tt)*] $(, $external: expr)* $(,)*) => {{
         let this = $self;
-        soa_zip_impl!(@munch this, {$($fields)*} -> [] $($external ,)*)
+        $crate::soa_zip_impl!(@munch this, {$($fields)*} -> [] $($external ,)*)
     }};
 }
 
@@ -239,36 +235,36 @@ macro_rules! soa_zip_impl {
     };
     // Eat an element ($_iter) and add it to the current closure. Then recurse
     (@flatten $p:pat => ( $($tup:tt)* ) , $_iter:expr $( , $tail:expr )* ) => {
-        soa_zip_impl!(@flatten ($p, a) => ( $($tup)*, a ) $( , $tail )*)
+        $crate::soa_zip_impl!(@flatten ($p, a) => ( $($tup)*, a ) $( , $tail )*)
     };
 
     // The main code is emmited here: we create an iterator, zip it and then
     // map the zipped iterator to flatten it
-    (@final , $first: expr, $($tail: expr,)*) => {
+    (@last , $first: expr, $($tail: expr,)*) => {
         ::std::iter::IntoIterator::into_iter($first)
             $(
                 .zip($tail)
             )*
             .map(
-                soa_zip_impl!(@flatten a => (a) $( , $tail )*)
+                $crate::soa_zip_impl!(@flatten a => (a) $( , $tail )*)
             )
     };
 
     // Eat the last `mut $field` and then emit code
     (@munch $self: expr, {mut $field: ident} -> [$($output: tt)*] $($ext: expr ,)*) => {
-        soa_zip_impl!(@final $($output)*, $self.$field.iter_mut(), $($ext, )*)
+        $crate::soa_zip_impl!(@last $($output)*, $self.$field.iter_mut(), $($ext, )*)
     };
     // Eat the last `$field` and then emit code
     (@munch $self: expr, {$field: ident} -> [$($output: tt)*] $($ext: expr ,)*) => {
-        soa_zip_impl!(@final $($output)*, $self.$field.iter(), $($ext, )*)
+        $crate::soa_zip_impl!(@last $($output)*, $self.$field.iter(), $($ext, )*)
     };
 
     // Eat the next `mut $field` and then recurse
     (@munch $self: expr, {mut $field: ident, $($tail: tt)*} -> [$($output: tt)*] $($ext: expr ,)*) => {
-        soa_zip_impl!(@munch $self, {$($tail)*} -> [$($output)*, $self.$field.iter_mut()] $($ext, )*)
+        $crate::soa_zip_impl!(@munch $self, {$($tail)*} -> [$($output)*, $self.$field.iter_mut()] $($ext, )*)
     };
     // Eat the next `$field` and then recurse
     (@munch $self: expr, {$field: ident, $($tail: tt)*} -> [$($output: tt)*] $($ext: expr ,)*) => {
-        soa_zip_impl!(@munch $self, {$($tail)*} -> [$($output)*, $self.$field.iter()] $($ext, )*)
+        $crate::soa_zip_impl!(@munch $self, {$($tail)*} -> [$($output)*, $self.$field.iter()] $($ext, )*)
     };
 }

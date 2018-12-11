@@ -1,8 +1,5 @@
-#[macro_use]
-extern crate soa_derive;
 mod particles;
-
-use particles::{Particle, ParticleVec, ParticleSlice, ParticleSliceMut};
+use self::particles::{Particle, ParticleVec, ParticleSlice, ParticleSliceMut};
 
 #[test]
 fn const_ref() {

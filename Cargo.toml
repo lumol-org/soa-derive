@@ -1,6 +1,7 @@
 [package]
 name = "soa_derive"
-version = "0.7.0"
+version = "0.8.0"
+edition = "2018"
 authors = ["Guillaume Fraux <guillaume.fraux@chimie-paristech.fr>"]
 license = "MIT/Apache-2.0"
 readme = "README.md"
@@ -18,7 +19,7 @@ members = [
 ]
 
 [dependencies]
-soa_derive_internal = {path = "soa-derive-internal", version = "0.6"}
+soa_derive_internal = {path = "soa-derive-internal", version = "0.8"}
 
 [dev-dependencies]
 bencher = "0.1"

@@ -1,8 +1,6 @@
-#[macro_use]
-extern crate soa_derive;
 mod particles;
 
-use particles::{Particle, ParticleVec};
+use self::particles::{Particle, ParticleVec};
 
 #[test]
 fn iter() {
