@@ -1,5 +1,5 @@
 use proc_macro2::{Span, TokenStream};
-use syn::{Data, DeriveInput, Ident, Field, Visibility, Meta, Lit};
+use syn::{Data, DeriveInput, Ident, Field, Visibility, Meta, MetaNameValue, Lit};
 use quote::quote;
 
 /// Representing the struct we are deriving
@@ -25,16 +25,15 @@ impl Input {
 
         let mut derives: Vec<Ident> = vec![];
         for attr in input.attrs {
-            if let Some(meta) = attr.interpret_meta() {
-                if meta.name() == "soa_derive" {
-                    if let Meta::NameValue(meta) = meta {
-                        if let Lit::Str(string) = meta.lit {
+            if let Ok(meta) = attr.parse_meta() {
+                if meta.path().is_ident("soa_derive") {
+                    match meta {
+                        Meta::NameValue(MetaNameValue{lit: Lit::Str(string), ..}) => {
                             for value in string.value().split(',') {
                                 derives.push(Ident::new(value.trim(), Span::call_site()));
                             }
                         }
-                    } else {
-                        panic!("expected #[soa_derive = \"Traits, To, Derive\"], got {}", "meta TODO")
+                        _ => panic!("expected #[soa_derive = \"Traits, To, Derive\"], got #[{}]", quote!(#meta))
                     }
                 }
             }
