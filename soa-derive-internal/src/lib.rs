@@ -1,8 +1,8 @@
 #![warn(clippy::all, clippy::pedantic)]
 #![allow(clippy::needless_return, clippy::redundant_field_names)]
-#![allow(clippy::stutter, clippy::use_self)]
+#![allow(clippy::use_self, clippy::too_many_lines)]
 // TODO: improve the code and make it simpler to read
-#![allow(clippy::cyclomatic_complexity)]
+#![allow(clippy::cognitive_complexity)]
 
 extern crate proc_macro;
 
@@ -25,8 +25,8 @@ pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     generated.append_all(vec::derive(&input));
     generated.append_all(refs::derive(&input));
     generated.append_all(ptr::derive(&input));
-    generated.append_all(slice::derive_slice(&input));
-    generated.append_all(slice::derive_slice_mut(&input));
+    generated.append_all(slice::derive(&input));
+    generated.append_all(slice::derive_mut(&input));
     generated.append_all(iter::derive(&input));
     generated.into()
 }

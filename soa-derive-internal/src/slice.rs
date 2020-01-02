@@ -5,7 +5,7 @@ use quote::quote;
 
 use crate::input::Input;
 
-pub fn derive_slice(input: &Input) -> TokenStream {
+pub fn derive(input: &Input) -> TokenStream {
     let other_derive = &input.derive_with_exceptions();
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();
@@ -209,7 +209,7 @@ pub fn derive_slice(input: &Input) -> TokenStream {
     return generated;
 }
 
-pub fn derive_slice_mut(input: &Input) -> TokenStream {
+pub fn derive_mut(input: &Input) -> TokenStream {
     let other_derive = &input.derive_with_exceptions();
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();
