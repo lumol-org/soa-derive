@@ -100,7 +100,7 @@ for name in &vec.name {
 ```
 
 In order to iterate over multiple fields at the same time, one can use the
-[soa_zip!](macro.soa_zip.html) macro.
+[soa_zip!](https://docs.rs/soa_derive/*/soa_derive/macro.soa_zip.html) macro.
 
 ```rust
 for (name, smell, color) in soa_zip!(vec, [name, mut smell, color]) {
