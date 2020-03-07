@@ -50,3 +50,20 @@ fn iter_mut() {
     assert_eq!(particles.mass[1], 2.0);
     assert_eq!(particles.mass[2], 2.0);
 }
+
+#[test]
+fn from_iter() {
+    let mut vec_with_particles = Vec::new();
+    vec_with_particles.push(Particle::new(String::from("Na"), 0.0));
+    vec_with_particles.push(Particle::new(String::from("Cl"), 0.0));
+    vec_with_particles.push(Particle::new(String::from("Zn"), 0.0));
+
+    let particles_from_iter: ParticleVec = vec_with_particles.iter().collect();
+
+    let mut particles = ParticleVec::new();
+    particles.push(Particle::new(String::from("Na"), 0.0));
+    particles.push(Particle::new(String::from("Cl"), 0.0));
+    particles.push(Particle::new(String::from("Zn"), 0.0));
+
+    assert_eq!(particles, particles_from_iter)
+}
