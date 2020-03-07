@@ -58,7 +58,7 @@ fn from_iter() {
     vec_with_particles.push(Particle::new(String::from("Cl"), 0.0));
     vec_with_particles.push(Particle::new(String::from("Zn"), 0.0));
 
-    let particles_from_iter: ParticleVec = vec_with_particles.iter().collect();
+    let particles_from_iter: ParticleVec = vec_with_particles.into_iter().collect();
 
     let mut particles = ParticleVec::new();
     particles.push(Particle::new(String::from("Na"), 0.0));

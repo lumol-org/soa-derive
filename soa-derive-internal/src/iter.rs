@@ -203,12 +203,12 @@ pub fn derive(input: &Input) -> TokenStream {
             }
 
 
-            impl<'a> std::iter::FromIterator<&'a #name> for #vec_name {
-                fn from_iter<T: IntoIterator<Item=&'a #name>>(iter: T) -> Self {
+            impl std::iter::FromIterator<#name> for #vec_name {
+                fn from_iter<T: IntoIterator<Item=#name>>(iter: T) -> Self {
                     let mut result = #vec_name::new();
                     for element in iter {
                         #(
-                            (result.#fields_names).push(element.#fields_names.clone());
+                            (result.#fields_names).push(element.#fields_names);
                         )*
                     }
                     result
