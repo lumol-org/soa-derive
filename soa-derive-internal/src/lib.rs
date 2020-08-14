@@ -10,11 +10,11 @@ use proc_macro2::TokenStream;
 use quote::TokenStreamExt;
 
 mod input;
-mod vec;
-mod refs;
-mod ptr;
-mod slice;
 mod iter;
+mod ptr;
+mod refs;
+mod slice;
+mod vec;
 
 #[proc_macro_derive(StructOfArray, attributes(soa_derive))]
 pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -28,5 +28,19 @@ pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     generated.append_all(slice::derive(&input));
     generated.append_all(slice::derive_mut(&input));
     generated.append_all(iter::derive(&input));
+    generated.append_all(derive_trait(&input));
     generated.into()
+}
+
+use crate::input::Input;
+use quote::quote;
+fn derive_trait(input: &Input) -> TokenStream {
+    let name = &input.name;
+    let vec_name = &input.vec_name();
+
+    quote! {
+        impl soa_derive::StructOfArray for #name {
+            type Type = #vec_name;
+        }
+    }
 }

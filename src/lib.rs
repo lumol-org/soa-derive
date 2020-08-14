@@ -160,6 +160,14 @@
 // macro_rules macro.
 pub use soa_derive_internal::StructOfArray;
 
+/// Any struct derived by StructOfArray will auto impl this trait
+/// You can use `<Cheese as StructOfArray>::Type`
+/// instead of explicit named type `CheeseVec`; This will helpful in generics programing
+/// that generate struct can be expressed as `<T as StructOfArray>::Type`
+pub trait StructOfArray {
+    type Type;
+}
+
 /// Create an iterator over multiple fields in a Struct of array style vector.
 ///
 /// This macro takes two main arguments: the array/slice container, and a list

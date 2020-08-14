@@ -33,6 +33,9 @@ few helper structs: `CheeseSlice`, `CheeseSliceMut`, `CheeseRef` and
 `CheeseRefMut` corresponding respectivly to `&[Cheese]`, `&mut [Cheese]`,
 `&Cheese` and `&mut Cheese`.
 
+Any struct derived by StructOfArray will auto impl trait `StructOfArray`,
+You can use `<Cheese as StructOfArray>::Type` instead of explicit named type `CheeseVec`;
+
 ## How to use it
 
 Add `#[derive(StructOfArray)]` to each struct you want to derive a struct of

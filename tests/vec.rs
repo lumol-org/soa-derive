@@ -1,5 +1,11 @@
 mod particles;
 use self::particles::{Particle, ParticleVec};
+use soa_derive::StructOfArray;
+
+#[test]
+fn ty() {
+    let _: <Particle as StructOfArray>::Type = ParticleVec::new();
+}
 
 #[test]
 fn push() {
