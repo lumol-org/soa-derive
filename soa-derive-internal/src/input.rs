@@ -81,6 +81,10 @@ impl Input {
         Ident::new(&format!("{}Vec", self.name), Span::call_site())
     }
 
+    pub fn vec_fields_name(&self) -> Ident {
+        Ident::new(&format!("{}VecFields", self.name), Span::call_site())
+    }
+
     pub fn slice_name(&self) -> Ident {
         Ident::new(&format!("{}Slice", self.name), Span::call_site())
     }

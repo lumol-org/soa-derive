@@ -77,66 +77,66 @@ pub fn derive(input: &Input) -> TokenStream {
                 #(debug_assert_eq!(self.#fields_names_1.is_empty(), empty);)*
                 empty
             }
-
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::first()`](https://doc.rust-lang.org/std/primitive.slice.html#method.first).
-            pub fn first(&self) -> Option<#ref_name<'a>> {
-                if self.is_empty() {
-                    None
-                } else {
-                    #(
-                        let #fields_names_1 = self.#fields_names_2.first().unwrap();
-                    )*
-                    Some(#ref_name{#(#fields_names_1: #fields_names_2),*})
-                }
-            }
-
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::split_first()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_first).
-            pub fn split_first(&self) -> Option<(#ref_name<'a>, #slice_name<'a>)> {
-                if self.is_empty() {
-                    None
-                } else {
-                    #(
-                        let (#fields_names_1, #slice_names_1) = self.#fields_names_2.split_first().unwrap();
-                    )*
-                    let ref_ = #ref_name{#(#fields_names_1: #fields_names_2),*};
-                    let slice = #slice_name{#(#fields_names_1: #slice_names_1),*};
-                    Some((ref_, slice))
-                }
-            }
-
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::last()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last).
-            pub fn last(&self) -> Option<#ref_name<'a>> {
-                if self.is_empty() {
-                    None
-                } else {
-                    #(
-                        let #fields_names_1 = self.#fields_names_2.last().unwrap();
-                    )*
-                    Some(#ref_name{#(#fields_names_1: #fields_names_2),*})
-                }
-            }
-
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::split_last()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_last).
-            pub fn split_last(&self) -> Option<(#ref_name<'a>, #slice_name<'a>)> {
-                if self.is_empty() {
-                    None
-                } else {
-                    #(
-                        let (#fields_names_1, #slice_names_1) = self.#fields_names_2.split_last().unwrap();
-                    )*
-                    let ref_ = #ref_name{#(#fields_names_1: #fields_names_2),*};
-                    let slice = #slice_name{#(#fields_names_1: #slice_names_1),*};
-                    Some((ref_, slice))
-                }
-            }
+            //
+            // /// Similar to [`
+            // #[doc = #slice_name_str]
+            // /// ::first()`](https://doc.rust-lang.org/std/primitive.slice.html#method.first).
+            // pub fn first(&self) -> Option<#ref_name<'a>> {
+            //     if self.is_empty() {
+            //         None
+            //     } else {
+            //         #(
+            //             let #fields_names_1 = self.#fields_names_2.first().unwrap();
+            //         )*
+            //         Some(#ref_name{#(#fields_names_1: #fields_names_2),*})
+            //     }
+            // }
+            //
+            // /// Similar to [`
+            // #[doc = #slice_name_str]
+            // /// ::split_first()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_first).
+            // pub fn split_first(&self) -> Option<(#ref_name<'a>, #slice_name<'a>)> {
+            //     if self.is_empty() {
+            //         None
+            //     } else {
+            //         #(
+            //             let (#fields_names_1, #slice_names_1) = self.#fields_names_2.split_first().unwrap();
+            //         )*
+            //         let ref_ = #ref_name{#(#fields_names_1: #fields_names_2),*};
+            //         let slice = #slice_name{#(#fields_names_1: #slice_names_1),*};
+            //         Some((ref_, slice))
+            //     }
+            // }
+            //
+            // /// Similar to [`
+            // #[doc = #slice_name_str]
+            // /// ::last()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last).
+            // pub fn last(&self) -> Option<#ref_name<'a>> {
+            //     if self.is_empty() {
+            //         None
+            //     } else {
+            //         #(
+            //             let #fields_names_1 = self.#fields_names_2.last().unwrap();
+            //         )*
+            //         Some(#ref_name{#(#fields_names_1: #fields_names_2),*})
+            //     }
+            // }
+            //
+            // /// Similar to [`
+            // #[doc = #slice_name_str]
+            // /// ::split_last()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_last).
+            // pub fn split_last(&self) -> Option<(#ref_name<'a>, #slice_name<'a>)> {
+            //     if self.is_empty() {
+            //         None
+            //     } else {
+            //         #(
+            //             let (#fields_names_1, #slice_names_1) = self.#fields_names_2.split_last().unwrap();
+            //         )*
+            //         let ref_ = #ref_name{#(#fields_names_1: #fields_names_2),*};
+            //         let slice = #slice_name{#(#fields_names_1: #slice_names_1),*};
+            //         Some((ref_, slice))
+            //     }
+            // }
 
             /// Similar to [`
             #[doc = #slice_name_str]
@@ -149,28 +149,28 @@ pub fn derive(input: &Input) -> TokenStream {
                 let right = #slice_name{#(#fields_names_1: #slice_names_2),*};
                 (left, right)
             }
-
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
-            pub fn get(&self, i: usize) -> Option<#ref_name> {
-                if self.is_empty() || i >= self.len() {
-                    None
-                } else {
-                    Some(#ref_name {
-                        #(#fields_names_1: self.#fields_names_2.get(i).unwrap(),)*
-                    })
-                }
-            }
-
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
-            pub unsafe fn get_unchecked(&self, i: usize) -> #ref_name {
-                #ref_name {
-                    #(#fields_names_1: self.#fields_names_2.get_unchecked(i),)*
-                }
-            }
+            //
+            // /// Similar to [`
+            // #[doc = #slice_name_str]
+            // /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
+            // pub fn get(&self, i: usize) -> Option<#ref_name> {
+            //     if self.is_empty() || i >= self.len() {
+            //         None
+            //     } else {
+            //         Some(#ref_name {
+            //             #(#fields_names_1: self.#fields_names_2.get(i).unwrap(),)*
+            //         })
+            //     }
+            // }
+            //
+            // /// Similar to [`
+            // #[doc = #slice_name_str]
+            // /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
+            // pub unsafe fn get_unchecked(&self, i: usize) -> #ref_name {
+            //     #ref_name {
+            //         #(#fields_names_1: self.#fields_names_2.get_unchecked(i),)*
+            //     }
+            // }
 
             /// Similar to [`
             #[doc = #slice_name_str]
@@ -297,78 +297,78 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 #(debug_assert_eq!(self.#fields_names_1.is_empty(), empty);)*
                 empty
             }
-
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::first_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.first_mut).
-            pub fn first_mut(&mut self) -> Option<#ref_mut_name> {
-                if self.is_empty() {
-                    None
-                } else {
-                    #(
-                        let #fields_names_1 = self.#fields_names_2.first_mut().unwrap();
-                    )*
-                    Some(#ref_mut_name{#(#fields_names_1: #fields_names_2),*})
-                }
-            }
-
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::split_first_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_first_mut).
-            pub fn split_first_mut(&mut self) -> Option<(#ref_mut_name, #slice_mut_name)> {
-                if self.is_empty() {
-                    None
-                } else {
-                    #(
-                        let (#fields_names_1, #slice_names_1) = self.#fields_names_2.split_first_mut().unwrap();
-                    )*
-                    let ref_ = #ref_mut_name{#(#fields_names_1: #fields_names_2),*};
-                    let slice = #slice_mut_name{#(#fields_names_1: #slice_names_1),*};
-                    Some((ref_, slice))
-                }
-            }
-
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::last_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last_mut).
-            pub fn last_mut(&mut self) -> Option<#ref_mut_name> {
-                if self.is_empty() {
-                    None
-                } else {
-                    #(
-                        let #fields_names_1 = self.#fields_names_2.last_mut().unwrap();
-                    )*
-                    Some(#ref_mut_name{#(#fields_names_1: #fields_names_2),*})
-                }
-            }
-
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::last_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last_mut).
-            pub fn split_last_mut(&mut self) -> Option<(#ref_mut_name, #slice_mut_name)> {
-                if self.is_empty() {
-                    None
-                } else {
-                    #(
-                        let (#fields_names_1, #slice_names_1) = self.#fields_names_2.split_last_mut().unwrap();
-                    )*
-                    let ref_ = #ref_mut_name{#(#fields_names_1: #fields_names_2),*};
-                    let slice = #slice_mut_name{#(#fields_names_1: #slice_names_1),*};
-                    Some((ref_, slice))
-                }
-            }
-
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::split_at_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_at_mut).
-            pub fn split_at_mut(&mut self, mid: usize) -> (#slice_mut_name, #slice_mut_name) {
-                #(
-                    let (#slice_names_1, #slice_names_2) = self.#fields_names_2.split_at_mut(mid);
-                )*
-                let left = #slice_mut_name{#(#fields_names_1: #slice_names_1),*};
-                let right = #slice_mut_name{#(#fields_names_1: #slice_names_2),*};
-                (left, right)
-            }
+            //
+            // /// Similar to [`
+            // #[doc = #slice_name_str]
+            // /// ::first_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.first_mut).
+            // pub fn first_mut(&mut self) -> Option<#ref_mut_name> {
+            //     if self.is_empty() {
+            //         None
+            //     } else {
+            //         #(
+            //             let #fields_names_1 = self.#fields_names_2.first_mut().unwrap();
+            //         )*
+            //         Some(#ref_mut_name{#(#fields_names_1: #fields_names_2),*})
+            //     }
+            // }
+            //
+            // /// Similar to [`
+            // #[doc = #slice_name_str]
+            // /// ::split_first_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_first_mut).
+            // pub fn split_first_mut(&mut self) -> Option<(#ref_mut_name, #slice_mut_name)> {
+            //     if self.is_empty() {
+            //         None
+            //     } else {
+            //         #(
+            //             let (#fields_names_1, #slice_names_1) = self.#fields_names_2.split_first_mut().unwrap();
+            //         )*
+            //         let ref_ = #ref_mut_name{#(#fields_names_1: #fields_names_2),*};
+            //         let slice = #slice_mut_name{#(#fields_names_1: #slice_names_1),*};
+            //         Some((ref_, slice))
+            //     }
+            // }
+            //
+            // /// Similar to [`
+            // #[doc = #slice_name_str]
+            // /// ::last_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last_mut).
+            // pub fn last_mut(&mut self) -> Option<#ref_mut_name> {
+            //     if self.is_empty() {
+            //         None
+            //     } else {
+            //         #(
+            //             let #fields_names_1 = self.#fields_names_2.last_mut().unwrap();
+            //         )*
+            //         Some(#ref_mut_name{#(#fields_names_1: #fields_names_2),*})
+            //     }
+            // }
+            //
+            // /// Similar to [`
+            // #[doc = #slice_name_str]
+            // /// ::last_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last_mut).
+            // pub fn split_last_mut(&mut self) -> Option<(#ref_mut_name, #slice_mut_name)> {
+            //     if self.is_empty() {
+            //         None
+            //     } else {
+            //         #(
+            //             let (#fields_names_1, #slice_names_1) = self.#fields_names_2.split_last_mut().unwrap();
+            //         )*
+            //         let ref_ = #ref_mut_name{#(#fields_names_1: #fields_names_2),*};
+            //         let slice = #slice_mut_name{#(#fields_names_1: #slice_names_1),*};
+            //         Some((ref_, slice))
+            //     }
+            // }
+            //
+            // /// Similar to [`
+            // #[doc = #slice_name_str]
+            // /// ::split_at_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_at_mut).
+            // pub fn split_at_mut(&mut self, mid: usize) -> (#slice_mut_name, #slice_mut_name) {
+            //     #(
+            //         let (#slice_names_1, #slice_names_2) = self.#fields_names_2.split_at_mut(mid);
+            //     )*
+            //     let left = #slice_mut_name{#(#fields_names_1: #slice_names_1),*};
+            //     let right = #slice_mut_name{#(#fields_names_1: #slice_names_2),*};
+            //     (left, right)
+            // }
 
             /// Similar to [`
             #[doc = #slice_name_str]
@@ -379,49 +379,49 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 )*
             }
 
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
-            pub fn get(&self, i: usize) -> Option<#ref_name> {
-                if self.is_empty() || i >= self.len() {
-                    None
-                } else {
-                    Some(#ref_name {
-                        #(#fields_names_1: self.#fields_names_2.get(i).unwrap(),)*
-                    })
-                }
-            }
-
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
-            pub unsafe fn get_unchecked(&self, i: usize) -> #ref_name {
-                #ref_name {
-                    #(#fields_names_1: self.#fields_names_2.get_unchecked(i),)*
-                }
-            }
-
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::get_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_mut).
-            pub fn get_mut(&mut self, i: usize) -> Option<#ref_mut_name> {
-                if self.is_empty() || i >= self.len() {
-                    None
-                } else {
-                    Some(#ref_mut_name {
-                        #(#fields_names_1: self.#fields_names_2.get_mut(i).unwrap(),)*
-                    })
-                }
-            }
-
-            /// Similar to [`
-            #[doc = #slice_name_str]
-            /// ::get_unchecked_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked_mut).
-            pub unsafe fn get_unchecked_mut(&mut self, i: usize) -> #ref_mut_name {
-                #ref_mut_name {
-                    #(#fields_names_1: self.#fields_names_2.get_unchecked_mut(i),)*
-                }
-            }
+            // /// Similar to [`
+            // #[doc = #slice_name_str]
+            // /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
+            // pub fn get(&self, i: usize) -> Option<#ref_name> {
+            //     if self.is_empty() || i >= self.len() {
+            //         None
+            //     } else {
+            //         Some(#ref_name {
+            //             #(#fields_names_1: self.#fields_names_2.get(i).unwrap(),)*
+            //         })
+            //     }
+            // }
+            //
+            // /// Similar to [`
+            // #[doc = #slice_name_str]
+            // /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
+            // pub unsafe fn get_unchecked(&self, i: usize) -> #ref_name {
+            //     #ref_name {
+            //         #(#fields_names_1: self.#fields_names_2.get_unchecked(i),)*
+            //     }
+            // }
+            //
+            // /// Similar to [`
+            // #[doc = #slice_name_str]
+            // /// ::get_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_mut).
+            // pub fn get_mut(&mut self, i: usize) -> Option<#ref_mut_name> {
+            //     if self.is_empty() || i >= self.len() {
+            //         None
+            //     } else {
+            //         Some(#ref_mut_name {
+            //             #(#fields_names_1: self.#fields_names_2.get_mut(i).unwrap(),)*
+            //         })
+            //     }
+            // }
+            //
+            // /// Similar to [`
+            // #[doc = #slice_name_str]
+            // /// ::get_unchecked_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked_mut).
+            // pub unsafe fn get_unchecked_mut(&mut self, i: usize) -> #ref_mut_name {
+            //     #ref_mut_name {
+            //         #(#fields_names_1: self.#fields_names_2.get_unchecked_mut(i),)*
+            //     }
+            // }
 
             /// Similar to [`
             #[doc = #slice_name_str]
