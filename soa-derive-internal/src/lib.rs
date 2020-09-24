@@ -9,6 +9,7 @@ extern crate proc_macro;
 use proc_macro2::TokenStream;
 use quote::TokenStreamExt;
 
+mod index;
 mod input;
 mod iter;
 mod ptr;
@@ -27,6 +28,7 @@ pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     generated.append_all(ptr::derive(&input));
     generated.append_all(slice::derive(&input));
     generated.append_all(slice::derive_mut(&input));
+    generated.append_all(index::derive(&input));
     generated.append_all(iter::derive(&input));
     generated.append_all(derive_trait(&input));
     generated.into()

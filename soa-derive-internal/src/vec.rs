@@ -261,6 +261,66 @@ pub fn derive(input: &Input) -> TokenStream {
 
             /// Similar to [`
             #[doc = #vec_name_str]
+            /// ::get<I>()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.get).
+            pub fn get<'a, I>(&'a self, index: I) -> Option<I::RefOutput>
+            where
+                I: ::soa_derive::SoaIndex<&'a #vec_name>
+            {
+                index.get(self)
+            }
+
+            /// Similar to [`
+            #[doc = #vec_name_str]
+            /// ::get_unchecked<I>()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.get_unchecked).
+            pub unsafe fn get_unchecked<'a, I>(&'a self, index: I) -> I::RefOutput
+            where
+                I: ::soa_derive::SoaIndex<&'a #vec_name>
+            {
+                index.get_unchecked(self)
+            }
+
+            /// Similar to [`
+            #[doc = #vec_name_str]
+            /// ::index<I>()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.index).
+            pub fn index<'a, I>(&'a self, index: I) -> I::RefOutput
+            where
+                I: ::soa_derive::SoaIndex<&'a #vec_name>
+            {
+                index.index(self)
+            }
+
+            /// Similar to [`
+            #[doc = #vec_name_str]
+            /// ::get_mut<I>()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.get_mut).
+            pub fn get_mut<'a, I>(&'a mut self, index: I) -> Option<I::MutOutput>
+            where
+                I: ::soa_derive::SoaMutIndex<&'a mut #vec_name>
+            {
+                index.get_mut(self)
+            }
+
+            /// Similar to [`
+            #[doc = #vec_name_str]
+            /// ::get_unchecked_mut<I>()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.get_unchecked_mut).
+            pub unsafe fn get_unchecked_mut<'a, I>(&'a mut self, index: I) -> I::MutOutput
+            where
+                I: ::soa_derive::SoaMutIndex<&'a mut #vec_name>
+            {
+                index.get_unchecked_mut(self)
+            }
+
+            /// Similar to [`
+            #[doc = #vec_name_str]
+            /// ::index_mut<I>()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.index_mut).
+            pub fn index_mut<'a, I>(&'a mut self, index: I) -> I::MutOutput
+            where
+                I: ::soa_derive::SoaMutIndex<&'a mut #vec_name>
+            {
+                index.index_mut(self)
+            }
+
+            /// Similar to [`
+            #[doc = #vec_name_str]
             /// ::as_ptr()`](https://doc.rust-lang.org/std/struct.Vec.html#method.as_ptr).
             pub fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
