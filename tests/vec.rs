@@ -78,9 +78,9 @@ fn swap_remove() {
 
     let particle = particles.swap_remove(1);
     assert_eq!(particle.name, "Na");
-    assert_eq!(particles.name[0], "Cl");
-    assert_eq!(particles.name[1], "Zn");
-    assert_eq!(particles.name[2], "Br");
+    assert_eq!(particles.index(0).name, "Cl");
+    assert_eq!(particles.index(1).name, "Zn");
+    assert_eq!(particles.index(2).name, "Br");
 }
 
 #[test]
@@ -90,9 +90,9 @@ fn insert() {
     particles.push(Particle::new(String::from("Na"), 0.0));
 
     particles.insert(1, Particle::new(String::from("Zn"), 0.0));
-    assert_eq!(particles.name[0], "Cl");
-    assert_eq!(particles.name[1], "Zn");
-    assert_eq!(particles.name[2], "Na");
+    assert_eq!(particles.index(0).name, "Cl");
+    assert_eq!(particles.index(1).name, "Zn");
+    assert_eq!(particles.index(2).name, "Na");
 }
 
 #[test]
@@ -122,10 +122,10 @@ fn append() {
     others.push(Particle::new(String::from("Mg"), 0.0));
 
     particles.append(&mut others);
-    assert_eq!(particles.name[0], "Cl");
-    assert_eq!(particles.name[1], "Na");
-    assert_eq!(particles.name[2], "Zn");
-    assert_eq!(particles.name[3], "Mg");
+    assert_eq!(particles.index(0).name, "Cl");
+    assert_eq!(particles.index(1).name, "Na");
+    assert_eq!(particles.index(2).name, "Zn");
+    assert_eq!(particles.index(3).name, "Mg");
 }
 
 #[test]
@@ -140,10 +140,10 @@ fn split_off() {
     assert_eq!(particles.len(), 2);
     assert_eq!(other.len(), 2);
 
-    assert_eq!(particles.name[0], "Cl");
-    assert_eq!(particles.name[1], "Na");
-    assert_eq!(other.name[0], "Zn");
-    assert_eq!(other.name[1], "Mg");
+    assert_eq!(particles.index(0).name, "Cl");
+    assert_eq!(particles.index(1).name, "Na");
+    assert_eq!(other.index(0).name, "Zn");
+    assert_eq!(other.index(1).name, "Mg");
 }
 
 #[test]
@@ -156,6 +156,6 @@ fn retain() {
 
     particles.retain(|particle| particle.name.starts_with("C"));
     assert_eq!(particles.len(), 2);
-    assert_eq!(particles.name[0], "Cl");
-    assert_eq!(particles.name[1], "C");
+    assert_eq!(particles.index(0).name, "Cl");
+    assert_eq!(particles.index(1).name, "C");
 }
