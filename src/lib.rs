@@ -189,7 +189,7 @@ mod private_soa_indexs {
 
 /// Helper trait used for indexing operations.
 /// Inspired by [`std::slice::SliceIndex`](https://doc.rust-lang.org/std/slice/trait.SliceIndex.html).
-pub trait SoaIndex<T>: private_soa_indexs::Sealed {
+pub trait SoAIndex<T>: private_soa_indexs::Sealed {
     /// The output for the non-mutable functions
     type RefOutput;
 
@@ -203,7 +203,7 @@ pub trait SoaIndex<T>: private_soa_indexs::Sealed {
 
 /// Helper trait used for indexing operations returning mutable.
 /// Inspired by [`std::slice::SliceIndex`](https://doc.rust-lang.org/std/slice/trait.SliceIndex.html).
-pub trait SoaMutIndex<T>: private_soa_indexs::Sealed {
+pub trait SoAIndexMut<T>: private_soa_indexs::Sealed {
     /// The output for the mutable functions
     type MutOutput;
 
