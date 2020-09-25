@@ -153,9 +153,10 @@ pub fn derive(input: &Input) -> TokenStream {
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
-            pub fn get<'b: 'a, I>(&'b self, index: I) -> Option<I::RefOutput>
+            pub fn get<'b, I>(&'b self, index: I) -> Option<I::RefOutput>
             where
-                I: ::soa_derive::SoaIndex<#slice_name<'b>>
+                I: ::soa_derive::SoaIndex<#slice_name<'b>>,
+                'a: 'b
             {
                 let slice: #slice_name<'b> = self.reborrow();
                 index.get(slice)
@@ -164,24 +165,33 @@ pub fn derive(input: &Input) -> TokenStream {
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
-            pub unsafe fn get_unchecked<'b: 'a, I>(&'b self, index: I) -> I::RefOutput
+            pub unsafe fn get_unchecked<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoaIndex<#slice_name<'b>>
+                I: ::soa_derive::SoaIndex<#slice_name<'b>>,
+                'a: 'b
             {
                 let slice: #slice_name<'b> = self.reborrow();
                 index.get_unchecked(slice)
             }
 
-            pub fn index<'b: 'a, I>(&'b self, index: I) -> I::RefOutput
+            /// Similar to [`std::ops::Index` trait](https://doc.rust-lang.org/std/ops/trait.Index.html) on
+            #[doc = #slice_name_str]
+            /// .
+            /// This is required because we cannot implement that trait.
+            pub fn index<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoaIndex<#slice_name<'b>>
+                I: ::soa_derive::SoaIndex<#slice_name<'b>>,
+                'a: 'b
             {
                 let slice: #slice_name<'b> = self.reborrow();
                 index.index(slice)
             }
 
             /// Reborrows the slices in a more narrower lifetime
-            pub fn reborrow<'b: 'a>(&'b self) -> #slice_name<'b> {
+            pub fn reborrow<'b>(&'b self) -> #slice_name<'b>
+            where
+                'a: 'b
+            {
                 #slice_name {
                     #(#fields_names_1: &self.#fields_names_2,)*
                 }
@@ -396,9 +406,10 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
-            pub fn get<'b: 'a, I>(&'b self, index: I) -> Option<I::RefOutput>
+            pub fn get<'b, I>(&'b self, index: I) -> Option<I::RefOutput>
             where
-                I: ::soa_derive::SoaIndex<#slice_name<'b>>
+                I: ::soa_derive::SoaIndex<#slice_name<'b>>,
+                'a: 'b
             {
                 let slice: #slice_name<'b> = self.as_slice();
                 index.get(slice)
@@ -407,17 +418,24 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
-            pub unsafe fn get_unchecked<'b: 'a, I>(&'b self, index: I) -> I::RefOutput
+            pub unsafe fn get_unchecked<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoaIndex<#slice_name<'b>>
+                I: ::soa_derive::SoaIndex<#slice_name<'b>>,
+                'a: 'b
             {
                 let slice: #slice_name<'b> = self.as_slice();
                 index.get_unchecked(slice)
             }
 
-            pub fn index<'b: 'a, I>(&'b self, index: I) -> I::RefOutput
+
+            /// Similar to [`std::ops::Index` trait](https://doc.rust-lang.org/std/ops/trait.Index.html) on
+            #[doc = #slice_name_str]
+            /// .
+            /// This is required because we cannot implement that trait.
+            pub fn index<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoaIndex<#slice_name<'b>>
+                I: ::soa_derive::SoaIndex<#slice_name<'b>>,
+                'a: 'b
             {
                 let slice: #slice_name<'b> = self.as_slice();
                 index.index(slice)
@@ -426,44 +444,59 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::get_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_mut).
-            pub fn get_mut<'b: 'a, I>(&'b mut self, index: I) -> Option<I::MutOutput>
+            pub fn get_mut<'b, I>(&'b mut self, index: I) -> Option<I::MutOutput>
             where
-                I: ::soa_derive::SoaMutIndex<#slice_mut_name<'b>>
+                I: ::soa_derive::SoaMutIndex<#slice_mut_name<'b>>,
+                'a: 'b
             {
-                let slice: #slice_mut_name<'b> = self.reborrow();
+                let slice: #slice_mut_name<'b> = #slice_mut_name {
+                    #(#fields_names_1: &mut *self.#fields_names_2,)*
+                };
                 index.get_mut(slice)
             }
 
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::get_unchecked_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked_mut).
-            pub unsafe fn get_unchecked_mut<'b: 'a, I>(&'b mut self, index: I) -> I::MutOutput
+            pub unsafe fn get_unchecked_mut<'b, I>(&'b mut self, index: I) -> I::MutOutput
             where
-                I: ::soa_derive::SoaMutIndex<#slice_mut_name<'b>>
+                I: ::soa_derive::SoaMutIndex<#slice_mut_name<'b>>,
+                'a: 'b
             {
                 let slice: #slice_mut_name<'b> = self.reborrow();
                 index.get_unchecked_mut(slice)
             }
 
-            pub fn index_mut<'b: 'a, I>(&'b mut self, index: I) -> I::MutOutput
+            /// Similar to [`std::ops::IndexMut` trait](https://doc.rust-lang.org/std/ops/trait.IndexMut.html) on
+            #[doc = #slice_name_str]
+            /// .
+            /// This is required because we cannot implement that trait.
+            pub fn index_mut<'b, I>(&'b mut self, index: I) -> I::MutOutput
             where
-                I: ::soa_derive::SoaMutIndex<#slice_mut_name<'b>>
+                I: ::soa_derive::SoaMutIndex<#slice_mut_name<'b>>,
+                'a: 'b
             {
                 let slice: #slice_mut_name<'b> = self.reborrow();
                 index.index_mut(slice)
             }
 
             /// Returns a non-mutable slice from this mutable slice.
-            pub fn as_slice<'b: 'a>(&'b self) -> #slice_name<'b> {
+            pub fn as_slice<'b>(&'b self) -> #slice_name<'b>
+            where
+                'a: 'b
+            {
                 #slice_name {
                     #(#fields_names_1: &self.#fields_names_2,)*
                 }
             }
 
             /// Reborrows the slices in a more narrower lifetime
-            pub fn reborrow<'b: 'a>(&'b mut self) -> #slice_mut_name<'b> {
+            pub fn reborrow<'b>(&'b mut self) -> #slice_mut_name<'b>
+            where
+                'a: 'b
+            {
                 #slice_mut_name {
-                    #(#fields_names_1: &mut self.#fields_names_2,)*
+                    #(#fields_names_1: &mut *self.#fields_names_2,)*
                 }
             }
 
