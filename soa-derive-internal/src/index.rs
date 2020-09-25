@@ -14,6 +14,7 @@ pub fn derive(input: &Input) -> TokenStream {
                                    .collect::<Vec<_>>();
     let fields_names_1 = &fields_names;
     let fields_names_2 = &fields_names;
+    let first_field_name = &fields_names[0];
 
     quote!{
         // usize
@@ -334,6 +335,327 @@ pub fn derive(input: &Input) -> TokenStream {
             #[inline]
             fn index_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
                 (0..=self.end).index_mut(soa)
+            }
+        }
+
+        // usize
+        impl<'a> ::soa_derive::SoaIndex<#slice_name<'a>> for usize {
+            type RefOutput = #ref_name<'a>;
+
+            #[inline]
+            fn get(self, slice: #slice_name<'a>) -> Option<Self::RefOutput> {
+                if self < slice.#first_field_name.len() {
+                    Some(unsafe { self.get_unchecked(slice) })
+                } else {
+                    None
+                }
+            }
+
+            #[inline]
+            unsafe fn get_unchecked(self, slice: #slice_name<'a>) -> Self::RefOutput {
+                #ref_name {
+                    #(#fields_names_1: slice.#fields_names_2.get_unchecked(self),)*
+                }
+            }
+
+            #[inline]
+            fn index(self, slice: #slice_name<'a>) -> Self::RefOutput {
+                #ref_name {
+                    #(#fields_names_1: & slice.#fields_names_2[self],)*
+                }
+            }
+        }
+
+        impl<'a> ::soa_derive::SoaMutIndex<#slice_mut_name<'a>> for usize {
+            type MutOutput = #ref_mut_name<'a>;
+
+            #[inline]
+            fn get_mut(self, slice: #slice_mut_name<'a>) -> Option<Self::MutOutput> {
+                if self < slice.len() {
+                    Some(unsafe { self.get_unchecked_mut(slice) })
+                } else {
+                    None
+                }
+            }
+
+            #[inline]
+            unsafe fn get_unchecked_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
+                #ref_mut_name {
+                    #(#fields_names_1: slice.#fields_names_2.get_unchecked_mut(self),)*
+                }
+            }
+
+            #[inline]
+            fn index_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
+                #ref_mut_name {
+                    #(#fields_names_1: &mut slice.#fields_names_2[self],)*
+                }
+            }
+        }
+
+
+
+        // Range<usize>
+        impl<'a> ::soa_derive::SoaIndex<#slice_name<'a>> for ::std::ops::Range<usize> {
+            type RefOutput = #slice_name<'a>;
+
+            #[inline]
+            fn get(self, slice: #slice_name<'a>) -> Option<Self::RefOutput> {
+                if self.start <= self.end && self.end <= slice.#first_field_name.len() {
+                    unsafe { Some(self.get_unchecked(slice)) }
+                } else {
+                    None
+                }
+            }
+
+            #[inline]
+            unsafe fn get_unchecked(self, slice: #slice_name<'a>) -> Self::RefOutput {
+                #slice_name {
+                    #(#fields_names_1: slice.#fields_names_2.get_unchecked(self.clone()),)*
+                }
+            }
+
+            #[inline]
+            fn index(self, slice: #slice_name<'a>) -> Self::RefOutput {
+                #slice_name {
+                    #(#fields_names_1: & slice.#fields_names_2[self.clone()],)*
+                }
+            }
+        }
+
+        impl<'a> ::soa_derive::SoaMutIndex<#slice_mut_name<'a>> for ::std::ops::Range<usize> {
+            type MutOutput = #slice_mut_name<'a>;
+
+            #[inline]
+            fn get_mut(self, slice: #slice_mut_name<'a>) -> Option<Self::MutOutput> {
+                if self.start <= self.end && self.end <= slice.#first_field_name.len() {
+                    unsafe { Some(self.get_unchecked_mut(slice)) }
+                } else {
+                    None
+                }
+            }
+
+            #[inline]
+            unsafe fn get_unchecked_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
+                #slice_mut_name {
+                    #(#fields_names_1: slice.#fields_names_2.get_unchecked_mut(self.clone()),)*
+                }
+            }
+
+            #[inline]
+            fn index_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
+                #slice_mut_name {
+                    #(#fields_names_1: &mut slice.#fields_names_2[self.clone()],)*
+                }
+            }
+        }
+
+
+
+        // RangeTo<usize>
+        impl<'a> ::soa_derive::SoaIndex<#slice_name<'a>> for ::std::ops::RangeTo<usize> {
+            type RefOutput = #slice_name<'a>;
+
+            #[inline]
+            fn get(self, slice: #slice_name<'a>) -> Option<Self::RefOutput> {
+                (0..self.end).get(slice)
+            }
+
+            #[inline]
+            unsafe fn get_unchecked(self, slice: #slice_name<'a>) -> Self::RefOutput {
+                (0..self.end).get_unchecked(slice)
+            }
+
+            #[inline]
+            fn index(self, slice: #slice_name<'a>) -> Self::RefOutput {
+                (0..self.end).index(slice)
+            }
+        }
+
+        impl<'a> ::soa_derive::SoaMutIndex<#slice_mut_name<'a>> for ::std::ops::RangeTo<usize> {
+            type MutOutput = #slice_mut_name<'a>;
+
+            #[inline]
+            fn get_mut(self, slice: #slice_mut_name<'a>) -> Option<Self::MutOutput> {
+                (0..self.end).get_mut(slice)
+            }
+
+            #[inline]
+            unsafe fn get_unchecked_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
+                (0..self.end).get_unchecked_mut(slice)
+            }
+
+            #[inline]
+            fn index_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
+                (0..self.end).index_mut(slice)
+            }
+        }
+
+
+        // RangeFrom<usize>
+        impl<'a> ::soa_derive::SoaIndex<#slice_name<'a>> for ::std::ops::RangeFrom<usize> {
+            type RefOutput = #slice_name<'a>;
+
+            #[inline]
+            fn get(self, slice: #slice_name<'a>) -> Option<Self::RefOutput> {
+                (self.start..slice.len()).get(slice)
+            }
+
+            #[inline]
+            unsafe fn get_unchecked(self, slice: #slice_name<'a>) -> Self::RefOutput {
+                (self.start..slice.len()).get_unchecked(slice)
+            }
+
+            #[inline]
+            fn index(self, slice: #slice_name<'a>) -> Self::RefOutput {
+                (self.start..slice.len()).index(slice)
+            }
+        }
+
+        impl<'a> ::soa_derive::SoaMutIndex<#slice_mut_name<'a>> for ::std::ops::RangeFrom<usize> {
+            type MutOutput = #slice_mut_name<'a>;
+
+            #[inline]
+            fn get_mut(self, slice: #slice_mut_name<'a>) -> Option<Self::MutOutput> {
+                (self.start..slice.len()).get_mut(slice)
+            }
+
+            #[inline]
+            unsafe fn get_unchecked_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
+                (self.start..slice.len()).get_unchecked_mut(slice)
+            }
+
+            #[inline]
+            fn index_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
+                (self.start..slice.len()).index_mut(slice)
+            }
+        }
+
+
+        // RangeFull
+        impl<'a> ::soa_derive::SoaIndex<#slice_name<'a>> for ::std::ops::RangeFull {
+            type RefOutput = #slice_name<'a>;
+
+            #[inline]
+            fn get(self, slice: #slice_name<'a>) -> Option<Self::RefOutput> {
+                Some(slice)
+            }
+
+            #[inline]
+            unsafe fn get_unchecked(self, slice: #slice_name<'a>) -> Self::RefOutput {
+                slice
+            }
+
+            #[inline]
+            fn index(self, slice: #slice_name<'a>) -> Self::RefOutput {
+                slice
+            }
+        }
+
+        impl<'a> ::soa_derive::SoaMutIndex<#slice_mut_name<'a>> for ::std::ops::RangeFull {
+            type MutOutput = #slice_mut_name<'a>;
+
+            #[inline]
+            fn get_mut(self, slice: #slice_mut_name<'a>) -> Option<Self::MutOutput> {
+                Some(slice)
+            }
+
+            #[inline]
+            unsafe fn get_unchecked_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
+                slice
+            }
+
+            #[inline]
+            fn index_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
+                slice
+            }
+        }
+
+
+        // RangeInclusive<usize>
+        impl<'a> ::soa_derive::SoaIndex<#slice_name<'a>> for ::std::ops::RangeInclusive<usize> {
+            type RefOutput = #slice_name<'a>;
+
+            #[inline]
+            fn get(self, slice: #slice_name<'a>) -> Option<Self::RefOutput> {
+                if *self.end() == usize::MAX {
+                    None
+                } else {
+                    (*self.start()..self.end() + 1).get(slice)
+                }
+            }
+
+            #[inline]
+            unsafe fn get_unchecked(self, slice: #slice_name<'a>) -> Self::RefOutput {
+                (*self.start()..self.end() + 1).get_unchecked(slice)
+            }
+
+            #[inline]
+            fn index(self, slice: #slice_name<'a>) -> Self::RefOutput {
+                (*self.start()..self.end() + 1).index(slice)
+            }
+        }
+
+        impl<'a> ::soa_derive::SoaMutIndex<#slice_mut_name<'a>> for ::std::ops::RangeInclusive<usize> {
+            type MutOutput = #slice_mut_name<'a>;
+
+            #[inline]
+            fn get_mut(self, slice: #slice_mut_name<'a>) -> Option<Self::MutOutput> {
+                if *self.end() == usize::MAX {
+                    None
+                } else {
+                    (*self.start()..self.end() + 1).get_mut(slice)
+                }
+            }
+
+            #[inline]
+            unsafe fn get_unchecked_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
+                (*self.start()..self.end() + 1).get_unchecked_mut(slice)
+            }
+
+            #[inline]
+            fn index_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
+                (*self.start()..self.end() + 1).index_mut(slice)
+            }
+        }
+
+
+        // RangeToInclusive<usize>
+        impl<'a> ::soa_derive::SoaIndex<#slice_name<'a>> for ::std::ops::RangeToInclusive<usize> {
+            type RefOutput = #slice_name<'a>;
+
+            #[inline]
+            fn get(self, slice: #slice_name<'a>) -> Option<Self::RefOutput> {
+                (0..=self.end).get(slice)
+            }
+
+            #[inline]
+            unsafe fn get_unchecked(self, slice: #slice_name<'a>) -> Self::RefOutput {
+                (0..=self.end).get_unchecked(slice)
+            }
+
+            #[inline]
+            fn index(self, slice: #slice_name<'a>) -> Self::RefOutput {
+                (0..=self.end).index(slice)
+            }
+        }
+
+        impl<'a> ::soa_derive::SoaMutIndex<#slice_mut_name<'a>> for ::std::ops::RangeToInclusive<usize> {
+            type MutOutput = #slice_mut_name<'a>;
+
+            #[inline]
+            fn get_mut(self, slice: #slice_mut_name<'a>) -> Option<Self::MutOutput> {
+                (0..=self.end).get_mut(slice)
+            }
+
+            #[inline]
+            unsafe fn get_unchecked_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
+                (0..=self.end).get_unchecked_mut(slice)
+            }
+
+            #[inline]
+            fn index_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
+                (0..=self.end).index_mut(slice)
             }
         }
     }
