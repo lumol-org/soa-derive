@@ -23,7 +23,7 @@ fn test_vec_usize() {
     aos.push(particle.clone());
     soa.push(particle.clone());
 
-    // SoaIndex
+    // SoAIndex
     assert_eq!(soa.get(0).unwrap().name, &aos.get(0).unwrap().name);
     assert_eq!(soa.get(0).unwrap().mass, &aos.get(0).unwrap().mass);
     assert_eq!(aos.get(1), None);
@@ -136,7 +136,7 @@ fn test_slice_usize() {
     aos.push(particle.clone());
     soa.push(particle.clone());
 
-    // SoaIndex
+    // SoAIndex
     let aos_slice = aos.as_slice();
     let soa_slice = soa.as_slice();
 

@@ -155,7 +155,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
             pub fn get<'b, I>(&'b self, index: I) -> Option<I::RefOutput>
             where
-                I: ::soa_derive::SoaIndex<#slice_name<'b>>,
+                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.reborrow();
@@ -167,7 +167,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
             pub unsafe fn get_unchecked<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoaIndex<#slice_name<'b>>,
+                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.reborrow();
@@ -180,7 +180,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// This is required because we cannot implement that trait.
             pub fn index<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoaIndex<#slice_name<'b>>,
+                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.reborrow();
@@ -408,7 +408,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
             pub fn get<'b, I>(&'b self, index: I) -> Option<I::RefOutput>
             where
-                I: ::soa_derive::SoaIndex<#slice_name<'b>>,
+                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.as_slice();
@@ -420,7 +420,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
             pub unsafe fn get_unchecked<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoaIndex<#slice_name<'b>>,
+                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.as_slice();
@@ -434,7 +434,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// This is required because we cannot implement that trait.
             pub fn index<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoaIndex<#slice_name<'b>>,
+                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.as_slice();
@@ -446,7 +446,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::get_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_mut).
             pub fn get_mut<'b, I>(&'b mut self, index: I) -> Option<I::MutOutput>
             where
-                I: ::soa_derive::SoaMutIndex<#slice_mut_name<'b>>,
+                I: ::soa_derive::SoAIndexMut<#slice_mut_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_mut_name<'b> = #slice_mut_name {
@@ -460,7 +460,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::get_unchecked_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked_mut).
             pub unsafe fn get_unchecked_mut<'b, I>(&'b mut self, index: I) -> I::MutOutput
             where
-                I: ::soa_derive::SoaMutIndex<#slice_mut_name<'b>>,
+                I: ::soa_derive::SoAIndexMut<#slice_mut_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_mut_name<'b> = self.reborrow();
@@ -473,7 +473,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// This is required because we cannot implement that trait.
             pub fn index_mut<'b, I>(&'b mut self, index: I) -> I::MutOutput
             where
-                I: ::soa_derive::SoaMutIndex<#slice_mut_name<'b>>,
+                I: ::soa_derive::SoAIndexMut<#slice_mut_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_mut_name<'b> = self.reborrow();
