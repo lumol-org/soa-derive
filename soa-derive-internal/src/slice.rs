@@ -153,22 +153,37 @@ pub fn derive(input: &Input) -> TokenStream {
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
-            pub fn get(&self, i: usize) -> Option<#ref_name> {
-                if self.is_empty() || i >= self.len() {
-                    None
-                } else {
-                    Some(#ref_name {
-                        #(#fields_names_1: self.#fields_names_2.get(i).unwrap(),)*
-                    })
-                }
+            pub fn get<'b: 'a, I>(&'b self, index: I) -> Option<I::RefOutput>
+            where
+                I: ::soa_derive::SoaIndex<#slice_name<'b>>
+            {
+                let slice: #slice_name<'b> = self.reborrow();
+                index.get(slice)
             }
 
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
-            pub unsafe fn get_unchecked(&self, i: usize) -> #ref_name {
-                #ref_name {
-                    #(#fields_names_1: self.#fields_names_2.get_unchecked(i),)*
+            pub unsafe fn get_unchecked<'b: 'a, I>(&'b self, index: I) -> I::RefOutput
+            where
+                I: ::soa_derive::SoaIndex<#slice_name<'b>>
+            {
+                let slice: #slice_name<'b> = self.reborrow();
+                index.get_unchecked(slice)
+            }
+
+            pub fn index<'b: 'a, I>(&'b self, index: I) -> I::RefOutput
+            where
+                I: ::soa_derive::SoaIndex<#slice_name<'b>>
+            {
+                let slice: #slice_name<'b> = self.reborrow();
+                index.index(slice)
+            }
+
+            /// Reborrows the slices in a more narrower lifetime
+            pub fn reborrow<'b: 'a>(&'b self) -> #slice_name<'b> {
+                #slice_name {
+                    #(#fields_names_1: &self.#fields_names_2,)*
                 }
             }
 
@@ -215,7 +230,6 @@ pub fn derive_mut(input: &Input) -> TokenStream {
     let slice_name = &input.slice_name();
     let slice_mut_name = &input.slice_mut_name();
     let vec_name = &input.vec_name();
-    let ref_name = &input.ref_name();
     let ref_mut_name = &input.ref_mut_name();
     let ptr_name = &input.ptr_name();
     let ptr_mut_name = &input.ptr_mut_name();
@@ -382,44 +396,74 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
-            pub fn get(&self, i: usize) -> Option<#ref_name> {
-                if self.is_empty() || i >= self.len() {
-                    None
-                } else {
-                    Some(#ref_name {
-                        #(#fields_names_1: self.#fields_names_2.get(i).unwrap(),)*
-                    })
-                }
+            pub fn get<'b: 'a, I>(&'b self, index: I) -> Option<I::RefOutput>
+            where
+                I: ::soa_derive::SoaIndex<#slice_name<'b>>
+            {
+                let slice: #slice_name<'b> = self.as_slice();
+                index.get(slice)
             }
 
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
-            pub unsafe fn get_unchecked(&self, i: usize) -> #ref_name {
-                #ref_name {
-                    #(#fields_names_1: self.#fields_names_2.get_unchecked(i),)*
-                }
+            pub unsafe fn get_unchecked<'b: 'a, I>(&'b self, index: I) -> I::RefOutput
+            where
+                I: ::soa_derive::SoaIndex<#slice_name<'b>>
+            {
+                let slice: #slice_name<'b> = self.as_slice();
+                index.get_unchecked(slice)
+            }
+
+            pub fn index<'b: 'a, I>(&'b self, index: I) -> I::RefOutput
+            where
+                I: ::soa_derive::SoaIndex<#slice_name<'b>>
+            {
+                let slice: #slice_name<'b> = self.as_slice();
+                index.index(slice)
             }
 
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::get_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_mut).
-            pub fn get_mut(&mut self, i: usize) -> Option<#ref_mut_name> {
-                if self.is_empty() || i >= self.len() {
-                    None
-                } else {
-                    Some(#ref_mut_name {
-                        #(#fields_names_1: self.#fields_names_2.get_mut(i).unwrap(),)*
-                    })
-                }
+            pub fn get_mut<'b: 'a, I>(&'b mut self, index: I) -> Option<I::MutOutput>
+            where
+                I: ::soa_derive::SoaMutIndex<#slice_mut_name<'b>>
+            {
+                let slice: #slice_mut_name<'b> = self.reborrow();
+                index.get_mut(slice)
             }
 
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::get_unchecked_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked_mut).
-            pub unsafe fn get_unchecked_mut(&mut self, i: usize) -> #ref_mut_name {
-                #ref_mut_name {
-                    #(#fields_names_1: self.#fields_names_2.get_unchecked_mut(i),)*
+            pub unsafe fn get_unchecked_mut<'b: 'a, I>(&'b mut self, index: I) -> I::MutOutput
+            where
+                I: ::soa_derive::SoaMutIndex<#slice_mut_name<'b>>
+            {
+                let slice: #slice_mut_name<'b> = self.reborrow();
+                index.get_unchecked_mut(slice)
+            }
+
+            pub fn index_mut<'b: 'a, I>(&'b mut self, index: I) -> I::MutOutput
+            where
+                I: ::soa_derive::SoaMutIndex<#slice_mut_name<'b>>
+            {
+                let slice: #slice_mut_name<'b> = self.reborrow();
+                index.index_mut(slice)
+            }
+
+            /// Returns a non-mutable slice from this mutable slice.
+            pub fn as_slice<'b: 'a>(&'b self) -> #slice_name<'b> {
+                #slice_name {
+                    #(#fields_names_1: &self.#fields_names_2,)*
+                }
+            }
+
+            /// Reborrows the slices in a more narrower lifetime
+            pub fn reborrow<'b: 'a>(&'b mut self) -> #slice_mut_name<'b> {
+                #slice_mut_name {
+                    #(#fields_names_1: &mut self.#fields_names_2,)*
                 }
             }
 
