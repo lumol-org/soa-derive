@@ -2,8 +2,20 @@ mod particles;
 use self::particles::{Particle, ParticleVec, ParticleRef};
 
 
+/// Helper function to assert that two iterators (one of SoA and another of AoS) are equal.
+fn eq_its<'a, I1, I2>(i1: I1, i2: I2)
+where
+    I1: Iterator<Item = ParticleRef<'a>>,
+    I2: Iterator<Item = &'a Particle>,
+{
+    for (p1, p2) in i1.zip(i2) {
+        assert_eq!(p1.name, &p2.name);
+        assert_eq!(*p1.mass, p2.mass);
+    }
+}
+
 #[test]
-fn test_usize() {
+fn test_vec_usize() {
     let mut aos = Vec::new();
     let mut soa = ParticleVec::new();
 
@@ -48,18 +60,8 @@ fn test_usize() {
     assert_eq!(soa.get(0).map(|p| *p.mass), Some(particle.mass));
 }
 
-fn eq_its<'a, I1, I2>(i1: I1, i2: I2)
-where
-    I1: Iterator<Item = ParticleRef<'a>>,
-    I2: Iterator<Item = &'a Particle>,
-{
-    for (p1, p2) in i1.zip(i2) {
-        assert_eq!(*p1.mass, p2.mass);
-    }
-}
-
 #[test]
-fn test_ranges() {
+fn test_vec_ranges() {
     let mut particles = Vec::new();
     particles.push(Particle::new(String::from("Cl"), 1.0));
     particles.push(Particle::new(String::from("Na"), 2.0));
