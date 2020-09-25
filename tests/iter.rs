@@ -35,9 +35,9 @@ fn iter_mut() {
     for particle in particles.iter_mut() {
         *particle.mass += 1.0;
     }
-    assert_eq!(particles.mass[0], 1.0);
-    assert_eq!(particles.mass[1], 1.0);
-    assert_eq!(particles.mass[2], 1.0);
+    assert_eq!(*particles.index(0).mass, 1.0);
+    assert_eq!(*particles.index(1).mass, 1.0);
+    assert_eq!(*particles.index(2).mass, 1.0);
 
     {
         let mut slice = particles.as_mut_slice();
@@ -46,9 +46,9 @@ fn iter_mut() {
         }
     }
 
-    assert_eq!(particles.mass[0], 2.0);
-    assert_eq!(particles.mass[1], 2.0);
-    assert_eq!(particles.mass[2], 2.0);
+    assert_eq!(*particles.index(0).mass, 2.0);
+    assert_eq!(*particles.index(1).mass, 2.0);
+    assert_eq!(*particles.index(2).mass, 2.0);
 }
 
 #[test]
