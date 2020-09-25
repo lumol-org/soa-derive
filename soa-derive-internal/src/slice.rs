@@ -449,9 +449,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 I: ::soa_derive::SoAIndexMut<#slice_mut_name<'b>>,
                 'a: 'b
             {
-                let slice: #slice_mut_name<'b> = #slice_mut_name {
-                    #(#fields_names_1: &mut *self.#fields_names_2,)*
-                };
+                let slice: #slice_mut_name<'b> = self.reborrow();
                 index.get_mut(slice)
             }
 
