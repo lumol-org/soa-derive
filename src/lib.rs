@@ -193,23 +193,23 @@ pub trait SoAIndex<T>: private_soa_indexs::Sealed {
     /// The output for the non-mutable functions
     type RefOutput;
 
-    /// Returns the reference output in this location if in bounds. None otherwise.
+    /// Returns the reference output in this location if in bounds, `None` otherwise.
     fn get(self, soa: T) -> Option<Self::RefOutput>;
-    /// Returns the reference output in this location withotu performing any bounds check.
+    /// Returns the reference output in this location without performing any bounds check.
     unsafe fn get_unchecked(self, soa: T) -> Self::RefOutput;
     /// Returns the reference output in this location. Panics if it is not in bounds.
     fn index(self, soa: T) -> Self::RefOutput;
 }
 
-/// Helper trait used for indexing operations returning mutable.
+/// Helper trait used for indexing operations returning mutable references.
 /// Inspired by [`std::slice::SliceIndex`](https://doc.rust-lang.org/std/slice/trait.SliceIndex.html).
 pub trait SoAIndexMut<T>: private_soa_indexs::Sealed {
     /// The output for the mutable functions
     type MutOutput;
 
-    /// Returns the mutable reference output in this location if in bounds. None otherwise.
+    /// Returns the mutable reference output in this location if in bounds, `None` otherwise.
     fn get_mut(self, soa: T) -> Option<Self::MutOutput>;
-    /// Returns the mutable reference output in this location withotu performing any bounds check.
+    /// Returns the mutable reference output in this location without performing any bounds check.
     unsafe fn get_unchecked_mut(self, soa: T) -> Self::MutOutput;
     /// Returns the mutable reference output in this location. Panics if it is not in bounds.
     fn index_mut(self, soa: T) -> Self::MutOutput;
