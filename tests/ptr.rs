@@ -53,11 +53,11 @@ fn slice() {
     unsafe {
         let slice = ParticleSlice::from_raw_parts(ptr, 2);
         assert_eq!(slice.len(), 2);
-        assert_eq!(slice.index(0).name, "Na");
-        assert_eq!(slice.index(1).name, "Zn");
+        assert_eq!(slice.name[0], "Na");
+        assert_eq!(slice.name[1], "Zn");
 
-        assert_eq!(*slice.index(0).mass, 1.0);
-        assert_eq!(*slice.index(1).mass, 2.0);
+        assert_eq!(slice.mass[0], 1.0);
+        assert_eq!(slice.mass[1], 2.0);
     }
 }
 
@@ -77,8 +77,8 @@ fn slice_mut() {
         *ptr.as_mut().unwrap().mass = 42.0;
     }
 
-    assert_eq!(slice.index(0).name, "Fe");
-    assert_eq!(*slice.index(0).mass, 42.0);
+    assert_eq!(slice.name[0], "Fe");
+    assert_eq!(slice.mass[0], 42.0);
 
     unsafe {
         let slice = ParticleSliceMut::from_raw_parts_mut(ptr, 2);
@@ -88,9 +88,9 @@ fn slice_mut() {
         }
     }
 
-    assert_eq!(*slice.index(0).mass, -1.0);
-    assert_eq!(*slice.index(1).mass, -1.0);
-    assert_eq!(*slice.index(2).mass, 3.0);
+    assert_eq!(slice.mass[0], -1.0);
+    assert_eq!(slice.mass[1], -1.0);
+    assert_eq!(slice.mass[2], 3.0);
 }
 
 #[test]
@@ -119,12 +119,12 @@ fn vec() {
     assert_eq!(particles.len(), len);
     assert_eq!(particles.capacity(), capacity);
 
-    assert_eq!(particles.index(0).name, "Fe");
-    assert_eq!(*particles.index(0).mass, 42.0);
+    assert_eq!(particles.name[0], "Fe");
+    assert_eq!(particles.mass[0], 42.0);
 
-    assert_eq!(particles.index(1).name, "Zn");
-    assert_eq!(*particles.index(1).mass, 2.0);
+    assert_eq!(particles.name[1], "Zn");
+    assert_eq!(particles.mass[1], 2.0);
 
-    assert_eq!(particles.index(2).name, "Fe");
-    assert_eq!(*particles.index(2).mass, 3.0);
+    assert_eq!(particles.name[2], "Fe");
+    assert_eq!(particles.mass[2], 3.0);
 }
