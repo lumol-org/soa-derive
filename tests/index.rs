@@ -15,7 +15,7 @@ where
 }
 
 #[test]
-fn test_vec_usize() {
+fn index_vec_with_usize() {
     let mut aos = Vec::new();
     let mut soa = ParticleVec::new();
 
@@ -61,7 +61,7 @@ fn test_vec_usize() {
 }
 
 #[test]
-fn test_vec_ranges() {
+fn index_vec_with_ranges() {
     let mut particles = Vec::new();
     particles.push(Particle::new(String::from("Cl"), 1.0));
     particles.push(Particle::new(String::from("Na"), 2.0));
@@ -128,7 +128,7 @@ fn test_vec_ranges() {
 }
 
 #[test]
-fn test_slice_usize() {
+fn index_slice_with_usize() {
     let mut aos = Vec::new();
     let mut soa = ParticleVec::new();
 
@@ -180,7 +180,7 @@ fn test_slice_usize() {
 }
 
 #[test]
-fn test_slice_ranges() {
+fn index_slice_with_ranges() {
     let mut particles = Vec::new();
     particles.push(Particle::new(String::from("Cl"), 1.0));
     particles.push(Particle::new(String::from("Na"), 2.0));
