@@ -177,7 +177,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// Similar to [`std::ops::Index` trait](https://doc.rust-lang.org/std/ops/trait.Index.html) on
             #[doc = #slice_name_str]
             /// .
-            /// This is required because we cannot implement that trait.
+            /// This is required because we cannot implement `std::ops::Index` directly since it requires returning a reference.
             pub fn index<'b, I>(&'b self, index: I) -> I::RefOutput
             where
                 I: ::soa_derive::SoAIndex<#slice_name<'b>>,
@@ -187,7 +187,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 index.index(slice)
             }
 
-            /// Reborrows the slices in a more narrower lifetime
+            /// Reborrows the slices in a narrower lifetime
             pub fn reborrow<'b>(&'b self) -> #slice_name<'b>
             where
                 'a: 'b
@@ -468,7 +468,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// Similar to [`std::ops::IndexMut` trait](https://doc.rust-lang.org/std/ops/trait.IndexMut.html) on
             #[doc = #slice_name_str]
             /// .
-            /// This is required because we cannot implement that trait.
+            /// This is required because we cannot implement `std::ops::IndexMut` directly since it requires returning a mutable reference.
             pub fn index_mut<'b, I>(&'b mut self, index: I) -> I::MutOutput
             where
                 I: ::soa_derive::SoAIndexMut<#slice_mut_name<'b>>,
@@ -488,7 +488,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 }
             }
 
-            /// Reborrows the slices in a more narrower lifetime
+            /// Reborrows the slices in a narrower lifetime
             pub fn reborrow<'b>(&'b mut self) -> #slice_mut_name<'b>
             where
                 'a: 'b
