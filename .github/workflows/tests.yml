@@ -1,0 +1,29 @@
+name: Test
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    # Check all PR
+
+jobs:
+  tests:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        rust-version: ["1.31", stable, beta, nightly]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: setup rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust-version }}
+      - name: run tests in debug mode
+        run: cargo test
+      - name: run tests in release mode
+        run: cargo test --release
+      - name: check that benchmarks still compile
+        run: cargo bench --no-run
