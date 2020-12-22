@@ -31,3 +31,17 @@ pub struct VeryBig {
     vz: f64,
     name: String,
 }
+
+// strange names used by variables inside the implementation.
+// This checks for hygiene in code generation
+#[derive(Debug, Clone, PartialEq, StructOfArray)]
+pub struct BadNames {
+    pub index: String,
+    pub at: String,
+    pub other: String,
+    pub len: String,
+    pub size: String,
+    pub cap: String,
+    pub capacity: String,
+    pub buf: String,
+}
