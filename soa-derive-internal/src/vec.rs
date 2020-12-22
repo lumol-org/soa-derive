@@ -17,11 +17,15 @@ pub fn derive(input: &Input) -> TokenStream {
     let ptr_name = &input.ptr_name();
     let ptr_mut_name = &input.ptr_mut_name();
 
-    let fields_names = input.fields.iter()
-                                   .map(|field| field.ident.clone().unwrap())
+    let fields_names = &input.fields.iter()
+                                   .map(|field| field.ident.as_ref().unwrap())
                                    .collect::<Vec<_>>();
-    let fields_names_1 = &fields_names;
-    let fields_names_2 = &fields_names;
+
+    let fields_names_hygienic = input.fields.iter()
+        .map(|field| field.ident.as_ref().unwrap())
+        .map(|ident| Ident::new(&format!("___soa_derive_private_{}", ident), Span::call_site()))
+        .collect::<Vec<_>>();
+
     let first_field = &fields_names[0];
 
     let fields_doc = fields_names.iter()
@@ -41,7 +45,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #visibility struct #vec_name {
             #(
                 #[doc = #fields_doc]
-                pub #fields_names_1: Vec<#fields_types>,
+                pub #fields_names: Vec<#fields_types>,
             )*
         }
 
@@ -52,7 +56,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::new()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.new)
             pub fn new() -> #vec_name {
                 #vec_name {
-                    #(#fields_names_1 : Vec::new(),)*
+                    #(#fields_names : Vec::new(),)*
                 }
             }
 
@@ -62,7 +66,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// initializing all fields with the given `capacity`.
             pub fn with_capacity(capacity: usize) -> #vec_name {
                 #vec_name {
-                    #(#fields_names_1 : Vec::with_capacity(capacity),)*
+                    #(#fields_names: Vec::with_capacity(capacity),)*
                 }
             }
 
@@ -72,7 +76,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// the capacity of all fields should be the same.
             pub fn capacity(&self) -> usize {
                 let capacity = self.#first_field.capacity();
-                #(debug_assert_eq!(self.#fields_names_1.capacity(), capacity);)*
+                #(debug_assert_eq!(self.#fields_names.capacity(), capacity);)*
                 capacity
             }
 
@@ -81,7 +85,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::reserve()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.reserve),
             /// reserving the same `additional` space for all fields.
             pub fn reserve(&mut self, additional: usize) {
-                #(self.#fields_names_1.reserve(additional);)*
+                #(self.#fields_names.reserve(additional);)*
             }
 
             /// Similar to [`
@@ -89,7 +93,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::reserve_exact()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.reserve_exact)
             /// reserving the same `additional` space for all fields.
             pub fn reserve_exact(&mut self, additional: usize) {
-                #(self.#fields_names_1.reserve_exact(additional);)*
+                #(self.#fields_names.reserve_exact(additional);)*
             }
 
             /// Similar to [`
@@ -97,7 +101,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::shrink_to_fit()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.shrink_to_fit)
             /// shrinking all fields.
             pub fn shrink_to_fit(&mut self) {
-                #(self.#fields_names_1.shrink_to_fit();)*
+                #(self.#fields_names.shrink_to_fit();)*
             }
 
             /// Similar to [`
@@ -105,15 +109,14 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::truncate()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.truncate)
             /// truncating all fields.
             pub fn truncate(&mut self, len: usize) {
-                #(self.#fields_names_1.truncate(len);)*
+                #(self.#fields_names.truncate(len);)*
             }
 
             /// Similar to [`
             #[doc = #vec_name_str]
             /// ::push()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.push).
             pub fn push(&mut self, value: #name) {
-                let #name{#(#fields_names_1),*} = value;
-                #(self.#fields_names_1.push(#fields_names_2);)*
+                #(self.#fields_names.push(value.#fields_names);)*
             }
 
             /// Similar to [`
@@ -122,7 +125,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// all the fields should have the same length.
             pub fn len(&self) -> usize {
                 let len = self.#first_field.len();
-                #(debug_assert_eq!(self.#fields_names_1.len(), len);)*
+                #(debug_assert_eq!(self.#fields_names.len(), len);)*
                 len
             }
 
@@ -132,7 +135,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// all the fields should have the same length.
             pub fn is_empty(&self) -> bool {
                 let empty = self.#first_field.is_empty();
-                #(debug_assert_eq!(self.#fields_names_1.is_empty(), empty);)*
+                #(debug_assert_eq!(self.#fields_names.is_empty(), empty);)*
                 empty
             }
 
@@ -141,17 +144,16 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::swap_remove()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.swap_remove).
             pub fn swap_remove(&mut self, index: usize) -> #name {
                 #(
-                    let #fields_names_1 = self.#fields_names_2.swap_remove(index);
+                    let #fields_names_hygienic = self.#fields_names.swap_remove(index);
                 )*
-                #name{#(#fields_names_1: #fields_names_2),*}
+                #name{#(#fields_names: #fields_names_hygienic),*}
             }
 
             /// Similar to [`
             #[doc = #vec_name_str]
             /// ::insert()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.insert).
             pub fn insert(&mut self, index: usize, element: #name) {
-                let #name{#(#fields_names_1),*} = element;
-                #(self.#fields_names_1.insert(index, #fields_names_2);)*
+                #(self.#fields_names.insert(index, element.#fields_names);)*
             }
 
             /// Similar to [`
@@ -159,9 +161,9 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::remove()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.remove).
             pub fn remove(&mut self, index: usize) -> #name {
                 #(
-                    let #fields_names_1 = self.#fields_names_2.remove(index);
+                    let #fields_names_hygienic = self.#fields_names.remove(index);
                 )*
-                #name{#(#fields_names_1: #fields_names_2),*}
+                #name{#(#fields_names: #fields_names_hygienic),*}
             }
 
             /// Similar to [`
@@ -172,9 +174,9 @@ pub fn derive(input: &Input) -> TokenStream {
                     None
                 } else {
                     #(
-                        let #fields_names_1 = self.#fields_names_2.pop().unwrap();
+                        let #fields_names_hygienic = self.#fields_names.pop().unwrap();
                     )*
-                    Some(#name{#(#fields_names_1: #fields_names_2),*})
+                    Some(#name{#(#fields_names: #fields_names_hygienic),*})
                 }
             }
 
@@ -183,7 +185,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::append()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.append).
             pub fn append(&mut self, other: &mut #vec_name) {
                 #(
-                    self.#fields_names_1.append(&mut other.#fields_names_2);
+                    self.#fields_names.append(&mut other.#fields_names);
                 )*
             }
 
@@ -191,7 +193,7 @@ pub fn derive(input: &Input) -> TokenStream {
             #[doc = #vec_name_str]
             /// ::clear()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.clear).
             pub fn clear(&mut self) {
-                #(self.#fields_names_1.clear();)*
+                #(self.#fields_names.clear();)*
             }
 
             /// Similar to [`
@@ -199,7 +201,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::split_off()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.split_off).
             pub fn split_off(&mut self, at: usize) -> #vec_name {
                 #vec_name {
-                    #(#fields_names_1 : self.#fields_names_2.split_off(at), )*
+                    #(#fields_names: self.#fields_names.split_off(at), )*
                 }
             }
 
@@ -208,7 +210,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::as_slice()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.as_slice).
             pub fn as_slice(&self) -> #slice_name {
                 #slice_name {
-                    #(#fields_names_1 : &self.#fields_names_2, )*
+                    #(#fields_names : &self.#fields_names, )*
                 }
             }
 
@@ -217,7 +219,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::as_mut_slice()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.as_mut_slice).
             pub fn as_mut_slice(&mut self) -> #slice_mut_name {
                 #slice_mut_name {
-                    #(#fields_names_1 : &mut self.#fields_names_2, )*
+                    #(#fields_names : &mut self.#fields_names, )*
                 }
             }
 
@@ -225,7 +227,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// is analogous to `Index<Range<usize>>`.
             pub fn slice(&self, range: ::std::ops::Range<usize>) -> #slice_name {
                 #slice_name {
-                    #(#fields_names_1 : &self.#fields_names_2[range.clone()], )*
+                    #(#fields_names : &self.#fields_names[range.clone()], )*
                 }
             }
 
@@ -233,7 +235,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// `range`. This is analogous to `IndexMut<Range<usize>>`.
             pub fn slice_mut(&mut self, range: ::std::ops::Range<usize>) -> #slice_mut_name {
                 #slice_mut_name {
-                    #(#fields_names_1 : &mut self.#fields_names_2[range.clone()], )*
+                    #(#fields_names : &mut self.#fields_names[range.clone()], )*
                 }
             }
 
@@ -324,7 +326,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::as_ptr()`](https://doc.rust-lang.org/std/struct.Vec.html#method.as_ptr).
             pub fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2.as_ptr(),)*
+                    #(#fields_names: self.#fields_names.as_ptr(),)*
                 }
             }
 
@@ -333,7 +335,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::as_mut_ptr()`](https://doc.rust-lang.org/std/struct.Vec.html#method.as_mut_ptr).
             pub fn as_mut_ptr(&mut self) -> #ptr_mut_name {
                 #ptr_mut_name {
-                    #(#fields_names_1: self.#fields_names_2.as_mut_ptr(),)*
+                    #(#fields_names: self.#fields_names.as_mut_ptr(),)*
                 }
             }
 
@@ -342,7 +344,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::from_raw_parts()`](https://doc.rust-lang.org/std/struct.Vec.html#method.from_raw_parts).
             pub unsafe fn from_raw_parts(data: #ptr_mut_name, len: usize, capacity: usize) -> #vec_name {
                 #vec_name {
-                    #(#fields_names_1: Vec::from_raw_parts(data.#fields_names_2, len, capacity),)*
+                    #(#fields_names: Vec::from_raw_parts(data.#fields_names, len, capacity),)*
                 }
             }
         }
@@ -357,7 +359,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 /// ::resize()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.resize).
                 pub fn resize<T>(&mut self, new_len: usize, value: #name) {
                     #(
-                        self.#fields_names_1.resize(new_len, value.#fields_names_2);
+                        self.#fields_names.resize(new_len, value.#fields_names);
                     )*
                 }
             }

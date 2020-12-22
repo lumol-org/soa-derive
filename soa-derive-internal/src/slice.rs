@@ -17,19 +17,18 @@ pub fn derive(input: &Input) -> TokenStream {
     let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
     let vec_doc_url = format!("[`{0}`](struct.{0}.html)", input.vec_name());
 
-    let fields_names = input.fields.iter()
-                                   .map(|field| field.ident.clone().unwrap())
+    let fields_names = &input.fields.iter()
+                                   .map(|field| field.ident.as_ref().unwrap())
                                    .collect::<Vec<_>>();
-    let fields_names_1 = &fields_names;
-    let fields_names_2 = &fields_names;
     let first_field = &fields_names[0];
-    let slice_names_1 = &input.fields.iter()
-        .map(|field| field.ident.as_ref().unwrap().to_string())
-        .map(|ident| Ident::new(&format!("{}_slice_1", ident), Span::call_site()))
+
+    let fields_names_hygienic_1 = input.fields.iter()
+        .map(|field| field.ident.as_ref().unwrap())
+        .map(|ident| Ident::new(&format!("___soa_derive_private_1_{}", ident), Span::call_site()))
         .collect::<Vec<_>>();
-    let slice_names_2 = &input.fields.iter()
-        .map(|field| field.ident.as_ref().unwrap().to_string())
-        .map(|ident| Ident::new(&format!("{}_slice_2", ident), Span::call_site()))
+    let fields_names_hygienic_2 = input.fields.iter()
+        .map(|field| field.ident.as_ref().unwrap())
+        .map(|ident| Ident::new(&format!("___soa_derive_private_2_{}", ident), Span::call_site()))
         .collect::<Vec<_>>();
 
     let fields_types = &input.fields.iter()
@@ -52,7 +51,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #visibility struct #slice_name<'a> {
             #(
                 #[doc = #fields_doc]
-                pub #fields_names_1: &'a [#fields_types],
+                pub #fields_names: &'a [#fields_types],
             )*
         }
 
@@ -64,7 +63,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// the length of all fields should be the same.
             pub fn len(&self) -> usize {
                 let len = self.#first_field.len();
-                #(debug_assert_eq!(self.#fields_names_1.len(), len);)*
+                #(debug_assert_eq!(self.#fields_names.len(), len);)*
                 len
             }
 
@@ -74,7 +73,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// the length of all fields should be the same.
             pub fn is_empty(&self) -> bool {
                 let empty = self.#first_field.is_empty();
-                #(debug_assert_eq!(self.#fields_names_1.is_empty(), empty);)*
+                #(debug_assert_eq!(self.#fields_names.is_empty(), empty);)*
                 empty
             }
 
@@ -86,9 +85,9 @@ pub fn derive(input: &Input) -> TokenStream {
                     None
                 } else {
                     #(
-                        let #fields_names_1 = self.#fields_names_2.first().unwrap();
+                        let #fields_names_hygienic_1 = self.#fields_names.first().unwrap();
                     )*
-                    Some(#ref_name{#(#fields_names_1: #fields_names_2),*})
+                    Some(#ref_name{#(#fields_names: #fields_names_hygienic_1),*})
                 }
             }
 
@@ -100,10 +99,10 @@ pub fn derive(input: &Input) -> TokenStream {
                     None
                 } else {
                     #(
-                        let (#fields_names_1, #slice_names_1) = self.#fields_names_2.split_first().unwrap();
+                        let (#fields_names_hygienic_1, #fields_names_hygienic_2) = self.#fields_names.split_first().unwrap();
                     )*
-                    let ref_ = #ref_name{#(#fields_names_1: #fields_names_2),*};
-                    let slice = #slice_name{#(#fields_names_1: #slice_names_1),*};
+                    let ref_ = #ref_name{#(#fields_names: #fields_names_hygienic_1),*};
+                    let slice = #slice_name{#(#fields_names: #fields_names_hygienic_2),*};
                     Some((ref_, slice))
                 }
             }
@@ -116,9 +115,9 @@ pub fn derive(input: &Input) -> TokenStream {
                     None
                 } else {
                     #(
-                        let #fields_names_1 = self.#fields_names_2.last().unwrap();
+                        let #fields_names_hygienic_1 = self.#fields_names.last().unwrap();
                     )*
-                    Some(#ref_name{#(#fields_names_1: #fields_names_2),*})
+                    Some(#ref_name{#(#fields_names: #fields_names_hygienic_1),*})
                 }
             }
 
@@ -130,10 +129,10 @@ pub fn derive(input: &Input) -> TokenStream {
                     None
                 } else {
                     #(
-                        let (#fields_names_1, #slice_names_1) = self.#fields_names_2.split_last().unwrap();
+                        let (#fields_names_hygienic_1, #fields_names_hygienic_2) = self.#fields_names.split_last().unwrap();
                     )*
-                    let ref_ = #ref_name{#(#fields_names_1: #fields_names_2),*};
-                    let slice = #slice_name{#(#fields_names_1: #slice_names_1),*};
+                    let ref_ = #ref_name{#(#fields_names: #fields_names_hygienic_1),*};
+                    let slice = #slice_name{#(#fields_names: #fields_names_hygienic_2),*};
                     Some((ref_, slice))
                 }
             }
@@ -143,10 +142,10 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::split_at()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_at).
             pub fn split_at(&self, mid: usize) -> (#slice_name<'a>, #slice_name<'a>) {
                 #(
-                    let (#slice_names_1, #slice_names_2) = self.#fields_names_2.split_at(mid);
+                    let (#fields_names_hygienic_1, #fields_names_hygienic_2) = self.#fields_names.split_at(mid);
                 )*
-                let left = #slice_name{#(#fields_names_1: #slice_names_1),*};
-                let right = #slice_name{#(#fields_names_1: #slice_names_2),*};
+                let left = #slice_name{#(#fields_names: #fields_names_hygienic_1),*};
+                let right = #slice_name{#(#fields_names: #fields_names_hygienic_2),*};
                 (left, right)
             }
 
@@ -193,7 +192,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 'a: 'b
             {
                 #slice_name {
-                    #(#fields_names_1: &self.#fields_names_2,)*
+                    #(#fields_names: &self.#fields_names,)*
                 }
             }
 
@@ -202,14 +201,14 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::as_ptr()`](https://doc.rust-lang.org/std/primitive.slice.html#method.as_ptr).
             pub fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2.as_ptr(),)*
+                    #(#fields_names: self.#fields_names.as_ptr(),)*
                 }
             }
 
             /// Similar to [`std::slice::from_raw_parts()`](https://doc.rust-lang.org/std/slice/fn.from_raw_parts.html).
             pub unsafe fn from_raw_parts<'b>(data: #ptr_name, len: usize) -> #slice_name<'b> {
                 #slice_name {
-                    #(#fields_names_1: ::std::slice::from_raw_parts(data.#fields_names_2, len),)*
+                    #(#fields_names: ::std::slice::from_raw_parts(data.#fields_names, len),)*
                 }
             }
         }
@@ -224,7 +223,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 /// ::to_vec()`](https://doc.rust-lang.org/std/primitive.slice.html#method.to_vec).
                 pub fn to_vec(&self) -> #vec_name {
                     #vec_name {
-                        #(#fields_names_1: self.#fields_names_2.to_vec(),)*
+                        #(#fields_names: self.#fields_names.to_vec(),)*
                     }
                 }
             }
