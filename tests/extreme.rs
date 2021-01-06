@@ -45,3 +45,10 @@ pub struct BadNames {
     pub capacity: String,
     pub buf: String,
 }
+
+// Raw identifiers
+#[derive(Debug, Clone, PartialEq, StructOfArray)]
+pub struct RawIdent {
+    pub r#for: String,
+    pub r#in: String,
+}

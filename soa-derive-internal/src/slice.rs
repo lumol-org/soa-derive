@@ -23,12 +23,12 @@ pub fn derive(input: &Input) -> TokenStream {
     let first_field = &fields_names[0];
 
     let fields_names_hygienic_1 = input.fields.iter()
-        .map(|field| field.ident.as_ref().unwrap())
-        .map(|ident| Ident::new(&format!("___soa_derive_private_1_{}", ident), Span::call_site()))
+        .enumerate()
+        .map(|(i, _)| Ident::new(&format!("___soa_derive_private_1_{}", i), Span::call_site()))
         .collect::<Vec<_>>();
     let fields_names_hygienic_2 = input.fields.iter()
-        .map(|field| field.ident.as_ref().unwrap())
-        .map(|ident| Ident::new(&format!("___soa_derive_private_2_{}", ident), Span::call_site()))
+        .enumerate()
+        .map(|(i, _)| Ident::new(&format!("___soa_derive_private_2_{}", i), Span::call_site()))
         .collect::<Vec<_>>();
 
     let fields_types = &input.fields.iter()
@@ -256,12 +256,12 @@ pub fn derive_mut(input: &Input) -> TokenStream {
     let fields_names_2 = &fields_names;
     let first_field = &fields_names[0];
     let slice_names_1 = &input.fields.iter()
-        .map(|field| field.ident.as_ref().unwrap().to_string())
-        .map(|ident| Ident::new(&format!("{}_slice_1", ident), Span::call_site()))
+        .enumerate()
+        .map(|(i, _)| Ident::new(&format!("___soa_derive_private_slice_1_{}", i), Span::call_site()))
         .collect::<Vec<_>>();
     let slice_names_2 = &input.fields.iter()
-        .map(|field| field.ident.as_ref().unwrap().to_string())
-        .map(|ident| Ident::new(&format!("{}_slice_2", ident), Span::call_site()))
+        .enumerate()
+        .map(|(i, _)| Ident::new(&format!("___soa_derive_private_slice_2_{}", i), Span::call_site()))
         .collect::<Vec<_>>();
 
     let fields_types = &input.fields.iter()

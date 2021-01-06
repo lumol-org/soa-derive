@@ -22,8 +22,8 @@ pub fn derive(input: &Input) -> TokenStream {
                                    .collect::<Vec<_>>();
 
     let fields_names_hygienic = input.fields.iter()
-        .map(|field| field.ident.as_ref().unwrap())
-        .map(|ident| Ident::new(&format!("___soa_derive_private_{}", ident), Span::call_site()))
+        .enumerate()
+        .map(|(i, _)| Ident::new(&format!("___soa_derive_private_{}", i), Span::call_site()))
         .collect::<Vec<_>>();
 
     let first_field = &fields_names[0];
