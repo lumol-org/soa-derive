@@ -28,13 +28,13 @@ pub struct CheeseVec {
 }
 ```
 
-It will also generate the same functions that a `Vec<Chees>` would have, and a
+It will also generate the same functions that a `Vec<Cheese>` would have, and a
 few helper structs: `CheeseSlice`, `CheeseSliceMut`, `CheeseRef` and
 `CheeseRefMut` corresponding respectivly to `&[Cheese]`, `&mut [Cheese]`,
 `&Cheese` and `&mut Cheese`.
 
-Any struct derived by StructOfArray will auto impl trait `StructOfArray`,
-You can use `<Cheese as StructOfArray>::Type` instead of explicit named type `CheeseVec`;
+Any struct derived by StructOfArray will auto impl trait `StructOfArray`.
+You can use `<Cheese as StructOfArray>::Type` instead of the explicitly named type `CheeseVec`.
 
 ## How to use it
 
