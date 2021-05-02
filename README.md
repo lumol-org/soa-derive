@@ -28,7 +28,7 @@ pub struct CheeseVec {
 }
 ```
 
-It will also generate the same functions that a `Vec<Chees>` would have, and a
+It will also generate the same functions that a `Vec<Cheese>` would have, and a
 few helper structs: `CheeseSlice`, `CheeseSliceMut`, `CheeseRef` and
 `CheeseRefMut` corresponding respectivly to `&[Cheese]`, `&mut [Cheese]`,
 `&Cheese` and `&mut Cheese`.
