@@ -169,7 +169,7 @@ pub trait StructOfArray {
 }
 
 
-mod private_soa_indexs {
+mod private_soa_indexes {
     // From [`std::slice::SliceIndex`](https://doc.rust-lang.org/std/slice/trait.SliceIndex.html) code.
     // Limits the types that may implement the SoA index traits.
     // It's also helpful to have the exaustive list of all accepted types.
@@ -189,7 +189,7 @@ mod private_soa_indexs {
 
 /// Helper trait used for indexing operations.
 /// Inspired by [`std::slice::SliceIndex`](https://doc.rust-lang.org/std/slice/trait.SliceIndex.html).
-pub trait SoAIndex<T>: private_soa_indexs::Sealed {
+pub trait SoAIndex<T>: private_soa_indexes::Sealed {
     /// The output for the non-mutable functions
     type RefOutput;
 
@@ -203,7 +203,7 @@ pub trait SoAIndex<T>: private_soa_indexs::Sealed {
 
 /// Helper trait used for indexing operations returning mutable references.
 /// Inspired by [`std::slice::SliceIndex`](https://doc.rust-lang.org/std/slice/trait.SliceIndex.html).
-pub trait SoAIndexMut<T>: private_soa_indexs::Sealed {
+pub trait SoAIndexMut<T>: private_soa_indexes::Sealed {
     /// The output for the mutable functions
     type MutOutput;
 

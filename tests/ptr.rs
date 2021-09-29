@@ -1,3 +1,5 @@
+#![allow(clippy::float_cmp)]
+
 mod particles;
 use self::particles::{Particle, ParticleVec, ParticleSlice, ParticleSliceMut};
 

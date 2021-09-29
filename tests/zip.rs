@@ -1,3 +1,5 @@
+#![allow(clippy::float_cmp)]
+
 use soa_derive::soa_zip;
 mod particles;
 use self::particles::{Particle, ParticleVec, ParticleSlice, ParticleSliceMut};
@@ -123,7 +125,7 @@ struct Wrapper {
 impl Wrapper {
     fn new(particles: ParticleVec) -> Wrapper {
         Wrapper {
-            particles: particles
+            particles,
         }
     }
 

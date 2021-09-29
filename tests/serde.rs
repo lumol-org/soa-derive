@@ -11,8 +11,8 @@ pub struct Particle {
 impl Particle {
     pub fn new(name: String, mass: f64) -> Self {
         Particle {
-            name: name,
-            mass: mass,
+            name,
+            mass,
         }
     }
 }

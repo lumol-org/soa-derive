@@ -1,4 +1,5 @@
 #![deny(warnings)]
+#![allow(clippy::float_cmp)]
 
 use soa_derive::StructOfArray;
 

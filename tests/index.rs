@@ -1,3 +1,5 @@
+#![allow(clippy::float_cmp)]
+
 mod particles;
 use self::particles::{Particle, ParticleVec, ParticleRef};
 
@@ -62,14 +64,14 @@ fn index_vec_with_usize() {
 
 #[test]
 fn index_vec_with_ranges() {
-    let mut particles = Vec::new();
-    particles.push(Particle::new(String::from("Cl"), 1.0));
-    particles.push(Particle::new(String::from("Na"), 2.0));
-    particles.push(Particle::new(String::from("Br"), 3.0));
-    particles.push(Particle::new(String::from("Zn"), 4.0));
+    let particles = vec![
+        Particle::new(String::from("Cl"), 1.0),
+        Particle::new(String::from("Na"), 2.0),
+        Particle::new(String::from("Br"), 3.0),
+        Particle::new(String::from("Zn"), 4.0),
+    ];
 
     let mut soa = ParticleVec::new();
-
     for particle in particles.iter() {
         soa.push(particle.clone());
     }
@@ -84,15 +86,15 @@ fn index_vec_with_ranges() {
     eq_its(soa.index(range.clone()).iter(), particles[range.clone()].iter());
     eq_its(soa.get_mut(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
     unsafe { eq_its(soa.get_unchecked_mut(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa.index_mut(range.clone()).iter(), particles[range.clone()].iter());
+    eq_its(soa.index_mut(range.clone()).iter(), particles[range].iter());
 
     let range = ..3;
-    eq_its(soa.get(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
-    unsafe { eq_its(soa.get_unchecked(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa.index(range.clone()).iter(), particles[range.clone()].iter());
-    eq_its(soa.get_mut(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
-    unsafe { eq_its(soa.get_unchecked_mut(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa.index_mut(range.clone()).iter(), particles[range.clone()].iter());
+    eq_its(soa.get(range).unwrap().iter(), particles.get(range).unwrap().iter());
+    unsafe { eq_its(soa.get_unchecked(range).iter(), particles.get_unchecked(range).iter()); }
+    eq_its(soa.index(range).iter(), particles[range].iter());
+    eq_its(soa.get_mut(range).unwrap().iter(), particles.get(range).unwrap().iter());
+    unsafe { eq_its(soa.get_unchecked_mut(range).iter(), particles.get_unchecked(range).iter()); }
+    eq_its(soa.index_mut(range).iter(), particles[range].iter());
 
     let range = 1..;
     eq_its(soa.get(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
@@ -100,15 +102,15 @@ fn index_vec_with_ranges() {
     eq_its(soa.index(range.clone()).iter(), particles[range.clone()].iter());
     eq_its(soa.get_mut(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
     unsafe { eq_its(soa.get_unchecked_mut(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa.index_mut(range.clone()).iter(), particles[range.clone()].iter());
+    eq_its(soa.index_mut(range.clone()).iter(), particles[range].iter());
 
     let range = ..;
-    eq_its(soa.get(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
-    unsafe { eq_its(soa.get_unchecked(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa.index(range.clone()).iter(), particles[range.clone()].iter());
-    eq_its(soa.get_mut(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
-    unsafe { eq_its(soa.get_unchecked_mut(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa.index_mut(range.clone()).iter(), particles[range.clone()].iter());
+    eq_its(soa.get(range).unwrap().iter(), particles.get(range).unwrap().iter());
+    unsafe { eq_its(soa.get_unchecked(range).iter(), particles.get_unchecked(range).iter()); }
+    eq_its(soa.index(range).iter(), particles[range].iter());
+    eq_its(soa.get_mut(range).unwrap().iter(), particles.get(range).unwrap().iter());
+    unsafe { eq_its(soa.get_unchecked_mut(range).iter(), particles.get_unchecked(range).iter()); }
+    eq_its(soa.index_mut(range).iter(), particles[range].iter());
 
     let range = 0..=1;
     eq_its(soa.get(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
@@ -116,15 +118,15 @@ fn index_vec_with_ranges() {
     eq_its(soa.index(range.clone()).iter(), particles[range.clone()].iter());
     eq_its(soa.get_mut(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
     unsafe { eq_its(soa.get_unchecked_mut(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa.index_mut(range.clone()).iter(), particles[range.clone()].iter());
+    eq_its(soa.index_mut(range.clone()).iter(), particles[range].iter());
 
     let range = ..=2;
-    eq_its(soa.get(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
-    unsafe { eq_its(soa.get_unchecked(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa.index(range.clone()).iter(), particles[range.clone()].iter());
-    eq_its(soa.get_mut(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
-    unsafe { eq_its(soa.get_unchecked_mut(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa.index_mut(range.clone()).iter(), particles[range.clone()].iter());
+    eq_its(soa.get(range).unwrap().iter(), particles.get(range).unwrap().iter());
+    unsafe { eq_its(soa.get_unchecked(range).iter(), particles.get_unchecked(range).iter()); }
+    eq_its(soa.index(range).iter(), particles[range].iter());
+    eq_its(soa.get_mut(range).unwrap().iter(), particles.get(range).unwrap().iter());
+    unsafe { eq_its(soa.get_unchecked_mut(range).iter(), particles.get_unchecked(range).iter()); }
+    eq_its(soa.index_mut(range).iter(), particles[range].iter());
 }
 
 #[test]
@@ -181,14 +183,14 @@ fn index_slice_with_usize() {
 
 #[test]
 fn index_slice_with_ranges() {
-    let mut particles = Vec::new();
-    particles.push(Particle::new(String::from("Cl"), 1.0));
-    particles.push(Particle::new(String::from("Na"), 2.0));
-    particles.push(Particle::new(String::from("Br"), 3.0));
-    particles.push(Particle::new(String::from("Zn"), 4.0));
+    let particles = vec![
+        Particle::new(String::from("Cl"), 1.0),
+        Particle::new(String::from("Na"), 2.0),
+        Particle::new(String::from("Br"), 3.0),
+        Particle::new(String::from("Zn"), 4.0),
+    ];
 
     let mut soa = ParticleVec::new();
-
     for particle in particles.iter() {
         soa.push(particle.clone());
     }
@@ -204,15 +206,15 @@ fn index_slice_with_ranges() {
     eq_its(soa_mut_slice.index(range.clone()).iter(), particles[range.clone()].iter());
     eq_its(soa_mut_slice.get_mut(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
     unsafe { eq_its(soa_mut_slice.get_unchecked_mut(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa_mut_slice.index_mut(range.clone()).iter(), particles[range.clone()].iter());
+    eq_its(soa_mut_slice.index_mut(range.clone()).iter(), particles[range].iter());
 
     let range = ..3;
-    eq_its(soa_mut_slice.get(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
-    unsafe { eq_its(soa_mut_slice.get_unchecked(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa_mut_slice.index(range.clone()).iter(), particles[range.clone()].iter());
-    eq_its(soa_mut_slice.get_mut(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
-    unsafe { eq_its(soa_mut_slice.get_unchecked_mut(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa_mut_slice.index_mut(range.clone()).iter(), particles[range.clone()].iter());
+    eq_its(soa_mut_slice.get(range).unwrap().iter(), particles.get(range).unwrap().iter());
+    unsafe { eq_its(soa_mut_slice.get_unchecked(range).iter(), particles.get_unchecked(range).iter()); }
+    eq_its(soa_mut_slice.index(range).iter(), particles[range].iter());
+    eq_its(soa_mut_slice.get_mut(range).unwrap().iter(), particles.get(range).unwrap().iter());
+    unsafe { eq_its(soa_mut_slice.get_unchecked_mut(range).iter(), particles.get_unchecked(range).iter()); }
+    eq_its(soa_mut_slice.index_mut(range).iter(), particles[range].iter());
 
     let range = 1..;
     eq_its(soa_mut_slice.get(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
@@ -220,15 +222,15 @@ fn index_slice_with_ranges() {
     eq_its(soa_mut_slice.index(range.clone()).iter(), particles[range.clone()].iter());
     eq_its(soa_mut_slice.get_mut(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
     unsafe { eq_its(soa_mut_slice.get_unchecked_mut(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa_mut_slice.index_mut(range.clone()).iter(), particles[range.clone()].iter());
+    eq_its(soa_mut_slice.index_mut(range.clone()).iter(), particles[range].iter());
 
     let range = ..;
-    eq_its(soa_mut_slice.get(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
-    unsafe { eq_its(soa_mut_slice.get_unchecked(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa_mut_slice.index(range.clone()).iter(), particles[range.clone()].iter());
-    eq_its(soa_mut_slice.get_mut(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
-    unsafe { eq_its(soa_mut_slice.get_unchecked_mut(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa_mut_slice.index_mut(range.clone()).iter(), particles[range.clone()].iter());
+    eq_its(soa_mut_slice.get(range).unwrap().iter(), particles.get(range).unwrap().iter());
+    unsafe { eq_its(soa_mut_slice.get_unchecked(range).iter(), particles.get_unchecked(range).iter()); }
+    eq_its(soa_mut_slice.index(range).iter(), particles[range].iter());
+    eq_its(soa_mut_slice.get_mut(range).unwrap().iter(), particles.get(range).unwrap().iter());
+    unsafe { eq_its(soa_mut_slice.get_unchecked_mut(range).iter(), particles.get_unchecked(range).iter()); }
+    eq_its(soa_mut_slice.index_mut(range).iter(), particles[range].iter());
 
     let range = 0..=1;
     eq_its(soa_mut_slice.get(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
@@ -236,13 +238,13 @@ fn index_slice_with_ranges() {
     eq_its(soa_mut_slice.index(range.clone()).iter(), particles[range.clone()].iter());
     eq_its(soa_mut_slice.get_mut(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
     unsafe { eq_its(soa_mut_slice.get_unchecked_mut(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa_mut_slice.index_mut(range.clone()).iter(), particles[range.clone()].iter());
+    eq_its(soa_mut_slice.index_mut(range.clone()).iter(), particles[range].iter());
 
     let range = ..=2;
-    eq_its(soa_mut_slice.get(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
-    unsafe { eq_its(soa_mut_slice.get_unchecked(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa_mut_slice.index(range.clone()).iter(), particles[range.clone()].iter());
-    eq_its(soa_mut_slice.get_mut(range.clone()).unwrap().iter(), particles.get(range.clone()).unwrap().iter());
-    unsafe { eq_its(soa_mut_slice.get_unchecked_mut(range.clone()).iter(), particles.get_unchecked(range.clone()).iter()); }
-    eq_its(soa_mut_slice.index_mut(range.clone()).iter(), particles[range.clone()].iter());
+    eq_its(soa_mut_slice.get(range).unwrap().iter(), particles.get(range).unwrap().iter());
+    unsafe { eq_its(soa_mut_slice.get_unchecked(range).iter(), particles.get_unchecked(range).iter()); }
+    eq_its(soa_mut_slice.index(range).iter(), particles[range].iter());
+    eq_its(soa_mut_slice.get_mut(range).unwrap().iter(), particles.get(range).unwrap().iter());
+    unsafe { eq_its(soa_mut_slice.get_unchecked_mut(range).iter(), particles.get_unchecked(range).iter()); }
+    eq_its(soa_mut_slice.index_mut(range).iter(), particles[range].iter());
 }

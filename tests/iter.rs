@@ -1,5 +1,6 @@
-mod particles;
+#![allow(clippy::float_cmp)]
 
+mod particles;
 use self::particles::{Particle, ParticleVec};
 
 #[test]
@@ -53,10 +54,11 @@ fn iter_mut() {
 
 #[test]
 fn from_iter() {
-    let mut vec_with_particles = Vec::new();
-    vec_with_particles.push(Particle::new(String::from("Na"), 0.0));
-    vec_with_particles.push(Particle::new(String::from("Cl"), 0.0));
-    vec_with_particles.push(Particle::new(String::from("Zn"), 0.0));
+    let vec_with_particles = vec![
+        Particle::new(String::from("Na"), 0.0),
+        Particle::new(String::from("Cl"), 0.0),
+        Particle::new(String::from("Zn"), 0.0),
+    ];
 
     let particles_from_iter: ParticleVec = vec_with_particles.into_iter().collect();
 

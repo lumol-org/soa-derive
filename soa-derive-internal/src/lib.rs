@@ -1,6 +1,6 @@
 #![warn(clippy::all, clippy::pedantic)]
 #![allow(clippy::needless_return, clippy::redundant_field_names)]
-#![allow(clippy::use_self, clippy::too_many_lines)]
+#![allow(clippy::use_self, clippy::too_many_lines, clippy::missing_panics_doc)]
 // TODO: improve the code and make it simpler to read
 #![allow(clippy::cognitive_complexity)]
 

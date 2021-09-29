@@ -1,3 +1,5 @@
+#![allow(clippy::float_cmp)]
+
 mod particles;
 use self::particles::{Particle, ParticleVec};
 use soa_derive::StructOfArray;
@@ -154,7 +156,7 @@ fn retain() {
     particles.push(Particle::new(String::from("Zn"), 0.0));
     particles.push(Particle::new(String::from("C"), 0.0));
 
-    particles.retain(|particle| particle.name.starts_with("C"));
+    particles.retain(|particle| particle.name.starts_with('C'));
     assert_eq!(particles.len(), 2);
     assert_eq!(particles.index(0).name, "Cl");
     assert_eq!(particles.index(1).name, "C");
