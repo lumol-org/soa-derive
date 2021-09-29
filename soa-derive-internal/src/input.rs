@@ -68,6 +68,7 @@ impl Input {
                                        .cloned()
                                        .filter(|name| name != "Clone")
                                        .filter(|name| name != "Deserialize")
+                                       .filter(|name| name != "Serialize")
                                        .collect::<Vec<_>>();
             quote!(
                 #[derive(
