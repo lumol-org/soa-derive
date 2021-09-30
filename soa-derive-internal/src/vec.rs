@@ -9,6 +9,7 @@ pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
     let vec_name_str = format!("Vec<{}>", name);
     let other_derive = &input.derive();
+    let attrs = &input.vec_attrs;
     let visibility = &input.visibility;
     let vec_name = &input.vec_name();
     let slice_name = &input.slice_name();
@@ -42,6 +43,7 @@ pub fn derive(input: &Input) -> TokenStream {
         /// ` with Struct of Array (SoA) layout
         #[allow(dead_code)]
         #other_derive
+        #(#[#attrs])*
         #visibility struct #vec_name {
             #(
                 #[doc = #fields_doc]
