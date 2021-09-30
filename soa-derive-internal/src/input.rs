@@ -56,7 +56,7 @@ impl Input {
                     match meta.clone() {
                         Meta::List(MetaList { nested, .. }) => {
                             let [soa_type, attr]: [NestedMeta; 2] =
-                                nested.into_iter().collect::<Vec<_>>().try_into().unwrap_or_else(|_| panic!("expected #[soa_derive(\"Types, To, Add, Attribute\", \"Attributes\", got #[{}])]", quote!(#meta)));
+                                nested.into_iter().collect::<Vec<_>>().try_into().unwrap_or_else(|_| panic!("expected #[soa_attr(\"Types, To, Add, Attribute\", \"Attribute\")], got #[{}]", quote!(#meta)));
                             let attr = match attr {
                                 NestedMeta::Meta(meta) => meta,
                                 NestedMeta::Lit(_) => {
@@ -81,7 +81,7 @@ impl Input {
                                 }
                             }
                         }
-                        _ => panic!("expected #[soa_attr(...), got #[{}]]", quote!(#meta)),
+                        _ => panic!("expected #[soa_attr(...)], got #[{}]", quote!(#meta)),
                     }
                 }
             }
