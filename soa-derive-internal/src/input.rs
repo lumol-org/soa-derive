@@ -69,7 +69,7 @@ impl Input {
                                         "Vec" => vec_attrs.push(attr),
                                         "Slice" => slice_attrs.push(attr),
                                         "Ref" => ref_attrs.push(attr),
-                                        "ptr" => ptr_attrs.push(attr),
+                                        "Ptr" => ptr_attrs.push(attr),
                                         _ => panic!("expected a soa type, got {}", ident),
                                     },
                                     None => {
@@ -116,14 +116,12 @@ impl Input {
         if self.derives.is_empty() {
             TokenStream::new()
         } else {
-            let derives = &self
-                .derives
-                .iter()
-                .cloned()
-                .filter(|name| name != "Clone")
-                .filter(|name| name != "Deserialize")
-                .filter(|name| name != "Serialize")
-                .collect::<Vec<_>>();
+            let derives = &self.derives.iter()
+                                       .cloned()
+                                       .filter(|name| name != "Clone")
+                                       .filter(|name| name != "Deserialize")
+                                       .filter(|name| name != "Serialize")
+                                       .collect::<Vec<_>>();
             quote!(
                 #[derive(
                     #(#derives,)*
