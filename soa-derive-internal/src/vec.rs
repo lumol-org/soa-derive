@@ -150,7 +150,10 @@ pub fn derive(input: &Input) -> TokenStream {
             #[doc = #vec_name_str]
             /// ::push()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.push).
             pub fn push(&mut self, value: #name) {
-                #(self.#fields_names.push(value.#fields_names);)*
+                let mut value = ::std::mem::ManuallyDrop::new(value);
+                unsafe {
+                    #(self.#fields_names.push(::std::ptr::read(&mut value.#fields_names));)*
+                }
             }
 
             /// Similar to [`
@@ -187,7 +190,10 @@ pub fn derive(input: &Input) -> TokenStream {
             #[doc = #vec_name_str]
             /// ::insert()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.insert).
             pub fn insert(&mut self, index: usize, element: #name) {
-                #(self.#fields_names.insert(index, element.#fields_names);)*
+                let mut element = ::std::mem::ManuallyDrop::new(element);
+                unsafe {
+                    #(self.#fields_names.insert(index, ::std::ptr::read(&mut element.#fields_names));)*
+                }
             }
 
             /// Similar to [`
@@ -379,6 +385,14 @@ pub fn derive(input: &Input) -> TokenStream {
             pub unsafe fn from_raw_parts(data: #ptr_mut_name, len: usize, capacity: usize) -> #vec_name {
                 #vec_name {
                     #( #fields_names: #vec_from_raw_parts, )*
+                }
+            }
+        }
+
+        impl Drop for #vec_name {
+            fn drop(&mut self) {
+                while let Some(value) = self.pop() {
+                    drop(value);
                 }
             }
         }

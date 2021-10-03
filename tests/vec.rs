@@ -161,3 +161,31 @@ fn retain() {
     assert_eq!(particles.index(0).name, "Cl");
     assert_eq!(particles.index(1).name, "C");
 }
+
+#[test]
+fn drop_vec() {
+    use std::{cell::Cell, rc::Rc};
+
+    #[derive(StructOfArray)]
+    struct IncrOnDrop {
+        cell: Rc<Cell<usize>>,
+    }
+
+    impl Drop for IncrOnDrop {
+        fn drop(&mut self) {
+            self.cell.set(self.cell.get() + 1);
+        }
+    }
+
+    let counter = Rc::new(Cell::default());
+    let mut vec = IncrOnDropVec::new();
+    for _ in 0..5 {
+        vec.push(IncrOnDrop {
+            cell: counter.clone(),
+        });
+    }
+
+    assert_eq!(counter.get(), 0);
+    drop(vec);
+    assert_eq!(counter.get(), 5);
+}
