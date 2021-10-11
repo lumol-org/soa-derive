@@ -54,6 +54,22 @@ pub struct Cheese {
 }
 ```
 
+If you want to add attribute to a specific generated struct(such as 
+`#[cfg_attr(test, derive(PartialEq))]` on `CheeseVec`), you can add an
+attribute `#[soa_attr(Vec, cfg_attr(test, derive(PartialEq)))]` to the 
+struct declaration.
+
+```rust
+#[derive(Debug, PartialEq, StructOfArray)]
+#[soa_attr(Vec, cfg_attr(test, derive(PartialEq)))]
+pub struct Cheese {
+    pub smell: f64,
+    pub color: (f64, f64, f64),
+    pub with_mushrooms: bool,
+    pub name: String,
+}
+```
+
 ## Usage and API
 
 All the generated code have some generated documentation with it, so you

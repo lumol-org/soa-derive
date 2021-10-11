@@ -51,6 +51,28 @@
 //! }
 //! # }
 //! ```
+//! 
+//! If you want to add attribute to a specific generated struct(such as 
+//! `#[cfg_attr(test, derive(PartialEq))]` on `CheeseVec`), you can add an
+//! attribute `#[soa_attr(Vec, cfg_attr(test, derive(PartialEq)))]` to the 
+//! struct declaration.
+//! 
+//! ```
+//! # #[macro_use] extern crate soa_derive;
+//! # fn main() {
+//! #[derive(Debug, PartialEq, StructOfArray)]
+//! #[soa_attr(Vec, cfg_attr(test, derive(PartialEq)))]
+//! pub struct Cheese {
+//!     pub smell: f64,
+//!     pub color: (f64, f64, f64),
+//!     pub with_mushrooms: bool,
+//!     pub name: String,
+//! }
+//! # }
+//! ```
+//! 
+//! Possible options for first argument of ``soa_attr`` attribute: `Vec`, `Slice`, 
+//! `Ref` and `Ptr`.
 //!
 //! # Usage and API
 //!
