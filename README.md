@@ -70,6 +70,15 @@ pub struct Cheese {
 }
 ```
 
+Mappings for first argument of ``soa_attr`` to the generated struct for ``Cheese``: 
+* `Vec` => `CheeseVec`
+* `Slice` => `CheeseSlice`
+* `SliceMut` => `CheeseSliceMut`
+* `Ref` => `CheeseRef`
+* `RefMut` => `CheeseRefMut`
+* `Ptr` => `CheesePtr`
+* `PtrMut` => `CheesePtrMut`
+
 ## Usage and API
 
 All the generated code have some generated documentation with it, so you

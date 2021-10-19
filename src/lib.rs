@@ -71,8 +71,14 @@
 //! # }
 //! ```
 //! 
-//! Possible options for first argument of ``soa_attr`` attribute: `Vec`, `Slice`, 
-//! `Ref` and `Ptr`.
+//! Mappings for first argument of ``soa_attr`` to the generated struct for ``Cheese``: 
+//! * `Vec` => `CheeseVec`
+//! * `Slice` => `CheeseSlice`
+//! * `SliceMut` => `CheeseSliceMut`
+//! * `Ref` => `CheeseRef`
+//! * `RefMut` => `CheeseRefMut`
+//! * `Ptr` => `CheesePtr`
+//! * `PtrMut` => `CheesePtrMut`
 //!
 //! # Usage and API
 //!
