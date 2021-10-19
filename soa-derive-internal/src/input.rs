@@ -19,8 +19,11 @@ pub struct Input {
 
     pub vec_attrs: Vec<Meta>,
     pub slice_attrs: Vec<Meta>,
+    pub slice_mut_attrs: Vec<Meta>,
     pub ref_attrs: Vec<Meta>,
+    pub ref_mut_attrs: Vec<Meta>,
     pub ptr_attrs: Vec<Meta>,
+    pub ptr_mut_attrs: Vec<Meta>,
 }
 
 impl Input {
@@ -33,8 +36,11 @@ impl Input {
         let mut derives: Vec<Ident> = vec![];
         let mut vec_attrs = Vec::new();
         let mut slice_attrs = Vec::new();
+        let mut slice_mut_attrs = Vec::new();
         let mut ref_attrs = Vec::new();
+        let mut ref_mut_attrs = Vec::new();
         let mut ptr_attrs = Vec::new();
+        let mut ptr_mut_attrs = Vec::new();
         for attr in input.attrs {
             if let Ok(meta) = attr.parse_meta() {
                 if meta.path().is_ident("soa_derive") {
@@ -63,23 +69,27 @@ impl Input {
                                     panic!("expected a attribute, got {}", quote!(attr))
                                 }
                             };
-                            match soa_type {
+                            let attrs_mut = match soa_type {
                                 NestedMeta::Meta(Meta::Path(path)) => match path.get_ident() {
                                     Some(ident) => match ident.to_string().as_str() {
-                                        "Vec" => vec_attrs.push(attr),
-                                        "Slice" => slice_attrs.push(attr),
-                                        "Ref" => ref_attrs.push(attr),
-                                        "Ptr" => ptr_attrs.push(attr),
+                                        "Vec" => &mut vec_attrs,
+                                        "Slice" => &mut slice_attrs,
+                                        "SliceMut" => &mut slice_mut_attrs,
+                                        "Ref" => &mut ref_attrs,
+                                        "RefMut" => &mut ref_mut_attrs,
+                                        "Ptr" => &mut ptr_attrs,
+                                        "PtrMut" => &mut ptr_mut_attrs,
                                         _ => panic!("expected a soa type, got {}", ident),
                                     },
                                     None => {
-                                        panic!("expected a soa type, got {}", quote!(#path))
+                                        panic!("expected a soa type, got {}", quote!(#path));
                                     }
                                 },
                                 _ => {
-                                    panic!("expected a soa type, got {}", quote!(#soa_type))
+                                    panic!("expected a soa type, got {}", quote!(#soa_type));
                                 }
-                            }
+                            };
+                            attrs_mut.push(attr);
                         }
                         _ => panic!("expected #[soa_attr(...)], got #[{}]", quote!(#meta)),
                     }
@@ -94,8 +104,11 @@ impl Input {
             visibility: input.vis,
             vec_attrs,
             slice_attrs,
+            slice_mut_attrs,
             ref_attrs,
+            ref_mut_attrs,
             ptr_attrs,
+            ptr_mut_attrs,
         }
     }
 

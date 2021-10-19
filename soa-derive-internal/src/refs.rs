@@ -8,6 +8,7 @@ pub fn derive(input: &Input) -> TokenStream {
     let visibility = &input.visibility;
     let other_derive = &input.derive_with_exceptions();
     let attrs = &input.ref_attrs;
+    let mut_attrs = &input.ref_mut_attrs;
     let vec_name = &input.vec_name();
     let ref_name = &input.ref_name();
     let ref_mut_name = &input.ref_mut_name();
@@ -52,7 +53,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #[doc = #doc_url]
         /// with struct of array layout.
         #other_derive
-        #(#[#attrs])*
+        #(#[#mut_attrs])*
         #visibility struct #ref_mut_name<'a> {
             #(
                 #[doc = #fields_mut_doc]
