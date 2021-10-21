@@ -6,7 +6,6 @@ use crate::input::Input;
 pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
     let visibility = &input.visibility;
-    let other_derive = &input.derive_with_exceptions();
     let attrs = &input.attrs.ptr;
     let mut_attrs = &input.attrs.ptr_mut;
     let vec_name = &input.vec_name();
@@ -43,7 +42,6 @@ pub fn derive(input: &Input) -> TokenStream {
         /// An analog of a pointer to
         #[doc = #doc_url]
         /// with struct of array layout.
-        #other_derive
         #(#[#attrs])*
         #[derive(Copy, Clone)]
         #visibility struct #ptr_name {
@@ -56,7 +54,6 @@ pub fn derive(input: &Input) -> TokenStream {
         /// An analog of a mutable pointer to
         #[doc = #doc_url]
         /// with struct of array layout.
-        #other_derive
         #(#[#mut_attrs])*
         #[derive(Copy, Clone)]
         #visibility struct #ptr_mut_name {

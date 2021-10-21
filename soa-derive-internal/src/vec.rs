@@ -8,7 +8,6 @@ use crate::input::Input;
 pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
     let vec_name_str = format!("Vec<{}>", name);
-    let other_derive = &input.derive();
     let attrs = &input.attrs.vec;
     let visibility = &input.visibility;
     let vec_name = &input.vec_name();
@@ -42,7 +41,6 @@ pub fn derive(input: &Input) -> TokenStream {
         #[doc = #vec_name_str]
         /// ` with Struct of Array (SoA) layout
         #[allow(dead_code)]
-        #other_derive
         #(#[#attrs])*
         #visibility struct #vec_name {
             #(
@@ -352,7 +350,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
     };
 
-    if input.derives.contains(&Ident::new("Clone", Span::call_site())) {
+    if input.attrs.derive_clone {
         generated.append_all(quote!{
             #[allow(dead_code)]
             impl #vec_name {

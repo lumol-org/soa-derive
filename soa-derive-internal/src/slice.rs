@@ -6,7 +6,6 @@ use quote::quote;
 use crate::input::Input;
 
 pub fn derive(input: &Input) -> TokenStream {
-    let other_derive = &input.derive_with_exceptions();
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();
     let attrs = &input.attrs.slice;
@@ -48,7 +47,6 @@ pub fn derive(input: &Input) -> TokenStream {
         /// .
         #[allow(dead_code)]
         #[derive(Copy, Clone)]
-        #other_derive
         #(#[#attrs])*
         #visibility struct #slice_name<'a> {
             #(
@@ -216,7 +214,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
     };
 
-    if input.derives.contains(&Ident::new("Clone", Span::call_site())) {
+    if input.attrs.derive_clone {
         generated.append_all(quote!{
             #[allow(dead_code)]
             impl<'a> #slice_name<'a> {
@@ -236,7 +234,6 @@ pub fn derive(input: &Input) -> TokenStream {
 }
 
 pub fn derive_mut(input: &Input) -> TokenStream {
-    let other_derive = &input.derive_with_exceptions();
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();
     let slice_mut_name = &input.slice_mut_name();
@@ -282,7 +279,6 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         #[doc = #vec_doc_url]
         /// .
         #[allow(dead_code)]
-        #other_derive
         #(#[#attrs])*
         #visibility struct #slice_mut_name<'a> {
             #(
@@ -528,7 +524,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         }
     };
 
-    if input.derives.contains(&Ident::new("Clone", Span::call_site())) {
+    if input.attrs.derive_clone {
         generated.append_all(quote!{
             #[allow(dead_code)]
             impl<'a> #slice_mut_name<'a> {
