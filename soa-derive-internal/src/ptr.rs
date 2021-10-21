@@ -7,8 +7,8 @@ pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
     let visibility = &input.visibility;
     let other_derive = &input.derive_with_exceptions();
-    let attrs = &input.ptr_attrs;
-    let mut_attrs = &input.ptr_mut_attrs;
+    let attrs = &input.attrs.ptr;
+    let mut_attrs = &input.attrs.ptr_mut;
     let vec_name = &input.vec_name();
     let ptr_name = &input.ptr_name();
     let ptr_mut_name = &input.ptr_mut_name();
