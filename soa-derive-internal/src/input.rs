@@ -16,31 +16,103 @@ pub struct Input {
     pub fields: Vec<Field>,
     /// The struct overall visibility
     pub visibility: Visibility,
+    /// Additional attributes requested with `#[soa_attr(...)]`
+    pub attrs: ExtraAttributes,
+}
 
-    pub vec_attrs: Vec<Meta>,
-    pub slice_attrs: Vec<Meta>,
-    pub slice_mut_attrs: Vec<Meta>,
-    pub ref_attrs: Vec<Meta>,
-    pub ref_mut_attrs: Vec<Meta>,
-    pub ptr_attrs: Vec<Meta>,
-    pub ptr_mut_attrs: Vec<Meta>,
+pub struct ExtraAttributes {
+    pub vec: Vec<Meta>,
+    pub slice: Vec<Meta>,
+    pub slice_mut: Vec<Meta>,
+    pub ref_: Vec<Meta>,
+    pub ref_mut: Vec<Meta>,
+    pub ptr: Vec<Meta>,
+    pub ptr_mut: Vec<Meta>,
+}
+
+impl ExtraAttributes {
+    fn new() -> ExtraAttributes {
+        ExtraAttributes {
+            vec: Vec::new(),
+            slice: Vec::new(),
+            slice_mut: Vec::new(),
+            ref_: Vec::new(),
+            ref_mut: Vec::new(),
+            ptr: Vec::new(),
+            ptr_mut: Vec::new(),
+        }
+    }
+
+    /// parse a single `#[soa_attr(...)]`
+    fn parse(&mut self, meta: &Meta) {
+        match meta {
+            Meta::List(MetaList { nested, .. }) => {
+                let [soa_type, attr]: [NestedMeta; 2] = nested.into_iter()
+                    .cloned()
+                    .collect::<Vec<_>>()
+                    .try_into()
+                    .unwrap_or_else(|_| panic!(
+                        "expected #[soa_attr(\"Types, To, Add, Attribute\", \
+                        \"Attribute\")], got #[{}]", quote!(#meta)
+                    ));
+
+                let attr = match attr {
+                    NestedMeta::Meta(meta) => meta,
+                    NestedMeta::Lit(_) => {
+                        panic!("expected an attribute, got {}", quote!(attr))
+                    }
+                };
+
+                match soa_type {
+                    NestedMeta::Meta(Meta::Path(path)) => match path.get_ident() {
+                        Some(ident) => match ident.to_string().as_str() {
+                            "Vec" => {
+                                self.vec.push(attr);
+                            },
+                            "Slice" => {
+                                self.slice.push(attr);
+                            },
+                            "SliceMut" => {
+                                self.slice_mut.push(attr);
+                            },
+                            "Ref" => {
+                                self.ref_.push(attr);
+                            },
+                            "RefMut" => {
+                                self.ref_mut.push(attr);
+                            },
+                            "Ptr" => {
+                                self.ptr.push(attr);
+                            },
+                            "PtrMut" => {
+                                self.ptr_mut.push(attr);
+                            },
+                            _ => panic!("expected a soa type, got {}", ident),
+                        },
+                        None => {
+                            panic!("expected a soa type, got {}", quote!(#path));
+                        }
+                    },
+                    _ => {
+                        panic!("expected a soa type, got {}", quote!(#soa_type));
+                    }
+                };
+            }
+            _ => panic!("expected #[soa_attr(...)], got #[{}]", quote!(#meta)),
+        }
+    }
 }
 
 impl Input {
     pub fn new(input: DeriveInput) -> Input {
         let fields = match input.data {
             Data::Struct(s) => s.fields.iter().cloned().collect::<Vec<_>>(),
-            _ => panic!("#[derive(StructOfArray)] only supports structs."),
+            _ => panic!("#[derive(StructOfArray)] only supports struct"),
         };
 
         let mut derives: Vec<Ident> = vec![];
-        let mut vec_attrs = Vec::new();
-        let mut slice_attrs = Vec::new();
-        let mut slice_mut_attrs = Vec::new();
-        let mut ref_attrs = Vec::new();
-        let mut ref_mut_attrs = Vec::new();
-        let mut ptr_attrs = Vec::new();
-        let mut ptr_mut_attrs = Vec::new();
+        let mut extra_attrs = ExtraAttributes::new();
+
         for attr in input.attrs {
             if let Ok(meta) = attr.parse_meta() {
                 if meta.path().is_ident("soa_derive") {
@@ -59,40 +131,7 @@ impl Input {
                         ),
                     }
                 } else if meta.path().is_ident("soa_attr") {
-                    match meta.clone() {
-                        Meta::List(MetaList { nested, .. }) => {
-                            let [soa_type, attr]: [NestedMeta; 2] =
-                                nested.into_iter().collect::<Vec<_>>().try_into().unwrap_or_else(|_| panic!("expected #[soa_attr(\"Types, To, Add, Attribute\", \"Attribute\")], got #[{}]", quote!(#meta)));
-                            let attr = match attr {
-                                NestedMeta::Meta(meta) => meta,
-                                NestedMeta::Lit(_) => {
-                                    panic!("expected a attribute, got {}", quote!(attr))
-                                }
-                            };
-                            let attrs_mut = match soa_type {
-                                NestedMeta::Meta(Meta::Path(path)) => match path.get_ident() {
-                                    Some(ident) => match ident.to_string().as_str() {
-                                        "Vec" => &mut vec_attrs,
-                                        "Slice" => &mut slice_attrs,
-                                        "SliceMut" => &mut slice_mut_attrs,
-                                        "Ref" => &mut ref_attrs,
-                                        "RefMut" => &mut ref_mut_attrs,
-                                        "Ptr" => &mut ptr_attrs,
-                                        "PtrMut" => &mut ptr_mut_attrs,
-                                        _ => panic!("expected a soa type, got {}", ident),
-                                    },
-                                    None => {
-                                        panic!("expected a soa type, got {}", quote!(#path));
-                                    }
-                                },
-                                _ => {
-                                    panic!("expected a soa type, got {}", quote!(#soa_type));
-                                }
-                            };
-                            attrs_mut.push(attr);
-                        }
-                        _ => panic!("expected #[soa_attr(...)], got #[{}]", quote!(#meta)),
-                    }
+                    extra_attrs.parse(&meta);
                 }
             }
         }
@@ -102,13 +141,7 @@ impl Input {
             derives: derives,
             fields: fields,
             visibility: input.vis,
-            vec_attrs,
-            slice_attrs,
-            slice_mut_attrs,
-            ref_attrs,
-            ref_mut_attrs,
-            ptr_attrs,
-            ptr_mut_attrs,
+            attrs: extra_attrs,
         }
     }
 

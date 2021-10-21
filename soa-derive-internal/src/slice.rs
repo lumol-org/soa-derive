@@ -9,7 +9,7 @@ pub fn derive(input: &Input) -> TokenStream {
     let other_derive = &input.derive_with_exceptions();
     let visibility = &input.visibility;
     let slice_name = &input.slice_name();
-    let attrs = &input.slice_attrs;
+    let attrs = &input.attrs.slice;
     let vec_name = &input.vec_name();
     let ref_name = &input.ref_name();
     let ptr_name = &input.ptr_name();
@@ -241,7 +241,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
     let slice_name = &input.slice_name();
     let slice_mut_name = &input.slice_mut_name();
     let vec_name = &input.vec_name();
-    let attrs = &input.slice_mut_attrs;
+    let attrs = &input.attrs.slice_mut;
     let ref_mut_name = &input.ref_mut_name();
     let ptr_name = &input.ptr_name();
     let ptr_mut_name = &input.ptr_mut_name();

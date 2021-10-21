@@ -9,7 +9,7 @@ pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
     let vec_name_str = format!("Vec<{}>", name);
     let other_derive = &input.derive();
-    let attrs = &input.vec_attrs;
+    let attrs = &input.attrs.vec;
     let visibility = &input.visibility;
     let vec_name = &input.vec_name();
     let slice_name = &input.slice_name();
