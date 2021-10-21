@@ -1,26 +1,28 @@
 use std::convert::TryInto;
 
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::Span;
 use quote::quote;
-use syn::{
-    Data, DeriveInput, Field, Ident, Lit, Meta, MetaList, MetaNameValue, NestedMeta, Visibility,
-};
+
+use syn::{Data, DeriveInput, Field, Ident, Lit, Path, Visibility};
+use syn::{Meta, MetaList, MetaNameValue, NestedMeta};
 
 /// Representing the struct we are deriving
 pub struct Input {
     /// The input struct name
     pub name: Ident,
-    /// The list of traits to derive passed to `soa_derive` attribute
-    pub derives: Vec<Ident>,
     /// The list of fields in the struct
     pub fields: Vec<Field>,
     /// The struct overall visibility
     pub visibility: Visibility,
-    /// Additional attributes requested with `#[soa_attr(...)]`
+    /// Additional attributes requested with `#[soa_attr(...)]` or
+    /// `#[soa_derive()]`
     pub attrs: ExtraAttributes,
 }
 
 pub struct ExtraAttributes {
+    // did the user explicitly asked us to derive clone?
+    pub derive_clone: bool,
+
     pub vec: Vec<Meta>,
     pub slice: Vec<Meta>,
     pub slice_mut: Vec<Meta>,
@@ -33,6 +35,7 @@ pub struct ExtraAttributes {
 impl ExtraAttributes {
     fn new() -> ExtraAttributes {
         ExtraAttributes {
+            derive_clone: false,
             vec: Vec::new(),
             slice: Vec::new(),
             slice_mut: Vec::new(),
@@ -101,6 +104,41 @@ impl ExtraAttributes {
             _ => panic!("expected #[soa_attr(...)], got #[{}]", quote!(#meta)),
         }
     }
+
+    /// Add a single trait from `#[soa_derive]`
+    fn add_derive(&mut self, trait_: &str) {
+        static EXCEPTIONS: &[&str] = &["Clone", "Deserialize", "Serialize"];
+
+        let derive = create_derive_meta(trait_);
+        if !EXCEPTIONS.contains(&trait_) {
+            self.slice.push(derive.clone());
+            self.slice_mut.push(derive.clone());
+            self.ref_.push(derive.clone());
+            self.ref_mut.push(derive.clone());
+            self.ptr.push(derive.clone());
+            self.ptr_mut.push(derive.clone());
+        }
+
+        // always add this derive to the Vec struct
+        self.vec.push(derive);
+
+        if trait_ == "Clone" {
+            self.derive_clone = true;
+        }
+    }
+}
+
+fn create_derive_meta(name: &str) -> Meta {
+    let mut nested = syn::punctuated::Punctuated::new();
+    nested.push(NestedMeta::Meta(Meta::Path(Path::from(
+        Ident::new(name, Span::call_site())
+    ))));
+
+    Meta::List(MetaList {
+        path: Path::from(Ident::new("derive", Span::call_site())),
+        paren_token: syn::token::Paren {span: Span::call_site()},
+        nested: nested
+    })
 }
 
 impl Input {
@@ -110,7 +148,6 @@ impl Input {
             _ => panic!("#[derive(StructOfArray)] only supports struct"),
         };
 
-        let mut derives: Vec<Ident> = vec![];
         let mut extra_attrs = ExtraAttributes::new();
 
         for attr in input.attrs {
@@ -122,7 +159,7 @@ impl Input {
                             ..
                         }) => {
                             for value in string.value().split(',') {
-                                derives.push(Ident::new(value.trim(), Span::call_site()));
+                                extra_attrs.add_derive(value.trim());
                             }
                         }
                         _ => panic!(
@@ -138,41 +175,9 @@ impl Input {
 
         Input {
             name: input.ident,
-            derives: derives,
             fields: fields,
             visibility: input.vis,
             attrs: extra_attrs,
-        }
-    }
-
-    pub fn derive(&self) -> TokenStream {
-        if self.derives.is_empty() {
-            TokenStream::new()
-        } else {
-            let derives = &self.derives;
-            quote!(
-                #[derive(
-                    #(#derives,)*
-                )]
-            )
-        }
-    }
-
-    pub fn derive_with_exceptions(&self) -> TokenStream {
-        if self.derives.is_empty() {
-            TokenStream::new()
-        } else {
-            let derives = &self.derives.iter()
-                                       .cloned()
-                                       .filter(|name| name != "Clone")
-                                       .filter(|name| name != "Deserialize")
-                                       .filter(|name| name != "Serialize")
-                                       .collect::<Vec<_>>();
-            quote!(
-                #[derive(
-                    #(#derives,)*
-                )]
-            )
         }
     }
 
