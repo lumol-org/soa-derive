@@ -1,3 +1,5 @@
+#![allow(clippy::needless_return)]
+
 use soa_derive::StructOfArray;
 
 use bencher::{Bencher, benchmark_group, benchmark_main};

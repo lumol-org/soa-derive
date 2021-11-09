@@ -1,7 +1,7 @@
 use soa_derive::StructOfArray;
 
 #[derive(Debug, Clone, PartialEq, StructOfArray)]
-#[soa_derive = "Debug, Clone, PartialEq"]
+#[soa_derive(Debug, Clone, PartialEq)]
 pub struct Particle {
     pub name: String,
     pub mass: f64,

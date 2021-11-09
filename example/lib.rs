@@ -42,7 +42,7 @@ extern crate soa_derive;
 
 /// A basic Particle type
 #[derive(Debug, PartialEq, StructOfArray)]
-#[soa_derive = "Debug, PartialEq"]
+#[soa_derive(Debug, PartialEq)]
 pub struct Particle {
     /// Mass of the particle
     pub mass: f64,
