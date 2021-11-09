@@ -42,7 +42,7 @@
 //! # #[macro_use] extern crate soa_derive;
 //! # fn main() {
 //! #[derive(Debug, PartialEq, StructOfArray)]
-//! #[soa_derive = "Debug, PartialEq"]
+//! #[soa_derive(Debug, PartialEq)]
 //! pub struct Cheese {
 //!     pub smell: f64,
 //!     pub color: (f64, f64, f64),

@@ -3,8 +3,8 @@ use std::convert::TryInto;
 use proc_macro2::Span;
 use quote::quote;
 
-use syn::{Data, DeriveInput, Field, Ident, Lit, Path, Visibility};
-use syn::{Meta, MetaList, MetaNameValue, NestedMeta};
+use syn::{Data, DeriveInput, Field, Ident, Path, Visibility};
+use syn::{Meta, MetaList, NestedMeta};
 
 /// Representing the struct we are deriving
 pub struct Input {
@@ -106,11 +106,19 @@ impl ExtraAttributes {
     }
 
     /// Add a single trait from `#[soa_derive]`
-    fn add_derive(&mut self, trait_: &str) {
-        static EXCEPTIONS: &[&str] = &["Clone", "Deserialize", "Serialize"];
+    fn add_derive(&mut self, path: &Path) {
+        let derive_only_vec = |path: &Path| {
+            static EXCEPTIONS: &[&str] = &["Clone", "Deserialize", "Serialize"];
+            for exception in EXCEPTIONS {
+                if path.is_ident(exception) {
+                    return true;
+                }
+            }
+            return false;
+        };
 
-        let derive = create_derive_meta(trait_);
-        if !EXCEPTIONS.contains(&trait_) {
+        let derive = create_derive_meta(path.clone());
+        if !derive_only_vec(path) {
             self.slice.push(derive.clone());
             self.slice_mut.push(derive.clone());
             self.ref_.push(derive.clone());
@@ -122,17 +130,15 @@ impl ExtraAttributes {
         // always add this derive to the Vec struct
         self.vec.push(derive);
 
-        if trait_ == "Clone" {
+        if path.is_ident("Clone") {
             self.derive_clone = true;
         }
     }
 }
 
-fn create_derive_meta(name: &str) -> Meta {
+fn create_derive_meta(path: Path) -> Meta {
     let mut nested = syn::punctuated::Punctuated::new();
-    nested.push(NestedMeta::Meta(Meta::Path(Path::from(
-        Ident::new(name, Span::call_site())
-    ))));
+    nested.push(NestedMeta::Meta(Meta::Path(path)));
 
     Meta::List(MetaList {
         path: Path::from(Ident::new("derive", Span::call_site())),
@@ -158,20 +164,28 @@ impl Input {
             if let Ok(meta) = attr.parse_meta() {
                 if meta.path().is_ident("soa_derive") {
                     match meta {
-                        Meta::NameValue(MetaNameValue {
-                            lit: Lit::Str(string),
-                            ..
-                        }) => {
-                            for value in string.value().split(',') {
-                                let value = value.trim();
-                                if value == "Copy" {
-                                    panic!("can not derive Copy for SoA vectors");
+                        Meta::List(ref list) => {
+                            for element in &list.nested {
+                                match element {
+                                    NestedMeta::Meta(meta) => {
+                                        let path = meta.path();
+                                        if path.is_ident("Copy") {
+                                            panic!("can not derive Copy for SoA vectors");
+                                        }
+                                        extra_attrs.add_derive(path);
+                                    }
+                                    NestedMeta::Lit(_) => {
+                                        panic!(
+                                            "expected #[soa_derive(Traits, To, Derive)], got #[{}]",
+                                            quote!(#meta)
+                                        );
+                                    }
                                 }
-                                extra_attrs.add_derive(value);
                             }
+
                         }
                         _ => panic!(
-                            "expected #[soa_derive = \"Traits, To, Derive\"], got #[{}]",
+                            "expected #[soa_derive(Traits, To, Derive)], got #[{}]",
                             quote!(#meta)
                         ),
                     }

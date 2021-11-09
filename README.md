@@ -40,12 +40,12 @@ You can use `<Cheese as StructOfArray>::Type` instead of the explicitly named ty
 
 Add `#[derive(StructOfArray)]` to each struct you want to derive a struct of
 array version. If you need the helper structs to derive additional traits (such
-as `Debug` or `PartialEq`), you can add an attribute `#[soa_derive = "Debug,
-PartialEq"]` to the struct declaration.
+as `Debug` or `PartialEq`), you can add an attribute `#[soa_derive(Debug,
+PartialEq)]` to the struct declaration.
 
 ```rust
 #[derive(Debug, PartialEq, StructOfArray)]
-#[soa_derive = "Debug, PartialEq"]
+#[soa_derive(Debug, PartialEq)]
 pub struct Cheese {
     pub smell: f64,
     pub color: (f64, f64, f64),
@@ -54,9 +54,9 @@ pub struct Cheese {
 }
 ```
 
-If you want to add attribute to a specific generated struct(such as 
+If you want to add attribute to a specific generated struct(such as
 `#[cfg_attr(test, derive(PartialEq))]` on `CheeseVec`), you can add an
-attribute `#[soa_attr(Vec, cfg_attr(test, derive(PartialEq)))]` to the 
+attribute `#[soa_attr(Vec, cfg_attr(test, derive(PartialEq)))]` to the
 struct declaration.
 
 ```rust
@@ -70,7 +70,7 @@ pub struct Cheese {
 }
 ```
 
-Mappings for first argument of ``soa_attr`` to the generated struct for ``Cheese``: 
+Mappings for first argument of ``soa_attr`` to the generated struct for ``Cheese``:
 * `Vec` => `CheeseVec`
 * `Slice` => `CheeseSlice`
 * `SliceMut` => `CheeseSliceMut`

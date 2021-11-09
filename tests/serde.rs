@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use soa_derive::StructOfArray;
 
 #[derive(Debug, Clone, PartialEq, StructOfArray)]
-#[soa_derive = "Debug, Clone, PartialEq, Serialize, Deserialize"]
+#[soa_derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Particle {
     pub name: String,
     pub mass: f64,
