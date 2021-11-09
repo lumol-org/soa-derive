@@ -163,7 +163,11 @@ impl Input {
                             ..
                         }) => {
                             for value in string.value().split(',') {
-                                extra_attrs.add_derive(value.trim());
+                                let value = value.trim();
+                                if value == "Copy" {
+                                    panic!("can not derive Copy for SoA vectors");
+                                }
+                                extra_attrs.add_derive(value);
                             }
                         }
                         _ => panic!(
