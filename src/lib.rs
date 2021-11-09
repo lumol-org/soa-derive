@@ -51,12 +51,12 @@
 //! }
 //! # }
 //! ```
-//! 
-//! If you want to add attribute to a specific generated struct(such as 
+//!
+//! If you want to add attribute to a specific generated struct(such as
 //! `#[cfg_attr(test, derive(PartialEq))]` on `CheeseVec`), you can add an
-//! attribute `#[soa_attr(Vec, cfg_attr(test, derive(PartialEq)))]` to the 
+//! attribute `#[soa_attr(Vec, cfg_attr(test, derive(PartialEq)))]` to the
 //! struct declaration.
-//! 
+//!
 //! ```
 //! # #[macro_use] extern crate soa_derive;
 //! # fn main() {
@@ -70,8 +70,8 @@
 //! }
 //! # }
 //! ```
-//! 
-//! Mappings for first argument of ``soa_attr`` to the generated struct for ``Cheese``: 
+//!
+//! Mappings for first argument of ``soa_attr`` to the generated struct for ``Cheese``:
 //! * `Vec` => `CheeseVec`
 //! * `Slice` => `CheeseSlice`
 //! * `SliceMut` => `CheeseSliceMut`
@@ -188,10 +188,10 @@
 // macro_rules macro.
 pub use soa_derive_internal::StructOfArray;
 
-/// Any struct derived by StructOfArray will auto impl this trait
-/// You can use `<Cheese as StructOfArray>::Type`
-/// instead of explicit named type `CheeseVec`; This will helpful in generics programing
-/// that generate struct can be expressed as `<T as StructOfArray>::Type`
+/// Any struct derived by StructOfArray will auto impl this trait You can use
+/// `<Cheese as StructOfArray>::Type` instead of explicit named type
+/// `CheeseVec`; This will helpful in generics programing that generate struct
+/// can be expressed as `<T as StructOfArray>::Type`
 pub trait StructOfArray {
     type Type;
 }
@@ -221,11 +221,17 @@ pub trait SoAIndex<T>: private_soa_indexes::Sealed {
     /// The output for the non-mutable functions
     type RefOutput;
 
-    /// Returns the reference output in this location if in bounds, `None` otherwise.
+    /// Returns the reference output in this location if in bounds, `None`
+    /// otherwise.
     fn get(self, soa: T) -> Option<Self::RefOutput>;
-    /// Returns the reference output in this location without performing any bounds check.
+    /// Returns the reference output in this location without performing any
+    /// bounds check.
+    ///
+    /// # Safety
+    /// The index must be in bounds.
     unsafe fn get_unchecked(self, soa: T) -> Self::RefOutput;
-    /// Returns the reference output in this location. Panics if it is not in bounds.
+    /// Returns the reference output in this location. Panics if it is not in
+    /// bounds.
     fn index(self, soa: T) -> Self::RefOutput;
 }
 
@@ -235,11 +241,17 @@ pub trait SoAIndexMut<T>: private_soa_indexes::Sealed {
     /// The output for the mutable functions
     type MutOutput;
 
-    /// Returns the mutable reference output in this location if in bounds, `None` otherwise.
+    /// Returns the mutable reference output in this location if in bounds,
+    /// `None` otherwise.
     fn get_mut(self, soa: T) -> Option<Self::MutOutput>;
-    /// Returns the mutable reference output in this location without performing any bounds check.
+    /// Returns the mutable reference output in this location without performing
+    /// any bounds check.
+    ///
+    /// # Safety
+    /// The index must be in bounds.
     unsafe fn get_unchecked_mut(self, soa: T) -> Self::MutOutput;
-    /// Returns the mutable reference output in this location. Panics if it is not in bounds.
+    /// Returns the mutable reference output in this location. Panics if it is
+    /// not in bounds.
     fn index_mut(self, soa: T) -> Self::MutOutput;
 }
 

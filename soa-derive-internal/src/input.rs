@@ -148,6 +148,10 @@ impl Input {
             _ => panic!("#[derive(StructOfArray)] only supports struct"),
         };
 
+        if fields.is_empty() {
+            panic!("#[derive(StructOfArray)] only supports struct with fields");
+        }
+
         let mut extra_attrs = ExtraAttributes::new();
 
         for attr in input.attrs {
