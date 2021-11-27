@@ -150,10 +150,14 @@ pub fn derive(input: &Input) -> TokenStream {
             #[doc = #vec_name_str]
             /// ::push()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.push).
             pub fn push(&mut self, value: #name) {
-                let mut value = ::std::mem::ManuallyDrop::new(value);
+                // We need to use ptr read/write instead of moving out of the
+                // fields in case the value struct implements Drop.
                 unsafe {
-                    #(self.#fields_names.push(::std::ptr::read(&mut value.#fields_names));)*
+                    #(self.#fields_names.push(::std::ptr::read(&value.#fields_names));)*
                 }
+                // if value implements Drop, we don't want to run it here, only
+                // when the vec itself will be dropped.
+                ::std::mem::forget(value);
             }
 
             /// Similar to [`
@@ -190,10 +194,13 @@ pub fn derive(input: &Input) -> TokenStream {
             #[doc = #vec_name_str]
             /// ::insert()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.insert).
             pub fn insert(&mut self, index: usize, element: #name) {
-                let mut element = ::std::mem::ManuallyDrop::new(element);
+                // similar to push, we can not use move and have to rely on ptr read/write
                 unsafe {
-                    #(self.#fields_names.insert(index, ::std::ptr::read(&mut element.#fields_names));)*
+                    #(self.#fields_names.insert(index, ::std::ptr::read(&element.#fields_names));)*
                 }
+                // if value implements Drop, we don't want to run it here, only
+                // when the vec itself will be dropped.
+                ::std::mem::forget(element);
             }
 
             /// Similar to [`
