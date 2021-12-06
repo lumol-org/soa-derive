@@ -19,10 +19,16 @@ pub fn derive(input: &Input) -> TokenStream {
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
                                    .collect::<Vec<_>>();
-    let fields_names_1 = &fields_names;
-    let fields_names_2 = &fields_names;
-
-    let fields_types = &input.fields.iter()
+    let unnested_fields_names = input.unnested_fields.iter()
+                                   .map(|field| field.ident.clone().unwrap())
+                                   .collect::<Vec<_>>();
+    let nested_fields_names = input.nested_fields.iter()
+                                   .map(|field| field.ident.clone().unwrap())
+                                   .collect::<Vec<_>>();
+    let unnested_fields_types = &input.unnested_fields.iter()
+                                    .map(|field| &field.ty)
+                                    .collect::<Vec<_>>();
+    let nested_fields_types = &input.nested_fields.iter()
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
@@ -43,7 +49,11 @@ pub fn derive(input: &Input) -> TokenStream {
         #visibility struct #ref_name<'a> {
             #(
                 #[doc = #fields_doc]
-                pub #fields_names_1: &'a #fields_types,
+                pub #unnested_fields_names: &'a #unnested_fields_types,
+            )*
+            #(
+                #[doc = #fields_doc]
+                pub #nested_fields_names: <#nested_fields_types as soa_derive::SoARef<'a>>::Ref,
             )*
         }
 
@@ -54,7 +64,11 @@ pub fn derive(input: &Input) -> TokenStream {
         #visibility struct #ref_mut_name<'a> {
             #(
                 #[doc = #fields_mut_doc]
-                pub #fields_names_1: &'a mut #fields_types,
+                pub #unnested_fields_names: &'a mut #unnested_fields_types,
+            )*
+            #(
+                #[doc = #fields_doc]
+                pub #nested_fields_names: <#nested_fields_types as soa_derive::SoARef<'a>>::RefMut,
             )*
         }
 
@@ -67,7 +81,8 @@ pub fn derive(input: &Input) -> TokenStream {
             /// .
             #visibility fn as_ref(&self) -> #ref_name {
                 #ref_name {
-                    #(#fields_names_1: & self.#fields_names_2, )*
+                    #(#unnested_fields_names: & self.#unnested_fields_names, )*
+                    #(#nested_fields_names: self.#nested_fields_names.as_ref(), )*
                 }
             }
 
@@ -78,7 +93,8 @@ pub fn derive(input: &Input) -> TokenStream {
             /// .
             #visibility fn as_mut(&mut self) -> #ref_mut_name {
                 #ref_mut_name {
-                    #(#fields_names_1: &mut self.#fields_names_2, )*
+                    #(#unnested_fields_names: &mut self.#unnested_fields_names, )*
+                    #(#nested_fields_names: self.#nested_fields_names.as_mut(), )*
                 }
             }
         }

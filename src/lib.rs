@@ -196,6 +196,24 @@ pub trait StructOfArray {
     type Type;
 }
 
+pub trait SoASlice<'a> {
+    type Slice: 'a;
+    type SliceMut: 'a;
+}
+pub trait SoARef<'a> {
+    type Ref: 'a;
+    type RefMut: 'a;
+}
+
+pub trait SoAPtr {
+    type Ptr;
+    type PtrMut;
+}
+
+pub trait SoAIter<'a>: SoASlice<'a> {
+    type Iter: 'a;
+    type IterMut: 'a;
+}
 
 mod private_soa_indexes {
     // From [`std::slice::SliceIndex`](https://doc.rust-lang.org/std/slice/trait.SliceIndex.html) code.

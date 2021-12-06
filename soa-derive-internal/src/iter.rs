@@ -1,4 +1,5 @@
 use proc_macro2::{Span, TokenStream};
+use quote::ToTokens;
 use syn::{Ident, Visibility};
 use quote::TokenStreamExt;
 use quote::quote;
@@ -27,50 +28,138 @@ pub fn derive(input: &Input) -> TokenStream {
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
     let first_field_type = &fields_types[0];
+    let first_nested = input.nested_fields.iter().find(|field| 
+        {
+            field.ident.as_ref().unwrap() == first_field
+        }
+    ).is_some();
 
-    let mut iter_type = quote!{
-        slice::Iter<'a, #first_field_type>
+    let mut iter_type = if first_nested {
+        quote! {
+            <#first_field_type as soa_derive::SoAIter<'a>>::Iter
+        }
+    }
+    else {
+        quote!{
+            slice::Iter<'a, #first_field_type>
+        }
     };
+
     let mut iter_pat = quote!{
         #first_field
     };
+
     let mut create_iter = quote!{
         self.#first_field.iter()
     };
 
-    let mut iter_mut_type = quote!{
-        slice::IterMut<'a, #first_field_type>
+    let mut iter_mut_type = if first_nested {
+        quote! {
+            <#first_field_type as soa_derive::SoAIter<'a>>::IterMut
+        }
+    }
+    else {
+        quote!{
+            slice::IterMut<'a, #first_field_type>
+        }
     };
+
     let mut create_iter_mut = quote!{
         self.#first_field.iter_mut()
+    };
+
+    let mut create_into_iter = if first_nested {
+        quote!{
+            self.#first_field.into_iter()
+        }
+    }
+    else {
+        quote!{
+            self.#first_field.iter()
+        }
+    };
+
+    let mut create_mut_into_iter = if first_nested {
+        quote!{
+            self.#first_field.into_iter()
+        }
+    }
+    else {
+        quote!{
+            self.#first_field.iter_mut()
+        }
     };
 
     if fields_types.len() > 1 {
         for field in &input.fields[1..] {
             let field_name = &field.ident;
             let field_type = &field.ty;
-
+            let nested = input.nested_fields.iter().find(|field| 
+                {
+                    field.ident.as_ref().unwrap() == field_name.as_ref().unwrap()
+                }
+            ).is_some();
             iter_pat = quote!{
                 (#iter_pat, #field_name)
             };
 
-            iter_type = quote!{
-                iter::Zip<#iter_type, slice::Iter<'a, #field_type>>
+            iter_type = if nested {
+                quote!{
+                    iter::Zip<#iter_type, <#field_type as soa_derive::SoAIter<'a>>::Iter>
+                }
+            }
+            else {
+                quote!{
+                    iter::Zip<#iter_type, slice::Iter<'a, #field_type>>
+                }
             };
 
             create_iter = quote!{
                 #create_iter.zip(self.#field_name.iter())
             };
 
-            iter_mut_type = quote!{
-                iter::Zip<#iter_mut_type, slice::IterMut<'a, #field_type>>
+            iter_mut_type = if nested {
+                quote!{
+                    iter::Zip<#iter_mut_type, <#field_type as soa_derive::SoAIter<'a>>::IterMut>
+                }
+            }
+            else {
+                quote!{
+                    iter::Zip<#iter_mut_type, slice::IterMut<'a, #field_type>>
+                }
             };
 
             create_iter_mut = quote!{
                 #create_iter_mut.zip(self.#field_name.iter_mut())
             };
+
+            create_into_iter = if nested {
+                quote! {
+                    #create_into_iter.zip(self.#field_name.into_iter())
+                }
+            }
+            else {
+                quote! {
+                    #create_into_iter.zip(self.#field_name.iter())
+                }
+            };
+
+            create_mut_into_iter = if nested {
+                quote! {
+                    #create_mut_into_iter.zip(self.#field_name.into_iter())
+                }
+            }
+            else {
+                quote! {
+                    #create_mut_into_iter.zip(self.#field_name.iter_mut())
+                }
+            };
         }
     }
+    let iter_visibility = match visibility {
+        Visibility::Inherited => quote!{pub(super)},
+        other => other.to_token_stream(),
+    };
 
     let mut generated = quote! {
         #[allow(non_snake_case, dead_code)]
@@ -81,7 +170,7 @@ pub fn derive(input: &Input) -> TokenStream {
             use std::iter;
 
             #[allow(missing_debug_implementations)]
-            #visibility struct Iter<'a>(pub(super) #iter_type);
+            #iter_visibility struct Iter<'a>(pub(super) #iter_type);
 
             impl<'a> Iterator for Iter<'a> {
                 type Item = #ref_name<'a>;
@@ -112,13 +201,18 @@ pub fn derive(input: &Input) -> TokenStream {
                     )
                 }
             }
+            impl<'a> ExactSizeIterator for Iter<'a> {
+                fn len(&self) -> usize {
+                    self.0.len()
+                }
+            }
 
             impl #vec_name {
                 /// Get an iterator over the
                 #[doc = #ref_doc_url]
                 /// in this vector
                 #visibility fn iter(&self) -> Iter {
-                    Iter(#create_iter)
+                    self.as_slice().into_iter()
                 }
             }
 
@@ -129,10 +223,13 @@ pub fn derive(input: &Input) -> TokenStream {
                 #visibility fn iter(&self) -> Iter {
                     Iter(#create_iter)
                 }
+                #visibility fn into_iter(self) -> Iter<'a> {
+                    Iter(#create_into_iter)
+                }
             }
 
             #[allow(missing_debug_implementations)]
-            #visibility struct IterMut<'a>(pub(super) #iter_mut_type);
+            #iter_visibility struct IterMut<'a>(pub(super) #iter_mut_type);
 
             impl<'a> Iterator for IterMut<'a> {
                 type Item = #ref_mut_name<'a>;
@@ -163,13 +260,18 @@ pub fn derive(input: &Input) -> TokenStream {
                     )
                 }
             }
+            impl<'a> ExactSizeIterator for IterMut<'a> {
+                fn len(&self) -> usize {
+                    self.0.len()
+                }
+            }
 
             impl #vec_name {
                 /// Get a mutable iterator over the
                 #[doc = #ref_mut_doc_url]
                 /// in this vector
                 #visibility fn iter_mut(&mut self) -> IterMut {
-                    IterMut(#create_iter_mut)
+                    self.as_mut_slice().into_iter()
                 }
             }
 
@@ -178,7 +280,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 #[doc = #ref_doc_url]
                 /// in this vector
                 #visibility fn iter(&mut self) -> Iter {
-                    Iter(#create_iter)
+                    self.as_ref().into_iter()
                 }
 
                 /// Get a mutable iterator over the
@@ -187,7 +289,17 @@ pub fn derive(input: &Input) -> TokenStream {
                 #visibility fn iter_mut(&mut self) -> IterMut {
                     IterMut(#create_iter_mut)
                 }
+                #visibility fn into_iter(self) -> IterMut<'a> {
+                    IterMut(#create_mut_into_iter)
+                }
             }
+
+            impl<'a> soa_derive::SoAIter<'a> for #name {
+                type Iter = #detail_mod::Iter<'a>;
+                type IterMut = #detail_mod::IterMut<'a>;
+            }
+
+
         }
     };
 
@@ -198,7 +310,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 type IntoIter = #detail_mod::Iter<'a>;
 
                 fn into_iter(self) -> Self::IntoIter {
-                    #detail_mod::Iter(#create_iter)
+                    #detail_mod::Iter(#create_into_iter)
                 }
             }
 
@@ -220,7 +332,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 type IntoIter = #detail_mod::Iter<'a>;
 
                 fn into_iter(self) -> Self::IntoIter {
-                    #detail_mod::Iter(#create_iter)
+                    #detail_mod::Iter(#create_into_iter)
                 }
             }
 
@@ -229,7 +341,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 type IntoIter = #detail_mod::Iter<'a>;
 
                 fn into_iter(self) -> Self::IntoIter {
-                    #detail_mod::Iter(#create_iter)
+                    self.as_slice().into_iter()
                 }
             }
 
@@ -238,7 +350,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 type IntoIter = #detail_mod::IterMut<'a>;
 
                 fn into_iter(self) -> Self::IntoIter {
-                    #detail_mod::IterMut(#create_iter_mut)
+                    #detail_mod::IterMut(#create_mut_into_iter)
                 }
             }
 
@@ -247,7 +359,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 type IntoIter = #detail_mod::IterMut<'a>;
 
                 fn into_iter(self) -> Self::IntoIter {
-                    #detail_mod::IterMut(#create_iter_mut)
+                    self.as_mut_slice().into_iter()
                 }
             }
         });

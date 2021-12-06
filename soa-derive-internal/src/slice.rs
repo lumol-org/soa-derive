@@ -20,6 +20,15 @@ pub fn derive(input: &Input) -> TokenStream {
     let fields_names = &input.fields.iter()
                                    .map(|field| field.ident.as_ref().unwrap())
                                    .collect::<Vec<_>>();
+    
+    let unnested_fields_names = &input.unnested_fields.iter()
+                                   .map(|field| field.ident.as_ref().unwrap())
+                                   .collect::<Vec<_>>();
+
+    let nested_fields_names = &input.nested_fields.iter()
+                                   .map(|field| field.ident.as_ref().unwrap())
+                                   .collect::<Vec<_>>();
+
     let first_field = &fields_names[0];
 
     let fields_names_hygienic_1 = input.fields.iter()
@@ -31,7 +40,11 @@ pub fn derive(input: &Input) -> TokenStream {
         .map(|(i, _)| Ident::new(&format!("___soa_derive_private_2_{}", i), Span::call_site()))
         .collect::<Vec<_>>();
 
-    let fields_types = &input.fields.iter()
+    let unnested_fields_types = &input.unnested_fields.iter()
+                                    .map(|field| &field.ty)
+                                    .collect::<Vec<_>>();
+
+    let nested_fields_types = &input.nested_fields.iter()
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
@@ -51,7 +64,10 @@ pub fn derive(input: &Input) -> TokenStream {
         #visibility struct #slice_name<'a> {
             #(
                 #[doc = #fields_doc]
-                pub #fields_names: &'a [#fields_types],
+                pub #unnested_fields_names: &'a [#unnested_fields_types],
+            )*
+            #(
+                pub #nested_fields_names: <#nested_fields_types as soa_derive::SoASlice<'a>>::Slice,
             )*
         }
 
@@ -192,7 +208,8 @@ pub fn derive(input: &Input) -> TokenStream {
                 'a: 'b
             {
                 #slice_name {
-                    #(#fields_names: &self.#fields_names,)*
+                    #(#unnested_fields_names: &self.#unnested_fields_names,)*
+                    #(#nested_fields_names: self.#nested_fields_names.reborrow(),)*
                 }
             }
 
@@ -208,7 +225,8 @@ pub fn derive(input: &Input) -> TokenStream {
             /// Similar to [`std::slice::from_raw_parts()`](https://doc.rust-lang.org/std/slice/fn.from_raw_parts.html).
             pub unsafe fn from_raw_parts<'b>(data: #ptr_name, len: usize) -> #slice_name<'b> {
                 #slice_name {
-                    #(#fields_names: ::std::slice::from_raw_parts(data.#fields_names, len),)*
+                    #(#unnested_fields_names: ::std::slice::from_raw_parts(data.#unnested_fields_names, len),)*
+                    #(#nested_fields_names: <#nested_fields_types as soa_derive::SoASlice>::Slice::from_raw_parts(data.#nested_fields_names, len),)*
                 }
             }
         }
@@ -252,6 +270,15 @@ pub fn derive_mut(input: &Input) -> TokenStream {
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
                                    .collect::<Vec<_>>();
+    
+    let unnested_fields_names = &input.unnested_fields.iter()
+                                   .map(|field| field.ident.as_ref().unwrap())
+                                   .collect::<Vec<_>>();
+
+    let nested_fields_names = &input.nested_fields.iter()
+                                   .map(|field| field.ident.as_ref().unwrap())
+                                   .collect::<Vec<_>>();
+
     let fields_names_1 = &fields_names;
     let fields_names_2 = &fields_names;
     let first_field = &fields_names[0];
@@ -264,7 +291,11 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         .map(|(i, _)| Ident::new(&format!("___soa_derive_private_slice_2_{}", i), Span::call_site()))
         .collect::<Vec<_>>();
 
-    let fields_types = &input.fields.iter()
+    let unnested_fields_types = &input.unnested_fields.iter()
+                                    .map(|field| &field.ty)
+                                    .collect::<Vec<_>>();
+
+    let nested_fields_types = &input.nested_fields.iter()
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
@@ -283,7 +314,10 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         #visibility struct #slice_mut_name<'a> {
             #(
                 #[doc = #fields_doc]
-                pub #fields_names_1: &'a mut [#fields_types],
+                pub #unnested_fields_names: &'a mut [#unnested_fields_types],
+            )*
+            #(
+                pub #nested_fields_names: <#nested_fields_types as soa_derive::SoASlice<'a>>::SliceMut,
             )*
         }
 
@@ -297,7 +331,8 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// version of the slices.
             pub fn as_ref(&self) -> #slice_name {
                 #slice_name {
-                    #(#fields_names_1: self.#fields_names_2,)*
+                    #(#unnested_fields_names: self.#unnested_fields_names,)*
+                    #(#nested_fields_names: self.#nested_fields_names.as_ref(),)*
                 }
             }
 
@@ -483,7 +518,8 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 'a: 'b
             {
                 #slice_name {
-                    #(#fields_names_1: &self.#fields_names_2,)*
+                    #(#unnested_fields_names: &self.#unnested_fields_names,)*
+                    #(#nested_fields_names: self.#nested_fields_names.as_slice(),)*
                 }
             }
 
@@ -493,7 +529,8 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 'a: 'b
             {
                 #slice_mut_name {
-                    #(#fields_names_1: &mut *self.#fields_names_2,)*
+                    #(#unnested_fields_names: &mut *self.#unnested_fields_names,)*
+                    #(#nested_fields_names: self.#nested_fields_names.reborrow(),)*
                 }
             }
 
@@ -518,7 +555,8 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// Similar to [`std::slice::from_raw_parts_mut()`](https://doc.rust-lang.org/std/slice/fn.from_raw_parts_mut.html).
             pub unsafe fn from_raw_parts_mut<'b>(data: #ptr_mut_name, len: usize) -> #slice_mut_name<'b> {
                 #slice_mut_name {
-                    #(#fields_names_1: ::std::slice::from_raw_parts_mut(data.#fields_names_2, len),)*
+                    #(#unnested_fields_names: ::std::slice::from_raw_parts_mut(data.#unnested_fields_names, len),)*
+                    #(#nested_fields_names: <#nested_fields_types as soa_derive::SoASlice>::SliceMut::from_raw_parts_mut(data.#nested_fields_names, len),)*
                 }
             }
         }

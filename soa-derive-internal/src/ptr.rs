@@ -23,10 +23,22 @@ pub fn derive(input: &Input) -> TokenStream {
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
                                    .collect::<Vec<_>>();
+    
+    let unnested_fields_names = &input.unnested_fields.iter()
+                                   .map(|field| field.ident.as_ref().unwrap())
+                                   .collect::<Vec<_>>();
+
+    let nested_fields_names = &input.nested_fields.iter()
+                                   .map(|field| field.ident.as_ref().unwrap())
+                                   .collect::<Vec<_>>();
     let fields_names_1 = &fields_names;
     let fields_names_2 = &fields_names;
 
-    let fields_types = &input.fields.iter()
+    let unnested_fields_types = &input.unnested_fields.iter()
+                                    .map(|field| &field.ty)
+                                    .collect::<Vec<_>>();
+
+    let nested_fields_types = &input.nested_fields.iter()
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
@@ -47,7 +59,10 @@ pub fn derive(input: &Input) -> TokenStream {
         #visibility struct #ptr_name {
             #(
                 #[doc = #fields_doc]
-                pub #fields_names_1: *const #fields_types,
+                pub #unnested_fields_names: *const #unnested_fields_types,
+            )*
+            #(
+                pub #nested_fields_names: <#nested_fields_types as soa_derive::SoAPtr>::Ptr,
             )*
         }
 
@@ -59,7 +74,10 @@ pub fn derive(input: &Input) -> TokenStream {
         #visibility struct #ptr_mut_name {
             #(
                 #[doc = #fields_mut_doc]
-                pub #fields_names_1: *mut #fields_types,
+                pub #unnested_fields_names: *mut #unnested_fields_types,
+            )*
+            #(
+                pub #nested_fields_names: <#nested_fields_types as soa_derive::SoAPtr>::PtrMut,
             )*
         }
 
@@ -72,7 +90,8 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `*const T as *mut T` transformation.
             #visibility fn as_mut_ptr(&self) -> #ptr_mut_name {
                 #ptr_mut_name {
-                    #(#fields_names_1: self.#fields_names_2 as *mut _, )*
+                    #(#unnested_fields_names: self.#unnested_fields_names as *mut _, )*
+                    #(#nested_fields_names: self.#nested_fields_names.as_mut_ptr(), )*
                 }
             }
 
@@ -172,7 +191,8 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `*mut T as *const T` transformation
             #visibility fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2, )*
+                    #(#unnested_fields_names: self.#unnested_fields_names, )*
+                    #(#nested_fields_names: self.#nested_fields_names.as_ptr(), )*
                 }
             }
 
@@ -304,7 +324,8 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `&T as *const T` transformation
             #visibility fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2, )*
+                    #(#unnested_fields_names: self.#unnested_fields_names, )*
+                    #(#nested_fields_names: self.#nested_fields_names.as_ptr(), )*
                 }
             }
         }
@@ -318,7 +339,8 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `&mut T as *const T` transformation
             #visibility fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2, )*
+                    #(#unnested_fields_names: self.#unnested_fields_names, )*
+                    #(#nested_fields_names: self.#nested_fields_names.as_ptr(), )*
                 }
             }
 
@@ -329,7 +351,8 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `&mut T as *mut T` transformation
             #visibility fn as_mut_ptr(&mut self) -> #ptr_mut_name {
                 #ptr_mut_name {
-                    #(#fields_names_1: self.#fields_names_2, )*
+                    #(#unnested_fields_names: self.#unnested_fields_names, )*
+                    #(#nested_fields_names: self.#nested_fields_names.as_mut_ptr(), )*
                 }
             }
         }

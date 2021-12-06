@@ -6,7 +6,7 @@
 
 extern crate proc_macro;
 
-use proc_macro2::TokenStream;
+use proc_macro2::{TokenStream};
 use quote::TokenStreamExt;
 
 mod index;
@@ -17,7 +17,7 @@ mod refs;
 mod slice;
 mod vec;
 
-#[proc_macro_derive(StructOfArray, attributes(soa_derive, soa_attr))]
+#[proc_macro_derive(StructOfArray, attributes(soa_derive, soa_attr, nested_soa))]
 pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let ast = syn::parse(input).unwrap();
     let input = input::Input::new(ast);
@@ -39,10 +39,28 @@ use quote::quote;
 fn derive_trait(input: &Input) -> TokenStream {
     let name = &input.name;
     let vec_name = &input.vec_name();
+    let slice_name = &input.slice_name();
+    let slice_mut_name = &input.slice_mut_name();
+    let ref_name = &input.ref_name();
+    let ref_mut_name = &input.ref_mut_name();
+    let ptr_name = &input.ptr_name();
+    let ptr_mut_name = &input.ptr_mut_name();
 
     quote! {
         impl soa_derive::StructOfArray for #name {
             type Type = #vec_name;
+        }
+        impl<'a> soa_derive::SoASlice<'a> for #name {
+            type Slice = #slice_name<'a>;
+            type SliceMut = #slice_mut_name<'a>;
+        }
+        impl<'a> soa_derive::SoARef<'a> for #name {
+            type Ref = #ref_name<'a>;
+            type RefMut = #ref_mut_name<'a>;
+        }
+        impl soa_derive::SoAPtr for #name {
+            type Ptr = #ptr_name;
+            type PtrMut = #ptr_mut_name;
         }
     }
 }

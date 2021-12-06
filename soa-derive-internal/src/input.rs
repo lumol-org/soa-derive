@@ -3,7 +3,7 @@ use std::convert::TryInto;
 use proc_macro2::Span;
 use quote::quote;
 
-use syn::{Data, DeriveInput, Field, Ident, Path, Visibility};
+use syn::{Attribute, Data, DeriveInput, Field, Ident, Path, Visibility};
 use syn::{Meta, MetaList, NestedMeta};
 
 /// Representing the struct we are deriving
@@ -12,6 +12,10 @@ pub struct Input {
     pub name: Ident,
     /// The list of fields in the struct
     pub fields: Vec<Field>,
+    /// The fields that has `#[nested_soa]` attribute
+    pub nested_fields: Vec<Field>,
+    /// The fields that without `#[nested_soa]` attribute
+    pub unnested_fields: Vec<Field>,
     /// The struct overall visibility
     pub visibility: Visibility,
     /// Additional attributes requested with `#[soa_attr(...)]` or
@@ -147,15 +151,39 @@ fn create_derive_meta(path: Path) -> Meta {
     })
 }
 
+fn contains_nested_soa(attrs: &[Attribute]) -> bool {
+    for attr in attrs {
+        if let Ok(meta) = attr.parse_meta() {
+            match meta {
+                Meta::Path(path) => {
+                    if path.is_ident("nested_soa") {
+                        return true;
+                    }
+                }
+                _ => (),
+            }
+        }
+    }
+    false
+}
+
 impl Input {
     pub fn new(input: DeriveInput) -> Input {
-        let fields = match input.data {
-            Data::Struct(s) => s.fields.iter().cloned().collect::<Vec<_>>(),
+        let mut fields = Vec::new();
+        let mut nested_fields = Vec::new();
+        let mut unnested_fields = Vec::new();
+        match input.data {
+            Data::Struct(s) => {
+                for field in s.fields.iter().cloned() {
+                    fields.push(field.clone());
+                    if contains_nested_soa(&field.attrs) {
+                        nested_fields.push(field);
+                    } else {
+                        unnested_fields.push(field);
+                    }
+                }
+            }
             _ => panic!("#[derive(StructOfArray)] only supports struct"),
-        };
-
-        if fields.is_empty() {
-            panic!("#[derive(StructOfArray)] only supports struct with fields");
         }
 
         let mut extra_attrs = ExtraAttributes::new();
@@ -182,7 +210,6 @@ impl Input {
                                     }
                                 }
                             }
-
                         }
                         _ => panic!(
                             "expected #[soa_derive(Traits, To, Derive)], got #[{}]",
@@ -200,6 +227,8 @@ impl Input {
             fields: fields,
             visibility: input.vis,
             attrs: extra_attrs,
+            nested_fields,
+            unnested_fields,
         }
     }
 
