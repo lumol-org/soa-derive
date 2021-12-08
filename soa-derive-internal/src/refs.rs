@@ -16,9 +16,6 @@ pub fn derive(input: &Input) -> TokenStream {
     let ref_doc_url = format!("[`{0}`](struct.{0}.html)", ref_name);
     let ref_mut_doc_url = format!("[`{0}`](struct.{0}.html)", ref_mut_name);
 
-    let fields_names = input.fields.iter()
-                                   .map(|field| field.ident.clone().unwrap())
-                                   .collect::<Vec<_>>();
     let unnested_fields_names = input.unnested_fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
                                    .collect::<Vec<_>>();
@@ -32,11 +29,18 @@ pub fn derive(input: &Input) -> TokenStream {
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
-    let fields_doc = fields_names.iter()
+    let unnested_fields_doc = unnested_fields_names.iter()
                                  .map(|field| format!("A reference to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
                                  .collect::<Vec<_>>();
 
-    let fields_mut_doc = fields_names.iter()
+    let unnested_fields_mut_doc = unnested_fields_names.iter()
+                                     .map(|field| format!("A mutable reference to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
+                                     .collect::<Vec<_>>();
+    let nested_fields_doc = nested_fields_names.iter()
+                                 .map(|field| format!("A reference to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
+                                 .collect::<Vec<_>>();
+
+    let nested_fields_mut_doc = nested_fields_names.iter()
                                      .map(|field| format!("A mutable reference to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
                                      .collect::<Vec<_>>();
 
@@ -48,11 +52,11 @@ pub fn derive(input: &Input) -> TokenStream {
         #[derive(Copy, Clone)]
         #visibility struct #ref_name<'a> {
             #(
-                #[doc = #fields_doc]
+                #[doc = #unnested_fields_doc]
                 pub #unnested_fields_names: &'a #unnested_fields_types,
             )*
             #(
-                #[doc = #fields_doc]
+                #[doc = #nested_fields_doc]
                 pub #nested_fields_names: <#nested_fields_types as soa_derive::SoARef<'a>>::Ref,
             )*
         }
@@ -63,11 +67,11 @@ pub fn derive(input: &Input) -> TokenStream {
         #(#[#mut_attrs])*
         #visibility struct #ref_mut_name<'a> {
             #(
-                #[doc = #fields_mut_doc]
+                #[doc = #unnested_fields_mut_doc]
                 pub #unnested_fields_names: &'a mut #unnested_fields_types,
             )*
             #(
-                #[doc = #fields_doc]
+                #[doc = #nested_fields_mut_doc]
                 pub #nested_fields_names: <#nested_fields_types as soa_derive::SoARef<'a>>::RefMut,
             )*
         }

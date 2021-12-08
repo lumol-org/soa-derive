@@ -42,11 +42,19 @@ pub fn derive(input: &Input) -> TokenStream {
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
-    let fields_doc = fields_names.iter()
+    let unnested_fields_doc = unnested_fields_names.iter()
         .map(|field| format!("A pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
         .collect::<Vec<_>>();
 
-    let fields_mut_doc = fields_names.iter()
+    let nested_fields_doc = nested_fields_names.iter()
+        .map(|field| format!("A pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
+        .collect::<Vec<_>>();
+
+    let unnested_fields_mut_doc = unnested_fields_names.iter()
+        .map(|field| format!("A mutable pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
+        .collect::<Vec<_>>();
+
+    let nested_fields_mut_doc = nested_fields_names.iter()
         .map(|field| format!("A mutable pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
         .collect::<Vec<_>>();
 
@@ -58,10 +66,11 @@ pub fn derive(input: &Input) -> TokenStream {
         #[derive(Copy, Clone)]
         #visibility struct #ptr_name {
             #(
-                #[doc = #fields_doc]
+                #[doc = #unnested_fields_doc]
                 pub #unnested_fields_names: *const #unnested_fields_types,
             )*
             #(
+                #[doc = #nested_fields_doc]
                 pub #nested_fields_names: <#nested_fields_types as soa_derive::SoAPtr>::Ptr,
             )*
         }
@@ -73,10 +82,11 @@ pub fn derive(input: &Input) -> TokenStream {
         #[derive(Copy, Clone)]
         #visibility struct #ptr_mut_name {
             #(
-                #[doc = #fields_mut_doc]
+                #[doc = #unnested_fields_mut_doc]
                 pub #unnested_fields_names: *mut #unnested_fields_types,
             )*
             #(
+                #[doc = #nested_fields_mut_doc]
                 pub #nested_fields_names: <#nested_fields_types as soa_derive::SoAPtr>::PtrMut,
             )*
         }

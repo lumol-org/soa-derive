@@ -223,6 +223,9 @@ pub fn derive(input: &Input) -> TokenStream {
                 #visibility fn iter(&self) -> Iter {
                     Iter(#create_iter)
                 }
+                /// Get an iterator over the
+                #[doc = #ref_doc_url]
+                /// in this slice.
                 #visibility fn into_iter(self) -> Iter<'a> {
                     Iter(#create_into_iter)
                 }
@@ -289,14 +292,17 @@ pub fn derive(input: &Input) -> TokenStream {
                 #visibility fn iter_mut(&mut self) -> IterMut {
                     IterMut(#create_iter_mut)
                 }
+                /// Get a mutable iterator over the
+                #[doc = #ref_mut_doc_url]
+                /// in this vector
                 #visibility fn into_iter(self) -> IterMut<'a> {
                     IterMut(#create_mut_into_iter)
                 }
             }
 
             impl<'a> soa_derive::SoAIter<'a> for #name {
-                type Iter = #detail_mod::Iter<'a>;
-                type IterMut = #detail_mod::IterMut<'a>;
+                type Iter = Iter<'a>;
+                type IterMut = IterMut<'a>;
             }
 
 

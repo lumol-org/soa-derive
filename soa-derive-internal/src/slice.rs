@@ -48,7 +48,10 @@ pub fn derive(input: &Input) -> TokenStream {
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
 
-    let fields_doc = fields_names.iter()
+    let unnested_fields_doc = unnested_fields_names.iter()
+                                 .map(|field| format!("A slice of `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
+                                 .collect::<Vec<_>>();
+    let nested_fields_doc = nested_fields_names.iter()
                                  .map(|field| format!("A slice of `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
                                  .collect::<Vec<_>>();
 
@@ -63,10 +66,11 @@ pub fn derive(input: &Input) -> TokenStream {
         #(#[#attrs])*
         #visibility struct #slice_name<'a> {
             #(
-                #[doc = #fields_doc]
+                #[doc = #unnested_fields_doc]
                 pub #unnested_fields_names: &'a [#unnested_fields_types],
             )*
             #(
+                #[doc = #nested_fields_doc]
                 pub #nested_fields_names: <#nested_fields_types as soa_derive::SoASlice<'a>>::Slice,
             )*
         }
