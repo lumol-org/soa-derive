@@ -153,14 +153,9 @@ fn create_derive_meta(path: Path) -> Meta {
 
 fn contains_nested_soa(attrs: &[Attribute]) -> bool {
     for attr in attrs {
-        if let Ok(meta) = attr.parse_meta() {
-            match meta {
-                Meta::Path(path) => {
-                    if path.is_ident("nested_soa") {
-                        return true;
-                    }
-                }
-                _ => (),
+        if let Ok(Meta::Path(path)) = attr.parse_meta() {
+            if path.is_ident("nested_soa") {
+                return true;
             }
         }
     }

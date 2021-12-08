@@ -28,11 +28,11 @@ pub fn derive(input: &Input) -> TokenStream {
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
     let first_field_type = &fields_types[0];
-    let first_nested = input.nested_fields.iter().find(|field| 
+    let first_nested = input.nested_fields.iter().any(|field| 
         {
             field.ident.as_ref().unwrap() == first_field
         }
-    ).is_some();
+    );
 
     let mut iter_type = if first_nested {
         quote! {
@@ -94,11 +94,11 @@ pub fn derive(input: &Input) -> TokenStream {
         for field in &input.fields[1..] {
             let field_name = &field.ident;
             let field_type = &field.ty;
-            let nested = input.nested_fields.iter().find(|field| 
+            let nested = input.nested_fields.iter().any(|field| 
                 {
                     field.ident.as_ref().unwrap() == field_name.as_ref().unwrap()
                 }
-            ).is_some();
+            );
             iter_pat = quote!{
                 (#iter_pat, #field_name)
             };
