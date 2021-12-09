@@ -2,7 +2,7 @@
 //! automatically generate code from a given struct `T` that allow to replace
 //! `Vec<T>` with a struct of arrays. For example, the following code
 //!
-//! ```
+//! ```ignore
 //! # #[macro_use] extern crate soa_derive;
 //! # fn main() {
 //! #[derive(StructOfArray)]
@@ -17,7 +17,7 @@
 //!
 //! will generate a `CheeseVec` struct that looks like this:
 //!
-//! ```
+//! ```ignore
 //! pub struct CheeseVec {
 //!     pub smell: Vec<f64>,
 //!     pub color: Vec<(f64, f64, f64)>,
@@ -38,7 +38,7 @@
 //! (such as `Debug` or `PartialEq`), you can add an attribute `#[soa_derive =
 //! "Debug, PartialEq"]` to the struct declaration.
 //!
-//! ```
+//! ```ignore
 //! # #[macro_use] extern crate soa_derive;
 //! # fn main() {
 //! #[derive(Debug, PartialEq, StructOfArray)]
@@ -57,7 +57,7 @@
 //! attribute `#[soa_attr(Vec, cfg_attr(test, derive(PartialEq)))]` to the
 //! struct declaration.
 //!
-//! ```
+//! ```ignore
 //! # #[macro_use] extern crate soa_derive;
 //! # fn main() {
 //! #[derive(Debug, PartialEq, StructOfArray)]
@@ -108,7 +108,7 @@
 //!
 //! It is possible to iterate over the values in a `CheeseVec`
 //!
-//! ```no_run
+//! ```ignore
 //! # #[macro_use] extern crate soa_derive;
 //! # fn main() {
 //! # #[derive(Debug, PartialEq, StructOfArray)]
@@ -136,7 +136,7 @@
 //! fields from memory when iterating over the vector. In order to do so, one
 //! can manually pick the needed fields:
 //!
-//! ```no_run
+//! ```ignore
 //! # #[macro_use] extern crate soa_derive;
 //! # fn main() {
 //! # #[derive(Debug, PartialEq, StructOfArray)]
@@ -161,7 +161,7 @@
 //! In order to iterate over multiple fields at the same time, one can use the
 //! [soa_zip!](macro.soa_zip.html) macro.
 //!
-//! ```no_run
+//! ```ignore
 //! # #[macro_use] extern crate soa_derive;
 //! # fn main() {
 //! # #[derive(Debug, PartialEq, StructOfArray)]
@@ -182,6 +182,41 @@
 //! }
 //! # }
 //! ```
+//! 
+//! ## Nested Struct of Arrays
+//! 
+//! In order to nest a struct of arrays inside another struct of arrays, one can use the `#[nested_soa]` attribute.
+//! 
+//! For example, the following code
+//! 
+//! ```ignore
+//! #[derive(StructOfArray)]
+//! pub struct Point {
+//!     x: f32,
+//!     y: f32,
+//! }
+//! #[derive(StructOfArray)]
+//! pub struct Particle {
+//!     #[nested_soa]
+//!     point: Point,
+//!     mass: f32,
+//! }
+//! ```
+//! 
+//! will generate structs that looks like this:
+//! 
+//! ```ignore
+//! pub struct PointVec {
+//!     x: Vec<f32>,
+//!     y: Vec<f32>,
+//! }
+//! pub struct ParticleVec {
+//!     point: PointVec, // rather than Vec<Point>
+//!     mass: Vec<f32>
+//! }
+//! ```
+//! 
+//! All helper structs will be also nested, for example `PointSlice` will be nested in `ParticleSlice`.
 
 // The proc macro is implemented in soa_derive_internal, and re-exported by this
 // crate. This is because a single crate can not define both a proc macro and a
@@ -280,7 +315,7 @@ pub trait SoAIndexMut<T>: private_soa_indexes::Sealed {
 /// to the fields, which can be mutable references if the field name is prefixed
 /// with `mut`.
 ///
-/// ```
+/// ```ignore
 /// # #[macro_use] extern crate soa_derive;
 /// # fn main() {
 /// #[derive(StructOfArray)]
@@ -311,7 +346,7 @@ pub trait SoAIndexMut<T>: private_soa_indexes::Sealed {
 /// iterator will yields elements until any of the fields or one external
 /// iterator returns None.
 ///
-/// ```
+/// ```ignore
 /// # #[macro_use] extern crate soa_derive;
 /// # fn main() {
 /// # #[derive(StructOfArray)]

@@ -138,6 +138,41 @@ for (name, smell, color) in soa_zip!(vec, [name, mut smell, color]) {
 }
 ```
 
+## Nested Struct of Arrays
+
+In order to nest a struct of arrays inside another struct of arrays, one can use the `#[nested_soa]` attribute.
+
+For example, the following code
+
+```rust
+#[derive(StructOfArray)]
+pub struct Point {
+    x: f32,
+    y: f32,
+}
+#[derive(StructOfArray)]
+pub struct Particle {
+    #[nested_soa]
+    point: Point,
+    mass: f32,
+}
+```
+
+will generate structs that looks like this:
+
+```rust
+pub struct PointVec {
+    x: Vec<f32>,
+    y: Vec<f32>,
+}
+pub struct ParticleVec {
+    point: PointVec, // rather than Vec<Point>
+    mass: Vec<f32>
+}
+```
+
+All helper structs will be also nested, for example `PointSlice` will be nested in `ParticleSlice`.
+
 ## Documentation
 
 Please see http://lumol.org/soa-derive/soa_derive_example/ for a small
