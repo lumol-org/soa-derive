@@ -81,15 +81,15 @@ fn serde_skip_test() -> Result<(), serde_json::Error> {
         let _ = slice.y[0]; // Should have a deprecate warning
         let _ = slice.meta[0]; 
 
-        let ref_mut = slice.get_mut(1).unwrap();
+        let mut ref_mut = slice.get_mut(1).unwrap();
         let _ = ref_mut.x; // Should have a deprecate warning
         let _ = ref_mut.y; 
         let _ = ref_mut.meta; 
 
-        let ptr_mut = ref_mut.as_ptr();
+        let ptr_mut = ref_mut.as_mut_ptr();
         let _ = ptr_mut.x; 
-        let _ = ptr_mut.y; // Should have a deprecate warning
-        let _ = ptr_mut.meta; 
+        let _ = ptr_mut.y; 
+        let _ = ptr_mut.meta; // Should have a deprecate warning 
     }
     Ok(())
 }
