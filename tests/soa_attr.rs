@@ -87,9 +87,9 @@ fn serde_skip_test() -> Result<(), serde_json::Error> {
         let _ = ref_mut.meta; 
 
         let ptr_mut = ref_mut.as_ptr();
-        let _ = ptr_mut.x; // Should not have a deprecate warning
-        let _ = ptr_mut.y; // Should not have a deprecate warning
-        let _ = ptr_mut.meta; // Should have a deprecate warning
+        let _ = ptr_mut.x; 
+        let _ = ptr_mut.y; // Should have a deprecate warning
+        let _ = ptr_mut.meta; 
     }
     Ok(())
 }
