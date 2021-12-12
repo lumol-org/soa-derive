@@ -39,6 +39,9 @@ pub fn derive(input: &Input) -> TokenStream {
                                  .map(|field| format!("A slice of `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
                                  .collect::<Vec<_>>();
 
+    let field_attrs = input.field_attrs.iter()
+        .map(|attr| &attr.slice).collect::<Vec<_>>();
+
     let mut generated = quote! {
         /// A slice of
         #[doc = #doc_url]
@@ -51,6 +54,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #visibility struct #slice_name<'a> {
             #(
                 #[doc = #fields_doc]
+                #(#[#field_attrs])*
                 pub #fields_names: &'a [#fields_types],
             )*
         }
@@ -272,6 +276,9 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                                  .map(|field| format!("A mutable slice of `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
                                  .collect::<Vec<_>>();
 
+    let field_attrs = input.field_attrs.iter()
+        .map(|attr| &attr.slice_mut).collect::<Vec<_>>();
+
     let mut generated = quote! {
         /// A mutable slice of
         #[doc = #doc_url]
@@ -283,6 +290,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         #visibility struct #slice_mut_name<'a> {
             #(
                 #[doc = #fields_doc]
+                #(#[#field_attrs])*
                 pub #fields_names_1: &'a mut [#fields_types],
             )*
         }

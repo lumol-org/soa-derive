@@ -30,7 +30,9 @@ fn eq_test() {
 #[derive(StructOfArray)]
 #[soa_derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Point {
+    #[soa_attr(Slice, deprecated)]
     pub x: f32,
+    #[soa_attr(SliceMut, deprecated)]
     pub y: f32,
     #[soa_attr(Vec, serde(skip))]
     pub meta: bool
@@ -51,5 +53,16 @@ fn serde_skip_test() -> Result<(), serde_json::Error> {
         y: vec![2.0, 4.0],
         meta: vec![]
     });
+    {
+        let slice = soa.as_slice();
+        let _ = slice.x[0]; // Should have a deprecate warning
+        let _ = slice.y[0]; // Should not have a deprecate warning
+    }
+    {
+        let slice = soa.as_mut_slice();
+        let _ = slice.y[0]; // Should have a deprecate warning
+        let _ = slice.x[0]; // Should not have a deprecate warning
+
+    }
     Ok(())
 }
