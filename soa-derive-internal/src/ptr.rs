@@ -38,6 +38,12 @@ pub fn derive(input: &Input) -> TokenStream {
         .map(|field| format!("A mutable pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
         .collect::<Vec<_>>();
 
+    let field_attrs = input.field_attrs.iter()
+        .map(|attr| &attr.ptr).collect::<Vec<_>>();
+
+    let mut_field_attrs = input.field_attrs.iter()
+        .map(|attr| &attr.ptr_mut).collect::<Vec<_>>();
+
     quote! {
         /// An analog of a pointer to
         #[doc = #doc_url]
@@ -47,6 +53,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #visibility struct #ptr_name {
             #(
                 #[doc = #fields_doc]
+                #(#[#field_attrs])*
                 pub #fields_names_1: *const #fields_types,
             )*
         }
@@ -59,6 +66,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #visibility struct #ptr_mut_name {
             #(
                 #[doc = #fields_mut_doc]
+                #(#[#mut_field_attrs])*
                 pub #fields_names_1: *mut #fields_types,
             )*
         }

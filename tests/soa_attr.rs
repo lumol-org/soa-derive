@@ -34,9 +34,11 @@ pub struct Point {
     #[soa_attr(RefMut, deprecated)]
     pub x: f32,
     #[soa_attr(SliceMut, deprecated)]
+    #[soa_attr(Ptr, deprecated)]
     pub y: f32,
     #[soa_attr(Vec, serde(skip))]
     #[soa_attr(Ref, deprecated)]
+    #[soa_attr(PtrMut, deprecated)]
     pub meta: bool
 }
 
@@ -59,23 +61,35 @@ fn serde_skip_test() -> Result<(), serde_json::Error> {
     {
         let slice = soa.as_slice();
         let _ = slice.x[0]; // Should have a deprecate warning
-        let _ = slice.y[0]; // Should not have a deprecate warning
-        let _ = slice.meta[0]; // Should not have a deprecate warning
+        let _ = slice.y[0]; 
+        let _ = slice.meta[0]; 
 
         let ref_ = slice.get(1).unwrap();
-        let _ = ref_.x; // Should not have a deprecate warning
-        let _ = ref_.y; // Should not have a deprecate warning
+        let _ = ref_.x; 
+        let _ = ref_.y; 
         let _ = ref_.meta; // Should have a deprecate warning
+
+        let ptr = ref_.as_ptr();
+        let _ = ptr.x; 
+        let _ = ptr.y; // Should have a deprecate warning
+        let _ = ptr.meta; 
+
     }
     {
         let mut slice = soa.as_mut_slice();
+        let _ = slice.x[0]; 
         let _ = slice.y[0]; // Should have a deprecate warning
-        let _ = slice.x[0]; // Should not have a deprecate warning
+        let _ = slice.meta[0]; 
 
         let ref_mut = slice.get_mut(1).unwrap();
         let _ = ref_mut.x; // Should have a deprecate warning
-        let _ = ref_mut.y; // Should not have a deprecate warning
-        let _ = ref_mut.meta; // Should not have a deprecate warning
+        let _ = ref_mut.y; 
+        let _ = ref_mut.meta; 
+
+        let ptr_mut = ref_mut.as_ptr();
+        let _ = ptr_mut.x; // Should not have a deprecate warning
+        let _ = ptr_mut.y; // Should not have a deprecate warning
+        let _ = ptr_mut.meta; // Should have a deprecate warning
     }
     Ok(())
 }
