@@ -214,7 +214,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
     };
 
-    if input.attrs.derive_clone {
+    if input.derive_clone {
         generated.append_all(quote!{
             #[allow(dead_code)]
             impl<'a> #slice_name<'a> {
@@ -524,7 +524,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         }
     };
 
-    if input.attrs.derive_clone {
+    if input.derive_clone {
         generated.append_all(quote!{
             #[allow(dead_code)]
             impl<'a> #slice_mut_name<'a> {

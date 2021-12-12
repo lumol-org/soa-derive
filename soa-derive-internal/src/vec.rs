@@ -350,7 +350,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
     };
 
-    if input.attrs.derive_clone {
+    if input.derive_clone {
         generated.append_all(quote!{
             #[allow(dead_code)]
             impl #vec_name {

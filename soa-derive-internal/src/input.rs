@@ -17,12 +17,12 @@ pub struct Input {
     /// Additional attributes requested with `#[soa_attr(...)]` or
     /// `#[soa_derive()]`
     pub attrs: ExtraAttributes,
+
+    // did the user explicitly asked us to derive clone?
+    pub derive_clone: bool,
 }
 
 pub struct ExtraAttributes {
-    // did the user explicitly asked us to derive clone?
-    pub derive_clone: bool,
-
     pub vec: Vec<Meta>,
     pub slice: Vec<Meta>,
     pub slice_mut: Vec<Meta>,
@@ -35,7 +35,6 @@ pub struct ExtraAttributes {
 impl ExtraAttributes {
     fn new() -> ExtraAttributes {
         ExtraAttributes {
-            derive_clone: false,
             vec: Vec::new(),
             slice: Vec::new(),
             slice_mut: Vec::new(),
@@ -130,9 +129,6 @@ impl ExtraAttributes {
         // always add this derive to the Vec struct
         self.vec.push(derive);
 
-        if path.is_ident("Clone") {
-            self.derive_clone = true;
-        }
     }
 }
 
@@ -160,6 +156,7 @@ impl Input {
 
         let mut extra_attrs = ExtraAttributes::new();
 
+        let mut derive_clone = false;
         for attr in input.attrs {
             if let Ok(meta) = attr.parse_meta() {
                 if meta.path().is_ident("soa_derive") {
@@ -173,6 +170,9 @@ impl Input {
                                             panic!("can not derive Copy for SoA vectors");
                                         }
                                         extra_attrs.add_derive(path);
+                                        if path.is_ident("Clone") {
+                                            derive_clone = true;
+                                        }
                                     }
                                     NestedMeta::Lit(_) => {
                                         panic!(
@@ -200,6 +200,7 @@ impl Input {
             fields: fields,
             visibility: input.vis,
             attrs: extra_attrs,
+            derive_clone,
         }
     }
 
