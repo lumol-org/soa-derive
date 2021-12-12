@@ -12,6 +12,8 @@ pub struct Input {
     pub name: Ident,
     /// The list of fields in the struct
     pub fields: Vec<Field>,
+    /// Additional attributes requested with `#[soa_attr(...)]` on fields
+    pub field_attrs: Vec<ExtraAttributes>,
     /// The struct overall visibility
     pub visibility: Visibility,
     /// Additional attributes requested with `#[soa_attr(...)]` or
@@ -145,8 +147,23 @@ fn create_derive_meta(path: Path) -> Meta {
 
 impl Input {
     pub fn new(input: DeriveInput) -> Input {
-        let fields = match input.data {
-            Data::Struct(s) => s.fields.iter().cloned().collect::<Vec<_>>(),
+        let mut fields = Vec::new();
+        let mut field_attrs = Vec::new();
+        match input.data {
+            Data::Struct(s) => {
+                for field in s.fields.iter() {
+                    let mut extra_attrs = ExtraAttributes::new();
+                    fields.push(field.clone());
+                    for attr in &field.attrs {
+                        if let Ok(meta) = attr.parse_meta() {
+                            if meta.path().is_ident("soa_attr") {
+                                extra_attrs.parse(&meta);
+                            }
+                        }
+                    }
+                    field_attrs.push(extra_attrs);
+                }
+            }
             _ => panic!("#[derive(StructOfArray)] only supports struct"),
         };
 
@@ -201,6 +218,7 @@ impl Input {
             visibility: input.vis,
             attrs: extra_attrs,
             derive_clone,
+            field_attrs,
         }
     }
 

@@ -35,6 +35,9 @@ pub fn derive(input: &Input) -> TokenStream {
     let fields_types = &input.fields.iter()
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
+    
+    let field_attrs = input.field_attrs.iter()
+        .map(|attr| &attr.vec).collect::<Vec<_>>();
 
     let mut generated = quote! {
         /// An analog to `
@@ -45,6 +48,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #visibility struct #vec_name {
             #(
                 #[doc = #fields_doc]
+                #(#[#field_attrs])*
                 pub #fields_names: Vec<#fields_types>,
             )*
         }

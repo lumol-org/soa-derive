@@ -1,3 +1,4 @@
+use serde::{Serialize, Deserialize};
 use soa_derive::StructOfArray;
 
 #[derive(Debug, Clone, PartialEq, StructOfArray)]
@@ -24,4 +25,31 @@ fn eq_test() {
         mass: vec![1.0, 2.0],
     };
     assert_eq!(particles0, particles1);
+}
+
+#[derive(StructOfArray)]
+#[soa_derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct Point {
+    pub x: f32,
+    pub y: f32,
+    #[soa_attr(Vec, serde(skip))]
+    pub meta: bool
+}
+
+#[test]
+fn serde_skip_test() -> Result<(), serde_json::Error> {
+    let mut soa = PointVec::new();
+    soa.push(Point { x: 1.0, y: 2.0, meta: true });
+    soa.push(Point { x: 3.0, y: 4.0, meta: false });
+
+
+    let json = serde_json::to_string(&soa)?;
+    assert_eq!(json, r#"{"x":[1.0,3.0],"y":[2.0,4.0]}"#);
+    let soa2: PointVec = serde_json::from_str(&json)?;
+    assert_eq!(&soa2, &PointVec {
+        x: vec![1.0, 3.0],
+        y: vec![2.0, 4.0],
+        meta: vec![]
+    });
+    Ok(())
 }
