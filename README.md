@@ -59,16 +59,35 @@ If you want to add attribute to a specific generated struct(such as
 attribute `#[soa_attr(Vec, cfg_attr(test, derive(PartialEq)))]` to the
 struct declaration.
 
+`soa_attr` could also be added to specific generated struct's field.
+
+For example:
+
 ```rust
 #[derive(Debug, PartialEq, StructOfArray)]
 #[soa_attr(Vec, cfg_attr(test, derive(PartialEq)))]
 pub struct Cheese {
+    #[soa_attr(Vec, deprecated)]
     pub smell: f64,
     pub color: (f64, f64, f64),
     pub with_mushrooms: bool,
     pub name: String,
 }
 ```
+
+will generate the struct like:
+
+```rust
+#[cfg_attr(test, derive(PartialEq))]
+pub struct CheeseVec {
+    #[deprecated]
+    pub smell: Vec<f64>,
+    pub color: Vec<(f64, f64, f64)>,
+    pub with_mushrooms: Vec<bool>,
+    pub name: Vec<String>,
+}
+```
+
 
 Mappings for first argument of ``soa_attr`` to the generated struct for ``Cheese``:
 * `Vec` => `CheeseVec`
@@ -78,6 +97,9 @@ Mappings for first argument of ``soa_attr`` to the generated struct for ``Cheese
 * `RefMut` => `CheeseRefMut`
 * `Ptr` => `CheesePtr`
 * `PtrMut` => `CheesePtrMut`
+
+
+To be mentioned, there is an [issue](https://github.com/lumol-org/soa-derive/issues/44) related to `#[soa_attr(Vec, serde(skip))]` on field.
 
 ## Usage and API
 
