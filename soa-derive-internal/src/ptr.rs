@@ -1,4 +1,5 @@
 use proc_macro2::TokenStream;
+use syn::Ident;
 use quote::quote;
 
 use crate::input::Input;
@@ -23,40 +24,75 @@ pub fn derive(input: &Input) -> TokenStream {
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
                                    .collect::<Vec<_>>();
-    
-    let unnested_fields_names = &input.unnested_fields.iter()
-                                   .map(|field| field.ident.as_ref().unwrap())
-                                   .collect::<Vec<_>>();
-
-    let nested_fields_names = &input.nested_fields.iter()
-                                   .map(|field| field.ident.as_ref().unwrap())
-                                   .collect::<Vec<_>>();
     let fields_names_1 = &fields_names;
     let fields_names_2 = &fields_names;
+    let get_ptr_field_doc = |field_ident: &Ident| {
+        format!("A pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name)
+    };
 
-    let unnested_fields_types = &input.unnested_fields.iter()
-                                    .map(|field| &field.ty)
-                                    .collect::<Vec<_>>();
+    let get_ptr_mut_field_doc = |field_ident: &Ident| {
+        format!("A mutable pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name)
+    };
 
-    let nested_fields_types = &input.nested_fields.iter()
-                                    .map(|field| &field.ty)
-                                    .collect::<Vec<_>>();
+    let ptr_fields = input.field_seq_by_nested_soa(
+        |field_ident, field_type| {
+            let doc = get_ptr_field_doc(field_ident);
+            quote! {
+                #[doc = #doc]
+                pub #field_ident: *const #field_type,
+            }
+        },
+        |field_ident, field_type| {
+            let doc = get_ptr_field_doc(field_ident);
+            quote! {
+                #[doc = #doc]
+                pub #field_ident: <#field_type as soa_derive::SoAPtr>::Ptr,
+            }
+        },
+    );
 
-    let unnested_fields_doc = unnested_fields_names.iter()
-        .map(|field| format!("A pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
-        .collect::<Vec<_>>();
+    let ptr_mut_fields = input.field_seq_by_nested_soa(
+        |field_ident, field_type| {
+            let doc = get_ptr_mut_field_doc(field_ident);
+            quote! {
+                #[doc = #doc]
+                pub #field_ident: *mut #field_type,
+            }
+        },
+        |field_ident, field_type| {
+            let doc = get_ptr_mut_field_doc(field_ident);
+            quote! {
+                #[doc = #doc]
+                pub #field_ident: <#field_type as soa_derive::SoAPtr>::PtrMut,
+            }
+        },
+    );
 
-    let nested_fields_doc = nested_fields_names.iter()
-        .map(|field| format!("A pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
-        .collect::<Vec<_>>();
+    let as_mut_ptr = input.field_seq_by_nested_soa(
+        |field_ident, _| {
+            quote! {
+                #field_ident: self.#field_ident as *mut _, 
+            }
+        },
+        |field_ident, _| {
+            quote! {
+                #field_ident: self.#field_ident.as_mut_ptr(), 
+            }
+        },
+    );
 
-    let unnested_fields_mut_doc = unnested_fields_names.iter()
-        .map(|field| format!("A mutable pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
-        .collect::<Vec<_>>();
-
-    let nested_fields_mut_doc = nested_fields_names.iter()
-        .map(|field| format!("A mutable pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
-        .collect::<Vec<_>>();
+    let as_ptr = input.field_seq_by_nested_soa(
+        |field_ident, _| {
+            quote! {
+                #field_ident: self.#field_ident, 
+            }
+        },
+        |field_ident, _| {
+            quote! {
+                #field_ident: self.#field_ident.as_ptr(), 
+            }
+        },
+    );
 
     quote! {
         /// An analog of a pointer to
@@ -65,14 +101,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #(#[#attrs])*
         #[derive(Copy, Clone)]
         #visibility struct #ptr_name {
-            #(
-                #[doc = #unnested_fields_doc]
-                pub #unnested_fields_names: *const #unnested_fields_types,
-            )*
-            #(
-                #[doc = #nested_fields_doc]
-                pub #nested_fields_names: <#nested_fields_types as soa_derive::SoAPtr>::Ptr,
-            )*
+            #ptr_fields
         }
 
         /// An analog of a mutable pointer to
@@ -81,14 +110,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #(#[#mut_attrs])*
         #[derive(Copy, Clone)]
         #visibility struct #ptr_mut_name {
-            #(
-                #[doc = #unnested_fields_mut_doc]
-                pub #unnested_fields_names: *mut #unnested_fields_types,
-            )*
-            #(
-                #[doc = #nested_fields_mut_doc]
-                pub #nested_fields_names: <#nested_fields_types as soa_derive::SoAPtr>::PtrMut,
-            )*
+            #ptr_mut_fields
         }
 
         #[allow(dead_code)]
@@ -100,8 +122,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `*const T as *mut T` transformation.
             #visibility fn as_mut_ptr(&self) -> #ptr_mut_name {
                 #ptr_mut_name {
-                    #(#unnested_fields_names: self.#unnested_fields_names as *mut _, )*
-                    #(#nested_fields_names: self.#nested_fields_names.as_mut_ptr(), )*
+                    #as_mut_ptr
                 }
             }
 
@@ -201,8 +222,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `*mut T as *const T` transformation
             #visibility fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
-                    #(#unnested_fields_names: self.#unnested_fields_names, )*
-                    #(#nested_fields_names: self.#nested_fields_names.as_ptr(), )*
+                    #as_ptr
                 }
             }
 
@@ -334,8 +354,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `&T as *const T` transformation
             #visibility fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
-                    #(#unnested_fields_names: self.#unnested_fields_names, )*
-                    #(#nested_fields_names: self.#nested_fields_names.as_ptr(), )*
+                    #as_ptr
                 }
             }
         }
@@ -349,8 +368,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `&mut T as *const T` transformation
             #visibility fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
-                    #(#unnested_fields_names: self.#unnested_fields_names, )*
-                    #(#nested_fields_names: self.#nested_fields_names.as_ptr(), )*
+                    #as_ptr
                 }
             }
 
@@ -361,8 +379,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `&mut T as *mut T` transformation
             #visibility fn as_mut_ptr(&mut self) -> #ptr_mut_name {
                 #ptr_mut_name {
-                    #(#unnested_fields_names: self.#unnested_fields_names, )*
-                    #(#nested_fields_names: self.#nested_fields_names.as_mut_ptr(), )*
+                    #as_mut_ptr
                 }
             }
         }
