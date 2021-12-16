@@ -21,14 +21,6 @@ pub fn derive(input: &Input) -> TokenStream {
                                    .map(|field| field.ident.as_ref().unwrap())
                                    .collect::<Vec<_>>();
     
-    let unnested_fields_names = &input.unnested_fields.iter()
-                                   .map(|field| field.ident.as_ref().unwrap())
-                                   .collect::<Vec<_>>();
-
-    let nested_fields_names = &input.nested_fields.iter()
-                                   .map(|field| field.ident.as_ref().unwrap())
-                                   .collect::<Vec<_>>();
-
     let fields_names_hygienic = input.fields.iter()
         .enumerate()
         .map(|(i, _)| Ident::new(&format!("___soa_derive_private_{}", i), Span::call_site()))
@@ -36,21 +28,91 @@ pub fn derive(input: &Input) -> TokenStream {
 
     let first_field = &fields_names[0];
 
-    let unnested_fields_doc = unnested_fields_names.iter()
-                                 .map(|field| format!("A vector of `{0}` from a [`{1}`](struct.{1}.html)", field, name))
-                                 .collect::<Vec<_>>();
+    let get_field_doc = |field_ident: &Ident| {
+        format!("A vector of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, name)
+    };
 
-    let nested_fields_doc = nested_fields_names.iter()
-                                 .map(|field| format!("A vector of `{0}` from a [`{1}`](struct.{1}.html)", field, name))
-                                 .collect::<Vec<_>>();
+    let vec_fields = input.field_tokens_by_nested_soa(
+        |field_ident, field_type| {
+            let doc = get_field_doc(field_ident);
+            quote! {
+                #[doc = #doc]
+                pub #field_ident: Vec<#field_type>,
+            }
+        },
+        |field_ident, field_type| {
+            let doc = get_field_doc(field_ident);
+            quote! {
+                #[doc = #doc]
+                pub #field_ident: <#field_type as StructOfArray>::Type,
+            }
+        },
+    );
 
-    let unnested_fields_types = &input.unnested_fields.iter()
-                                    .map(|field| &field.ty)
-                                    .collect::<Vec<_>>();
+    let vec_new = input.field_tokens_by_nested_soa(
+        |field_ident, _| {
+            quote! {
+                #field_ident: Vec::new(),
+            }
+        },
+        |field_ident, field_type| {
+            quote! {
+                #field_ident: <#field_type as StructOfArray>::Type::new(),
+            }
+        },
+    );
 
-    let nested_fields_types = &input.nested_fields.iter()
-                                    .map(|field| &field.ty)
-                                    .collect::<Vec<_>>();
+    let vec_with_capacity = input.field_tokens_by_nested_soa(
+        |field_ident, _| {
+            quote! {
+                #field_ident: Vec::with_capacity(capacity),
+            }
+        },
+        |field_ident, field_type| {
+            quote! {
+                #field_ident: <#field_type as StructOfArray>::Type::with_capacity(capacity),
+            }
+        },
+    );
+
+    let vec_slice = input.field_tokens_by_nested_soa(
+        |field_ident, _| {
+            quote! {
+                #field_ident: &self.#field_ident[range.clone()],
+            }
+        },
+        |field_ident, _| {
+            quote! {
+                #field_ident: self.#field_ident.slice(range.clone()),
+            }
+        },
+    );
+
+    let vec_slice_mut = input.field_tokens_by_nested_soa(
+        |field_ident, _| {
+            quote! {
+                #field_ident: &mut self.#field_ident[range.clone()],
+            }
+        },
+        |field_ident, _| {
+            quote! {
+                #field_ident: self.#field_ident.slice_mut(range.clone()),
+            }
+        },
+    );
+
+    let vec_from_raw_parts = input.field_tokens_by_nested_soa(
+        |field_ident, _| {
+            quote! {
+                #field_ident: Vec::from_raw_parts(data.#field_ident, len, capacity),
+            }
+        },
+        |field_ident, field_type| {
+            quote! {
+                #field_ident: <#field_type as StructOfArray>::Type::from_raw_parts(data.#field_ident, len, capacity),
+            }
+        },
+    );
 
     let mut generated = quote! {
         /// An analog to `
@@ -59,14 +121,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #[allow(dead_code)]
         #(#[#attrs])*
         #visibility struct #vec_name {
-            #(
-                #[doc = #unnested_fields_doc]
-                pub #unnested_fields_names: Vec<#unnested_fields_types>,
-            )*
-            #(
-                #[doc = #nested_fields_doc]
-                pub #nested_fields_names: <#nested_fields_types as StructOfArray>::Type,
-            )*
+            #vec_fields
         }
 
         #[allow(dead_code)]
@@ -76,8 +131,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::new()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.new)
             pub fn new() -> #vec_name {
                 #vec_name {
-                    #(#unnested_fields_names : Vec::new(),)*
-                    #(#nested_fields_names : <#nested_fields_types as StructOfArray>::Type::new(),)*
+                    #vec_new
                 }
             }
 
@@ -87,8 +141,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// initializing all fields with the given `capacity`.
             pub fn with_capacity(capacity: usize) -> #vec_name {
                 #vec_name {
-                    #(#unnested_fields_names: Vec::with_capacity(capacity),)*
-                    #(#nested_fields_names : <#nested_fields_types as StructOfArray>::Type::with_capacity(capacity),)*
+                    #vec_with_capacity
                 }
             }
 
@@ -232,8 +285,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::as_slice()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.as_slice).
             pub fn as_slice(&self) -> #slice_name {
                 #slice_name {
-                    #(#unnested_fields_names : &self.#unnested_fields_names, )*
-                    #(#nested_fields_names : self.#nested_fields_names.as_slice(), )*
+                    #(#fields_names: self.#fields_names.as_slice(), )*
                 }
             }
 
@@ -242,8 +294,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::as_mut_slice()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.as_mut_slice).
             pub fn as_mut_slice(&mut self) -> #slice_mut_name {
                 #slice_mut_name {
-                    #(#unnested_fields_names : &mut self.#unnested_fields_names, )*
-                    #(#nested_fields_names : self.#nested_fields_names.as_mut_slice(), )*
+                    #(#fields_names: self.#fields_names.as_mut_slice(), )*
                 }
             }
 
@@ -251,8 +302,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// is analogous to `Index<Range<usize>>`.
             pub fn slice(&self, range: ::std::ops::Range<usize>) -> #slice_name {
                 #slice_name {
-                    #(#unnested_fields_names : &self.#unnested_fields_names[range.clone()], )*
-                    #(#nested_fields_names : self.#nested_fields_names.slice(range.clone()), )*
+                    #vec_slice
                 }
             }
 
@@ -260,8 +310,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// `range`. This is analogous to `IndexMut<Range<usize>>`.
             pub fn slice_mut(&mut self, range: ::std::ops::Range<usize>) -> #slice_mut_name {
                 #slice_mut_name {
-                    #(#unnested_fields_names : &mut self.#unnested_fields_names[range.clone()], )*
-                    #(#nested_fields_names : self.#nested_fields_names.slice_mut(range.clone()), )*
+                    #vec_slice_mut
                 }
             }
 
@@ -370,8 +419,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::from_raw_parts()`](https://doc.rust-lang.org/std/struct.Vec.html#method.from_raw_parts).
             pub unsafe fn from_raw_parts(data: #ptr_mut_name, len: usize, capacity: usize) -> #vec_name {
                 #vec_name {
-                    #(#unnested_fields_names: Vec::from_raw_parts(data.#unnested_fields_names, len, capacity),)*
-                    #(#nested_fields_names: <#nested_fields_types as StructOfArray>::Type::from_raw_parts(data.#nested_fields_names, len, capacity),)*
+                    #vec_from_raw_parts
                 }
             }
         }

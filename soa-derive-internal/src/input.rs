@@ -3,7 +3,7 @@ use std::convert::TryInto;
 use proc_macro2::Span;
 use quote::quote;
 
-use syn::{Attribute, Data, DeriveInput, Field, Ident, Path, Visibility};
+use syn::{Attribute, Data, DeriveInput, Field, Ident, Path, Visibility, Type};
 use syn::{Meta, MetaList, NestedMeta};
 
 /// Representing the struct we are deriving
@@ -16,6 +16,8 @@ pub struct Input {
     pub nested_fields: Vec<Field>,
     /// The fields that without `#[nested_soa]` attribute
     pub unnested_fields: Vec<Field>,
+    /// Is field marked with `#[nested_soa]`
+    pub field_is_nested: Vec<bool>,
     /// The struct overall visibility
     pub visibility: Visibility,
     /// Additional attributes requested with `#[soa_attr(...)]` or
@@ -167,10 +169,12 @@ impl Input {
         let mut fields = Vec::new();
         let mut nested_fields = Vec::new();
         let mut unnested_fields = Vec::new();
+        let mut field_is_nested = Vec::new();
         match input.data {
             Data::Struct(s) => {
                 for field in s.fields.iter().cloned() {
                     fields.push(field.clone());
+                    field_is_nested.push(contains_nested_soa(&field.attrs));
                     if contains_nested_soa(&field.attrs) {
                         nested_fields.push(field);
                     } else {
@@ -228,6 +232,7 @@ impl Input {
             attrs: extra_attrs,
             nested_fields,
             unnested_fields,
+            field_is_nested
         }
     }
 
@@ -257,5 +262,24 @@ impl Input {
 
     pub fn ptr_mut_name(&self) -> Ident {
         Ident::new(&format!("{}PtrMut", self.name), Span::call_site())
+    }
+    pub fn field_tokens_by_nested_soa(&self, 
+        unnested_variant: impl Fn(&Ident, &Type) -> proc_macro2::TokenStream, 
+        nested_variant: impl Fn(&Ident, &Type) -> proc_macro2::TokenStream) -> proc_macro2::TokenStream 
+    {
+        let mut seq = quote! {};
+        self.fields.iter().zip(self.field_is_nested.iter())
+            .for_each(|(field, is_nested)| {
+                let field_ident = field.ident.as_ref().unwrap();
+                let field_type = &field.ty;
+
+                let variant = if *is_nested {
+                    nested_variant(field_ident, field_type)
+                } else {
+                    unnested_variant(field_ident, field_type)
+                };
+                seq = quote!(#seq #variant);
+            });
+        seq
     }
 }

@@ -10,6 +10,7 @@ use proc_macro2::{TokenStream};
 use quote::TokenStreamExt;
 
 mod index;
+#[macro_use]
 mod input;
 mod iter;
 mod ptr;
