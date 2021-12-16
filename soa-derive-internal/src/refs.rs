@@ -1,4 +1,4 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{TokenStream, Ident};
 use quote::quote;
 
 use crate::input::Input;
@@ -16,33 +16,73 @@ pub fn derive(input: &Input) -> TokenStream {
     let ref_doc_url = format!("[`{0}`](struct.{0}.html)", ref_name);
     let ref_mut_doc_url = format!("[`{0}`](struct.{0}.html)", ref_mut_name);
 
-    let unnested_fields_names = input.unnested_fields.iter()
-                                   .map(|field| field.ident.clone().unwrap())
-                                   .collect::<Vec<_>>();
-    let nested_fields_names = input.nested_fields.iter()
-                                   .map(|field| field.ident.clone().unwrap())
-                                   .collect::<Vec<_>>();
-    let unnested_fields_types = &input.unnested_fields.iter()
-                                    .map(|field| &field.ty)
-                                    .collect::<Vec<_>>();
-    let nested_fields_types = &input.nested_fields.iter()
-                                    .map(|field| &field.ty)
-                                    .collect::<Vec<_>>();
+    let get_ref_field_doc = |field_ident: &Ident| {
+        format!("A reference to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name)
+    };
 
-    let unnested_fields_doc = unnested_fields_names.iter()
-                                 .map(|field| format!("A reference to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
-                                 .collect::<Vec<_>>();
+    let get_ref_mut_field_doc = |field_ident: &Ident| {
+        format!("A mutable reference to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name)
+    };
 
-    let unnested_fields_mut_doc = unnested_fields_names.iter()
-                                     .map(|field| format!("A mutable reference to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
-                                     .collect::<Vec<_>>();
-    let nested_fields_doc = nested_fields_names.iter()
-                                 .map(|field| format!("A reference to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
-                                 .collect::<Vec<_>>();
+    let ref_fields = input.field_seq_by_nested_soa(
+        |field_ident, field_type| {
+            let doc = get_ref_field_doc(field_ident);
+            quote! {
+                #[doc = #doc]
+                pub #field_ident: &'a #field_type,
+            }
+        },
+        |field_ident, field_type| {
+            let doc = get_ref_field_doc(field_ident);
+            quote! {
+                #[doc = #doc]
+                pub #field_ident: <#field_type as soa_derive::SoARef<'a>>::Ref,
+            }
+        },
+    );
 
-    let nested_fields_mut_doc = nested_fields_names.iter()
-                                     .map(|field| format!("A mutable reference to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
-                                     .collect::<Vec<_>>();
+    let ref_mut_fields = input.field_seq_by_nested_soa(
+        |field_ident, field_type| {
+            let doc = get_ref_mut_field_doc(field_ident);
+            quote! {
+                #[doc = #doc]
+                pub #field_ident: &'a mut #field_type,
+            }
+        },
+        |field_ident, field_type| {
+            let doc = get_ref_mut_field_doc(field_ident);
+            quote! {
+                #[doc = #doc]
+                pub #field_ident: <#field_type as soa_derive::SoARef<'a>>::RefMut,
+            }
+        },
+    );
+
+    let as_ref = input.field_seq_by_nested_soa(
+        |field_ident, _| {
+            quote! {
+                #field_ident: & self.#field_ident,
+            }
+        },
+        |field_ident, _| {
+            quote! {
+                #field_ident: self.#field_ident.as_ref(),
+            }
+        },
+    );
+
+    let as_mut = input.field_seq_by_nested_soa(
+        |field_ident, _| {
+            quote! {
+                #field_ident: &mut self.#field_ident,
+            }
+        },
+        |field_ident, _| {
+            quote! {
+                #field_ident: self.#field_ident.as_mut(),
+            }
+        },
+    );
 
     quote! {
         /// A reference to a
@@ -51,14 +91,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #(#[#attrs])*
         #[derive(Copy, Clone)]
         #visibility struct #ref_name<'a> {
-            #(
-                #[doc = #unnested_fields_doc]
-                pub #unnested_fields_names: &'a #unnested_fields_types,
-            )*
-            #(
-                #[doc = #nested_fields_doc]
-                pub #nested_fields_names: <#nested_fields_types as soa_derive::SoARef<'a>>::Ref,
-            )*
+            #ref_fields
         }
 
         /// A mutable reference to a
@@ -66,14 +99,7 @@ pub fn derive(input: &Input) -> TokenStream {
         /// with struct of array layout.
         #(#[#mut_attrs])*
         #visibility struct #ref_mut_name<'a> {
-            #(
-                #[doc = #unnested_fields_mut_doc]
-                pub #unnested_fields_names: &'a mut #unnested_fields_types,
-            )*
-            #(
-                #[doc = #nested_fields_mut_doc]
-                pub #nested_fields_names: <#nested_fields_types as soa_derive::SoARef<'a>>::RefMut,
-            )*
+            #ref_mut_fields
         }
 
         #[allow(dead_code)]
@@ -85,8 +111,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// .
             #visibility fn as_ref(&self) -> #ref_name {
                 #ref_name {
-                    #(#unnested_fields_names: & self.#unnested_fields_names, )*
-                    #(#nested_fields_names: self.#nested_fields_names.as_ref(), )*
+                    #as_ref
                 }
             }
 
@@ -97,8 +122,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// .
             #visibility fn as_mut(&mut self) -> #ref_mut_name {
                 #ref_mut_name {
-                    #(#unnested_fields_names: &mut self.#unnested_fields_names, )*
-                    #(#nested_fields_names: self.#nested_fields_names.as_mut(), )*
+                    #as_mut
                 }
             }
         }
