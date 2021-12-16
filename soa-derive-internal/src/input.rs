@@ -263,7 +263,7 @@ impl Input {
     pub fn ptr_mut_name(&self) -> Ident {
         Ident::new(&format!("{}PtrMut", self.name), Span::call_site())
     }
-    pub fn field_tokens_by_nested_soa(&self, 
+    pub fn field_seq_by_nested_soa(&self, 
         unnested_variant: impl Fn(&Ident, &Type) -> proc_macro2::TokenStream, 
         nested_variant: impl Fn(&Ident, &Type) -> proc_macro2::TokenStream) -> proc_macro2::TokenStream 
     {

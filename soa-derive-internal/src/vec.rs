@@ -32,7 +32,7 @@ pub fn derive(input: &Input) -> TokenStream {
         format!("A vector of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, name)
     };
 
-    let vec_fields = input.field_tokens_by_nested_soa(
+    let vec_fields = input.field_seq_by_nested_soa(
         |field_ident, field_type| {
             let doc = get_field_doc(field_ident);
             quote! {
@@ -49,7 +49,7 @@ pub fn derive(input: &Input) -> TokenStream {
         },
     );
 
-    let vec_new = input.field_tokens_by_nested_soa(
+    let vec_new = input.field_seq_by_nested_soa(
         |field_ident, _| {
             quote! {
                 #field_ident: Vec::new(),
@@ -62,7 +62,7 @@ pub fn derive(input: &Input) -> TokenStream {
         },
     );
 
-    let vec_with_capacity = input.field_tokens_by_nested_soa(
+    let vec_with_capacity = input.field_seq_by_nested_soa(
         |field_ident, _| {
             quote! {
                 #field_ident: Vec::with_capacity(capacity),
@@ -75,7 +75,7 @@ pub fn derive(input: &Input) -> TokenStream {
         },
     );
 
-    let vec_slice = input.field_tokens_by_nested_soa(
+    let vec_slice = input.field_seq_by_nested_soa(
         |field_ident, _| {
             quote! {
                 #field_ident: &self.#field_ident[range.clone()],
@@ -88,7 +88,7 @@ pub fn derive(input: &Input) -> TokenStream {
         },
     );
 
-    let vec_slice_mut = input.field_tokens_by_nested_soa(
+    let vec_slice_mut = input.field_seq_by_nested_soa(
         |field_ident, _| {
             quote! {
                 #field_ident: &mut self.#field_ident[range.clone()],
@@ -101,7 +101,7 @@ pub fn derive(input: &Input) -> TokenStream {
         },
     );
 
-    let vec_from_raw_parts = input.field_tokens_by_nested_soa(
+    let vec_from_raw_parts = input.field_seq_by_nested_soa(
         |field_ident, _| {
             quote! {
                 #field_ident: Vec::from_raw_parts(data.#field_ident, len, capacity),
