@@ -12,10 +12,6 @@ pub struct Input {
     pub name: Ident,
     /// The list of fields in the struct
     pub fields: Vec<Field>,
-    /// The fields that has `#[nested_soa]` attribute
-    pub nested_fields: Vec<Field>,
-    /// The fields that without `#[nested_soa]` attribute
-    pub unnested_fields: Vec<Field>,
     /// Is field marked with `#[nested_soa]`
     pub field_is_nested: Vec<bool>,
     /// The struct overall visibility
@@ -167,19 +163,12 @@ fn contains_nested_soa(attrs: &[Attribute]) -> bool {
 impl Input {
     pub fn new(input: DeriveInput) -> Input {
         let mut fields = Vec::new();
-        let mut nested_fields = Vec::new();
-        let mut unnested_fields = Vec::new();
         let mut field_is_nested = Vec::new();
         match input.data {
             Data::Struct(s) => {
                 for field in s.fields.iter().cloned() {
                     fields.push(field.clone());
                     field_is_nested.push(contains_nested_soa(&field.attrs));
-                    if contains_nested_soa(&field.attrs) {
-                        nested_fields.push(field);
-                    } else {
-                        unnested_fields.push(field);
-                    }
                 }
             }
             _ => panic!("#[derive(StructOfArray)] only supports struct"),
@@ -230,8 +219,6 @@ impl Input {
             fields: fields,
             visibility: input.vis,
             attrs: extra_attrs,
-            nested_fields,
-            unnested_fields,
             field_is_nested
         }
     }
