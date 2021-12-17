@@ -12,12 +12,59 @@ pub fn derive(input: &Input) -> TokenStream {
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
                                    .collect::<Vec<_>>();
-    let unnested_fields_names = input.unnested_fields.iter()
-                                   .map(|field| field.ident.clone().unwrap())
-                                   .collect::<Vec<_>>();
-    let nested_fields_names = input.nested_fields.iter()
-                                   .map(|field| field.ident.clone().unwrap())
-                                   .collect::<Vec<_>>();
+    
+    let get_unchecked = input.field_seq_by_nested_soa(
+        |field_ident, _| {
+            quote! {
+                #field_ident: slice.#field_ident.get_unchecked(self.clone()),
+            }
+        },
+        |field_ident, _| {
+            quote! {
+                #field_ident: self.clone().get_unchecked(slice.#field_ident),
+            }
+        },
+    );
+    
+    let get_unchecked_mut = input.field_seq_by_nested_soa(
+        |field_ident, _| {
+            quote! {
+                #field_ident: slice.#field_ident.get_unchecked_mut(self.clone()),
+            }
+        },
+        |field_ident, _| {
+            quote! {
+                #field_ident: self.clone().get_unchecked_mut(slice.#field_ident),
+            }
+        },
+    );
+
+    let index = input.field_seq_by_nested_soa(
+        |field_ident, _| {
+            quote! {
+                #field_ident: & slice.#field_ident[self.clone()],
+            }
+        },
+        |field_ident, _| {
+            quote! {
+                #field_ident: self.clone().index(slice.#field_ident),
+            }
+        },
+    );
+
+    let index_mut = input.field_seq_by_nested_soa(
+        |field_ident, _| {
+            quote! {
+                #field_ident: &mut slice.#field_ident[self.clone()],
+            }
+        },
+        |field_ident, _| {
+            quote! {
+                #field_ident: self.clone().index_mut(slice.#field_ident),
+            }
+        },
+    );
+
     let first_field_name = &fields_names[0];
 
     quote!{
@@ -36,18 +83,12 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             unsafe fn get_unchecked(self, soa: &'a #vec_name) -> Self::RefOutput {
-                #ref_name {
-                    #(#unnested_fields_names: soa.#unnested_fields_names.get_unchecked(self),)*
-                    #(#nested_fields_names: self.get_unchecked(& soa.#nested_fields_names),)*
-                }
+                self.get_unchecked(soa.as_slice())
             }
 
             #[inline]
             fn index(self, soa: &'a #vec_name) -> Self::RefOutput {
-                #ref_name {
-                    #(#unnested_fields_names: & soa.#unnested_fields_names[self],)*
-                    #(#nested_fields_names: self.index(&soa.#nested_fields_names),)*
-                }
+                self.index(soa.as_slice())
             }
         }
 
@@ -65,18 +106,12 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             unsafe fn get_unchecked_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                #ref_mut_name {
-                    #(#unnested_fields_names: soa.#unnested_fields_names.get_unchecked_mut(self),)*
-                    #(#nested_fields_names: self.get_unchecked_mut(&mut soa.#nested_fields_names),)*
-                }
+                self.get_unchecked_mut(soa.as_mut_slice())
             }
 
             #[inline]
             fn index_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                #ref_mut_name {
-                    #(#unnested_fields_names: &mut soa.#unnested_fields_names[self],)*
-                    #(#nested_fields_names: self.index_mut(&mut soa.#nested_fields_names),)*
-                }
+                self.index_mut(soa.as_mut_slice())
             }
         }
 
@@ -97,18 +132,12 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             unsafe fn get_unchecked(self, soa: &'a #vec_name) -> Self::RefOutput {
-                #slice_name {
-                    #(#unnested_fields_names: soa.#unnested_fields_names.get_unchecked(self.clone()),)*
-                    #(#nested_fields_names: self.clone().get_unchecked(& soa.#nested_fields_names),)*
-                }
+                self.get_unchecked(soa.as_slice())
             }
 
             #[inline]
             fn index(self, soa: &'a #vec_name) -> Self::RefOutput {
-                #slice_name {
-                    #(#unnested_fields_names: & soa.#unnested_fields_names[self.clone()],)*
-                    #(#nested_fields_names: self.clone().index(&soa.#nested_fields_names),)*
-                }
+                self.index(soa.as_slice())
             }
         }
 
@@ -126,18 +155,12 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             unsafe fn get_unchecked_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                #slice_mut_name {
-                    #(#unnested_fields_names: soa.#unnested_fields_names.get_unchecked_mut(self.clone()),)*
-                    #(#nested_fields_names: self.clone().get_unchecked_mut(&mut soa.#nested_fields_names),)*
-                }
+                self.get_unchecked_mut(soa.as_mut_slice())
             }
 
             #[inline]
             fn index_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                #slice_mut_name {
-                    #(#unnested_fields_names: &mut soa.#unnested_fields_names[self.clone()],)*
-                    #(#nested_fields_names: self.clone().index_mut(&mut soa.#nested_fields_names),)*
-                }
+                self.index_mut(soa.as_mut_slice())
             }
         }
 
@@ -366,16 +389,14 @@ pub fn derive(input: &Input) -> TokenStream {
             #[inline]
             unsafe fn get_unchecked(self, slice: #slice_name<'a>) -> Self::RefOutput {
                 #ref_name {
-                    #(#unnested_fields_names: slice.#unnested_fields_names.get_unchecked(self),)*
-                    #(#nested_fields_names: self.get_unchecked(slice.#nested_fields_names),)*
+                    #get_unchecked
                 }
             }
 
             #[inline]
             fn index(self, slice: #slice_name<'a>) -> Self::RefOutput {
                 #ref_name {
-                    #(#unnested_fields_names: & slice.#unnested_fields_names[self],)*
-                    #(#nested_fields_names: self.index(slice.#nested_fields_names),)*
+                    #index
                 }
             }
         }
@@ -395,16 +416,14 @@ pub fn derive(input: &Input) -> TokenStream {
             #[inline]
             unsafe fn get_unchecked_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
                 #ref_mut_name {
-                    #(#unnested_fields_names: slice.#unnested_fields_names.get_unchecked_mut(self),)*
-                    #(#nested_fields_names: self.get_unchecked_mut(slice.#nested_fields_names),)*
+                    #get_unchecked_mut
                 }
             }
 
             #[inline]
             fn index_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
                 #ref_mut_name {
-                    #(#unnested_fields_names: &mut slice.#unnested_fields_names[self],)*
-                    #(#nested_fields_names: self.index_mut(slice.#nested_fields_names),)*
+                    #index_mut
                 }
             }
         }
@@ -427,16 +446,14 @@ pub fn derive(input: &Input) -> TokenStream {
             #[inline]
             unsafe fn get_unchecked(self, slice: #slice_name<'a>) -> Self::RefOutput {
                 #slice_name {
-                    #(#unnested_fields_names: slice.#unnested_fields_names.get_unchecked(self.clone()),)*
-                    #(#nested_fields_names: self.clone().get_unchecked(slice.#nested_fields_names),)*
+                    #get_unchecked
                 }
             }
 
             #[inline]
             fn index(self, slice: #slice_name<'a>) -> Self::RefOutput {
                 #slice_name {
-                    #(#unnested_fields_names: & slice.#unnested_fields_names[self.clone()],)*
-                    #(#nested_fields_names: self.clone().index(slice.#nested_fields_names),)*
+                    #index
                 }
             }
         }
@@ -456,16 +473,14 @@ pub fn derive(input: &Input) -> TokenStream {
             #[inline]
             unsafe fn get_unchecked_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
                 #slice_mut_name {
-                    #(#unnested_fields_names: slice.#unnested_fields_names.get_unchecked_mut(self.clone()),)*
-                    #(#nested_fields_names: self.clone().get_unchecked_mut(slice.#nested_fields_names),)*
+                    #get_unchecked_mut
                 }
             }
 
             #[inline]
             fn index_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
                 #slice_mut_name {
-                    #(#unnested_fields_names: &mut slice.#unnested_fields_names[self.clone()],)*
-                    #(#nested_fields_names: self.clone().index_mut(slice.#nested_fields_names),)*
+                    #index_mut
                 }
             }
         }

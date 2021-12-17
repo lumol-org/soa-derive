@@ -28,11 +28,7 @@ pub fn derive(input: &Input) -> TokenStream {
                                     .map(|field| &field.ty)
                                     .collect::<Vec<_>>();
     let first_field_type = &fields_types[0];
-    let first_nested = input.nested_fields.iter().any(|field| 
-        {
-            field.ident.as_ref().unwrap() == first_field
-        }
-    );
+    let first_nested = input.field_is_nested[0];
 
     let mut iter_type = if first_nested {
         quote! {
@@ -91,19 +87,14 @@ pub fn derive(input: &Input) -> TokenStream {
     };
 
     if fields_types.len() > 1 {
-        for field in &input.fields[1..] {
+        for (field, nested) in input.fields[1..].iter().zip(input.field_is_nested[1..].iter()) {
             let field_name = &field.ident;
             let field_type = &field.ty;
-            let nested = input.nested_fields.iter().any(|field| 
-                {
-                    field.ident.as_ref().unwrap() == field_name.as_ref().unwrap()
-                }
-            );
             iter_pat = quote!{
                 (#iter_pat, #field_name)
             };
 
-            iter_type = if nested {
+            iter_type = if *nested {
                 quote!{
                     iter::Zip<#iter_type, <#field_type as soa_derive::SoAIter<'a>>::Iter>
                 }
@@ -118,7 +109,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 #create_iter.zip(self.#field_name.iter())
             };
 
-            iter_mut_type = if nested {
+            iter_mut_type = if *nested {
                 quote!{
                     iter::Zip<#iter_mut_type, <#field_type as soa_derive::SoAIter<'a>>::IterMut>
                 }
@@ -133,7 +124,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 #create_iter_mut.zip(self.#field_name.iter_mut())
             };
 
-            create_into_iter = if nested {
+            create_into_iter = if *nested {
                 quote! {
                     #create_into_iter.zip(self.#field_name.into_iter())
                 }
@@ -144,7 +135,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             };
 
-            create_mut_into_iter = if nested {
+            create_mut_into_iter = if *nested {
                 quote! {
                     #create_mut_into_iter.zip(self.#field_name.into_iter())
                 }
