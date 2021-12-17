@@ -32,84 +32,95 @@ pub fn derive(input: &Input) -> TokenStream {
         format!("A vector of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, name)
     };
 
-    let vec_fields = input.field_seq_by_nested_soa(
-        |field_ident, field_type| {
+    let vec_fields = input.fields_seq(
+        |field_ident, field_type, is_nested| {
             let doc = get_field_doc(field_ident);
-            quote! {
-                #[doc = #doc]
-                pub #field_ident: Vec<#field_type>,
+            if is_nested {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: <#field_type as StructOfArray>::Type,
+                }
             }
-        },
-        |field_ident, field_type| {
-            let doc = get_field_doc(field_ident);
-            quote! {
-                #[doc = #doc]
-                pub #field_ident: <#field_type as StructOfArray>::Type,
-            }
-        },
-    );
-
-    let vec_new = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: Vec::new(),
-            }
-        },
-        |field_ident, field_type| {
-            quote! {
-                #field_ident: <#field_type as StructOfArray>::Type::new(),
+            else {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: Vec<#field_type>,
+                }
             }
         },
     );
 
-    let vec_with_capacity = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: Vec::with_capacity(capacity),
+    let vec_new = input.fields_seq(
+        |field_ident, field_type, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: <#field_type as StructOfArray>::Type::new(),
+                }
             }
-        },
-        |field_ident, field_type| {
-            quote! {
-                #field_ident: <#field_type as StructOfArray>::Type::with_capacity(capacity),
-            }
-        },
-    );
-
-    let vec_slice = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: &self.#field_ident[range.clone()],
-            }
-        },
-        |field_ident, _| {
-            quote! {
-                #field_ident: self.#field_ident.slice(range.clone()),
+            else {
+                quote! {
+                    #field_ident: Vec::new(),
+                }
             }
         },
     );
 
-    let vec_slice_mut = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: &mut self.#field_ident[range.clone()],
+    let vec_with_capacity = input.fields_seq(
+        |field_ident, field_type, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: <#field_type as StructOfArray>::Type::with_capacity(capacity),
+                }
             }
-        },
-        |field_ident, _| {
-            quote! {
-                #field_ident: self.#field_ident.slice_mut(range.clone()),
+            else {
+                quote! {
+                    #field_ident: Vec::with_capacity(capacity),
+                }
             }
         },
     );
 
-    let vec_from_raw_parts = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: Vec::from_raw_parts(data.#field_ident, len, capacity),
+    let vec_slice = input.fields_seq(
+        |field_ident, _, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.slice(range.clone()),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: &self.#field_ident[range.clone()],
+                }
             }
         },
-        |field_ident, field_type| {
-            quote! {
-                #field_ident: <#field_type as StructOfArray>::Type::from_raw_parts(data.#field_ident, len, capacity),
+    );
+
+    let vec_slice_mut = input.fields_seq(
+        |field_ident, _, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.slice_mut(range.clone()),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: &mut self.#field_ident[range.clone()],
+                }
+            }
+        },
+    );
+
+    let vec_from_raw_parts = input.fields_seq(
+        |field_ident, field_type, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: <#field_type as StructOfArray>::Type::from_raw_parts(data.#field_ident, len, capacity),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: Vec::from_raw_parts(data.#field_ident, len, capacity),
+                }
             }
         },
     );

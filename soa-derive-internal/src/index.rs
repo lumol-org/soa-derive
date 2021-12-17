@@ -13,54 +13,62 @@ pub fn derive(input: &Input) -> TokenStream {
                                    .map(|field| field.ident.clone().unwrap())
                                    .collect::<Vec<_>>();
     
-    let get_unchecked = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: slice.#field_ident.get_unchecked(self.clone()),
+    let get_unchecked = input.fields_seq(
+        |field_ident, _, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.clone().get_unchecked(slice.#field_ident),
+                }
             }
-        },
-        |field_ident, _| {
-            quote! {
-                #field_ident: self.clone().get_unchecked(slice.#field_ident),
+            else {
+                quote! {
+                    #field_ident: slice.#field_ident.get_unchecked(self.clone()),
+                }
             }
         },
     );
     
-    let get_unchecked_mut = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: slice.#field_ident.get_unchecked_mut(self.clone()),
+    let get_unchecked_mut = input.fields_seq(
+        |field_ident, _, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.clone().get_unchecked_mut(slice.#field_ident),
+                }
             }
-        },
-        |field_ident, _| {
-            quote! {
-                #field_ident: self.clone().get_unchecked_mut(slice.#field_ident),
-            }
-        },
-    );
-
-    let index = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: & slice.#field_ident[self.clone()],
-            }
-        },
-        |field_ident, _| {
-            quote! {
-                #field_ident: self.clone().index(slice.#field_ident),
+            else {
+                quote! {
+                    #field_ident: slice.#field_ident.get_unchecked_mut(self.clone()),
+                }
             }
         },
     );
 
-    let index_mut = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: &mut slice.#field_ident[self.clone()],
+    let index = input.fields_seq(
+        |field_ident, _, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.clone().index(slice.#field_ident),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: & slice.#field_ident[self.clone()],
+                }
             }
         },
-        |field_ident, _| {
-            quote! {
-                #field_ident: self.clone().index_mut(slice.#field_ident),
+    );
+
+    let index_mut = input.fields_seq(
+        |field_ident, _, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.clone().index_mut(slice.#field_ident),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: &mut slice.#field_ident[self.clone()],
+                }
             }
         },
     );

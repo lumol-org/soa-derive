@@ -22,131 +22,102 @@ pub fn derive(input: &Input) -> TokenStream {
     let fields_names = &input.fields.iter()
                                     .map(|field| field.ident.clone().unwrap())
                                     .collect::<Vec<_>>();
-    let first_field = &fields_names[0];
 
-    let fields_types = &input.fields.iter()
-                                    .map(|field| &field.ty)
-                                    .collect::<Vec<_>>();
-    let first_field_type = &fields_types[0];
-    let first_nested = input.field_is_nested[0];
-
-    let mut iter_type = if first_nested {
-        quote! {
-            <#first_field_type as soa_derive::SoAIter<'a>>::Iter
-        }
-    }
-    else {
-        quote!{
-            slice::Iter<'a, #first_field_type>
-        }
-    };
-
-    let mut iter_pat = quote!{
-        #first_field
-    };
-
-    let mut create_iter = quote!{
-        self.#first_field.iter()
-    };
-
-    let mut iter_mut_type = if first_nested {
-        quote! {
-            <#first_field_type as soa_derive::SoAIter<'a>>::IterMut
-        }
-    }
-    else {
-        quote!{
-            slice::IterMut<'a, #first_field_type>
-        }
-    };
-
-    let mut create_iter_mut = quote!{
-        self.#first_field.iter_mut()
-    };
-
-    let mut create_into_iter = if first_nested {
-        quote!{
-            self.#first_field.into_iter()
-        }
-    }
-    else {
-        quote!{
-            self.#first_field.iter()
-        }
-    };
-
-    let mut create_mut_into_iter = if first_nested {
-        quote!{
-            self.#first_field.into_iter()
-        }
-    }
-    else {
-        quote!{
-            self.#first_field.iter_mut()
-        }
-    };
-
-    if fields_types.len() > 1 {
-        for (field, nested) in input.fields[1..].iter().zip(input.field_is_nested[1..].iter()) {
-            let field_name = &field.ident;
-            let field_type = &field.ty;
-            iter_pat = quote!{
-                (#iter_pat, #field_name)
-            };
-
-            iter_type = if *nested {
-                quote!{
-                    iter::Zip<#iter_type, <#field_type as soa_derive::SoAIter<'a>>::Iter>
-                }
-            }
-            else {
-                quote!{
-                    iter::Zip<#iter_type, slice::Iter<'a, #field_type>>
-                }
-            };
-
-            create_iter = quote!{
-                #create_iter.zip(self.#field_name.iter())
-            };
-
-            iter_mut_type = if *nested {
-                quote!{
-                    iter::Zip<#iter_mut_type, <#field_type as soa_derive::SoAIter<'a>>::IterMut>
-                }
-            }
-            else {
-                quote!{
-                    iter::Zip<#iter_mut_type, slice::IterMut<'a, #field_type>>
-                }
-            };
-
-            create_iter_mut = quote!{
-                #create_iter_mut.zip(self.#field_name.iter_mut())
-            };
-
-            create_into_iter = if *nested {
+    let iter_type = input.fold_fields(
+        |_, field_type, is_nested| {
+            if is_nested {
                 quote! {
-                    #create_into_iter.zip(self.#field_name.into_iter())
+                    <#field_type as soa_derive::SoAIter<'a>>::Iter
                 }
             }
             else {
                 quote! {
-                    #create_into_iter.zip(self.#field_name.iter())
+                    slice::Iter<'a, #field_type>
                 }
-            };
+            }
+        },
+        |seq, next| {
+            *seq = quote! {
+                iter::Zip<#seq, #next>
+            }
+        },
+    );
 
-            create_mut_into_iter = if *nested {
+    let iter_mut_type = input.fold_fields(
+        |_, field_type, is_nested| {
+            if is_nested {
                 quote! {
-                    #create_mut_into_iter.zip(self.#field_name.into_iter())
+                    <#field_type as soa_derive::SoAIter<'a>>::IterMut
                 }
             }
             else {
                 quote! {
-                    #create_mut_into_iter.zip(self.#field_name.iter_mut())
+                    slice::IterMut<'a, #field_type>
                 }
-            };
+            }
+        },
+        |seq, next| {
+            *seq = quote! {
+                iter::Zip<#seq, #next>
+            }
+        },
+    );
+
+    let iter_pat = input.fold_fields(
+        |field_ident, _, _| {
+            quote! { #field_ident }
+        },
+        |seq, next| {
+            *seq = quote! { (#seq, #next) }
         }
-    }
+    );
+
+    let create_iter = input.fold_fields(
+        |field_ident, _, _| {
+            quote! { self.#field_ident.iter() }
+        },
+        |seq, next| {
+            *seq = quote! { #seq.zip(#next) }
+        }
+    );
+
+    let create_iter_mut = input.fold_fields(
+        |field_ident, _, _| {
+            quote! { self.#field_ident.iter_mut() }
+        },
+        |seq, next| {
+            *seq = quote! { #seq.zip(#next) }
+        }
+    );
+
+    let create_into_iter = input.fold_fields(
+        |field_ident, _, is_nested| {
+            if is_nested {
+                quote! { self.#field_ident.into_iter() }
+            }
+            else {
+                quote! { self.#field_ident.iter() }
+            }
+        },
+        |seq, next| {
+            *seq = quote! { #seq.zip(#next) }
+        }
+    );
+
+    let create_mut_into_iter = input.fold_fields(
+        |field_ident, _, is_nested| {
+            if is_nested {
+                quote! { self.#field_ident.into_iter() }
+            }
+            else {
+                quote! { self.#field_ident.iter_mut() }
+            }
+        },
+        |seq, next| {
+            *seq = quote! { #seq.zip(#next) }
+        }
+    );
+
     let iter_visibility = match visibility {
         Visibility::Inherited => quote!{pub(super)},
         other => other.to_token_stream(),

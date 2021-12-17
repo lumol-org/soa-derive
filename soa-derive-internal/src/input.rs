@@ -250,23 +250,38 @@ impl Input {
     pub fn ptr_mut_name(&self) -> Ident {
         Ident::new(&format!("{}PtrMut", self.name), Span::call_site())
     }
-    pub fn field_seq_by_nested_soa(&self, 
-        unnested_variant: impl Fn(&Ident, &Type) -> proc_macro2::TokenStream, 
-        nested_variant: impl Fn(&Ident, &Type) -> proc_macro2::TokenStream) -> proc_macro2::TokenStream 
+    pub fn fold_fields(&self, 
+        gen_token_stream: impl Fn(&Ident, &Type, bool) -> proc_macro2::TokenStream, 
+        f: impl Fn(&mut proc_macro2::TokenStream, proc_macro2::TokenStream)
+    ) -> proc_macro2::TokenStream
     {
-        let mut seq = quote! {};
+        let mut seq = None;
         self.fields.iter().zip(self.field_is_nested.iter())
             .for_each(|(field, is_nested)| {
                 let field_ident = field.ident.as_ref().unwrap();
                 let field_type = &field.ty;
 
-                let variant = if *is_nested {
-                    nested_variant(field_ident, field_type)
-                } else {
-                    unnested_variant(field_ident, field_type)
-                };
-                seq = quote!(#seq #variant);
+                let next = gen_token_stream(field_ident, field_type, *is_nested);
+                match seq.as_mut() {
+                    None => {
+                        seq = Some(next);
+                    }
+                    Some(seq) => {
+                        f(seq, next);
+                    }
+                }
             });
-        seq
+        seq.unwrap()
+    }
+    pub fn fields_seq(&self, 
+        gen_token_stream: impl Fn(&Ident, &Type, bool) -> proc_macro2::TokenStream
+    ) -> proc_macro2::TokenStream
+    {
+        self.fold_fields(gen_token_stream, |seq, variant| {
+            *seq = quote! {
+                #seq
+                #variant
+            }
+        })
     }
 }

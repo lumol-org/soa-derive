@@ -34,62 +34,68 @@ pub fn derive(input: &Input) -> TokenStream {
         format!("A mutable pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name)
     };
 
-    let ptr_fields = input.field_seq_by_nested_soa(
-        |field_ident, field_type| {
+    let ptr_fields = input.fields_seq(
+        |field_ident, field_type, is_nested| {
             let doc = get_ptr_field_doc(field_ident);
-            quote! {
-                #[doc = #doc]
-                pub #field_ident: *const #field_type,
+            if is_nested {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: <#field_type as soa_derive::SoAPtr>::Ptr,
+                }
             }
-        },
-        |field_ident, field_type| {
-            let doc = get_ptr_field_doc(field_ident);
-            quote! {
-                #[doc = #doc]
-                pub #field_ident: <#field_type as soa_derive::SoAPtr>::Ptr,
+            else {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: *const #field_type,
+                }
             }
         },
     );
 
-    let ptr_mut_fields = input.field_seq_by_nested_soa(
-        |field_ident, field_type| {
+    let ptr_mut_fields = input.fields_seq(
+        |field_ident, field_type, is_nested| {
             let doc = get_ptr_mut_field_doc(field_ident);
-            quote! {
-                #[doc = #doc]
-                pub #field_ident: *mut #field_type,
+            if is_nested {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: <#field_type as soa_derive::SoAPtr>::PtrMut,
+                }
             }
-        },
-        |field_ident, field_type| {
-            let doc = get_ptr_mut_field_doc(field_ident);
-            quote! {
-                #[doc = #doc]
-                pub #field_ident: <#field_type as soa_derive::SoAPtr>::PtrMut,
-            }
-        },
-    );
-
-    let as_mut_ptr = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: self.#field_ident as *mut _, 
-            }
-        },
-        |field_ident, _| {
-            quote! {
-                #field_ident: self.#field_ident.as_mut_ptr(), 
+            else {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: *mut #field_type,
+                }
             }
         },
     );
 
-    let as_ptr = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: self.#field_ident, 
+    let as_mut_ptr = input.fields_seq(
+        |field_ident, _, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.as_mut_ptr(), 
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: self.#field_ident as *mut _, 
+                }
             }
         },
-        |field_ident, _| {
-            quote! {
-                #field_ident: self.#field_ident.as_ptr(), 
+    );
+
+    let as_ptr = input.fields_seq(
+        |field_ident, _, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.as_ptr(), 
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: self.#field_ident, 
+                }
             }
         },
     );

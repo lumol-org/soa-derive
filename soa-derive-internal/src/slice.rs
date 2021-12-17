@@ -36,45 +36,50 @@ pub fn derive(input: &Input) -> TokenStream {
         format!("A slice of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name)
     };
 
-    let slice_fields = input.field_seq_by_nested_soa(
-        |field_ident, field_type| {
+    let slice_fields = input.fields_seq(
+        |field_ident, field_type, is_nested| {
             let doc = get_field_doc(field_ident);
-            quote! {
-                #[doc = #doc]
-                pub #field_ident: &'a [#field_type],
+            if is_nested {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: <#field_type as soa_derive::SoASlice<'a>>::Slice,
+                }
             }
-        },
-        |field_ident, field_type| {
-            let doc = get_field_doc(field_ident);
-            quote! {
-                #[doc = #doc]
-                pub #field_ident: <#field_type as soa_derive::SoASlice<'a>>::Slice,
+            else {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: &'a [#field_type],
+                }
             }
         },
     );
 
-    let slice_reborrow = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: &self.#field_ident,
+    let slice_reborrow = input.fields_seq(
+        |field_ident, _, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.reborrow(),
+                }
             }
-        },
-        |field_ident, _| {
-            quote! {
-                #field_ident: self.#field_ident.reborrow(),
+            else {
+                quote! {
+                    #field_ident: &self.#field_ident,
+                }
             }
         },
     );
 
-    let slice_from_raw_parts = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: ::std::slice::from_raw_parts(data.#field_ident, len),
+    let slice_from_raw_parts = input.fields_seq(
+        |field_ident, field_type, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: <#field_type as soa_derive::SoASlice>::Slice::from_raw_parts(data.#field_ident, len),
+                }
             }
-        },
-        |field_ident, field_type| {
-            quote! {
-                #field_ident: <#field_type as soa_derive::SoASlice>::Slice::from_raw_parts(data.#field_ident, len),
+            else {
+                quote! {
+                    #field_ident: ::std::slice::from_raw_parts(data.#field_ident, len),
+                }
             }
         },
     );
@@ -306,71 +311,80 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         format!("A mutable slice of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name)
     };
 
-    let slice_fields = input.field_seq_by_nested_soa(
-        |field_ident, field_type| {
+    let slice_fields = input.fields_seq(
+        |field_ident, field_type, is_nested| {
             let doc = get_field_doc(field_ident);
-            quote! {
-                #[doc = #doc]
-                pub #field_ident: &'a mut [#field_type],
+            if is_nested {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: <#field_type as soa_derive::SoASlice<'a>>::SliceMut,
+                }
             }
-        },
-        |field_ident, field_type| {
-            let doc = get_field_doc(field_ident);
-            quote! {
-                #[doc = #doc]
-                pub #field_ident: <#field_type as soa_derive::SoASlice<'a>>::SliceMut,
-            }
-        },
-    );
-
-    let slice_as_ref = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: self.#field_ident,
-            }
-        },
-        |field_ident, _| {
-            quote! {
-                #field_ident: self.#field_ident.as_ref(),
+            else {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: &'a mut [#field_type],
+                }
             }
         },
     );
 
-    let slice_as_slice = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: &self.#field_ident,
+    let slice_as_ref = input.fields_seq(
+        |field_ident, _, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.as_ref(),
+                }
             }
-        },
-        |field_ident, _| {
-            quote! {
-                #field_ident: self.#field_ident.as_slice(),
-            }
-        },
-    );
-
-    let slice_reborrow = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: &mut self.#field_ident,
-            }
-        },
-        |field_ident, _| {
-            quote! {
-                #field_ident: self.#field_ident.reborrow(),
+            else {
+                quote! {
+                    #field_ident: self.#field_ident,
+                }
             }
         },
     );
 
-    let slice_from_raw_parts_mut = input.field_seq_by_nested_soa(
-        |field_ident, _| {
-            quote! {
-                #field_ident: ::std::slice::from_raw_parts_mut(data.#field_ident, len),
+    let slice_as_slice = input.fields_seq(
+        |field_ident, _, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.as_slice(),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: &self.#field_ident,
+                }
             }
         },
-        |field_ident, field_type| {
-            quote! {
-                #field_ident: <#field_type as soa_derive::SoASlice>::SliceMut::from_raw_parts_mut(data.#field_ident, len),
+    );
+
+    let slice_reborrow = input.fields_seq(
+        |field_ident, _, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.reborrow(),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: &mut self.#field_ident,
+                }
+            }
+        },
+    );
+
+    let slice_from_raw_parts_mut = input.fields_seq(
+        |field_ident, field_type, is_nested| {
+            if is_nested {
+                quote! {
+                    #field_ident: <#field_type as soa_derive::SoASlice>::SliceMut::from_raw_parts_mut(data.#field_ident, len),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: ::std::slice::from_raw_parts_mut(data.#field_ident, len),
+                }
             }
         },
     );
