@@ -243,12 +243,12 @@ impl Input {
         Ident::new(&format!("{}RefMut", name.to_token_stream()), Span::call_site())
     }
 
-    pub fn ptr_name(&self) -> Ident {
-        Ident::new(&format!("{}Ptr", self.name), Span::call_site())
+    pub fn ptr_name(name: &impl ToTokens) -> Ident {
+        Ident::new(&format!("{}Ptr", name.to_token_stream()), Span::call_site())
     }
 
-    pub fn ptr_mut_name(&self) -> Ident {
-        Ident::new(&format!("{}PtrMut", self.name), Span::call_site())
+    pub fn ptr_mut_name(name: &impl ToTokens) -> Ident {
+        Ident::new(&format!("{}PtrMut", name.to_token_stream()), Span::call_site())
     }
     pub fn iter_fields(&self) -> impl Iterator<Item = (&Ident, &Type, bool)> {
         self.fields.iter().zip(self.field_is_nested.iter()).map(|(field, is_nested)| {

@@ -9,8 +9,8 @@ pub fn derive(input: &Input) -> TokenStream {
     let attrs = &input.attrs.ptr;
     let mut_attrs = &input.attrs.ptr_mut;
     let vec_name = &input.vec_name();
-    let ptr_name = &input.ptr_name();
-    let ptr_mut_name = &input.ptr_mut_name();
+    let ptr_name = Input::ptr_name(&input.name);
+    let ptr_mut_name = Input::ptr_mut_name(&input.name);
     let ref_name = Input::ref_name(&input.name);
     let ref_mut_name = Input::ref_mut_name(&input.name);
 
@@ -30,9 +30,10 @@ pub fn derive(input: &Input) -> TokenStream {
         |(field_ident, field_type, is_nested)| {
             let doc = format!("A pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
+                let field_ptr_type = Input::ptr_name(field_type);
                 quote! {
                     #[doc = #doc]
-                    pub #field_ident: <#field_type as soa_derive::SoAPtr>::Ptr,
+                    pub #field_ident: #field_ptr_type,
                 }
             }
             else {
@@ -48,9 +49,10 @@ pub fn derive(input: &Input) -> TokenStream {
         |(field_ident, field_type, is_nested)| {
             let doc = format!("A mutable pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
+                let field_ptr_mut_type = Input::ptr_mut_name(field_type);
                 quote! {
                     #[doc = #doc]
-                    pub #field_ident: <#field_type as soa_derive::SoAPtr>::PtrMut,
+                    pub #field_ident: #field_ptr_mut_type,
                 }
             }
             else {

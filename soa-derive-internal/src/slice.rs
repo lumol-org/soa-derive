@@ -11,7 +11,7 @@ pub fn derive(input: &Input) -> TokenStream {
     let attrs = &input.attrs.slice;
     let vec_name = &input.vec_name();
     let ref_name = Input::ref_name(&input.name);
-    let ptr_name = &input.ptr_name();
+    let ptr_name = Input::ptr_name(&input.name);
 
     let slice_name_str = format!("[{}]", input.name);
     let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
@@ -280,8 +280,8 @@ pub fn derive_mut(input: &Input) -> TokenStream {
     let vec_name = &input.vec_name();
     let attrs = &input.attrs.slice_mut;
     let ref_mut_name = Input::ref_mut_name(&input.name);
-    let ptr_name = &input.ptr_name();
-    let ptr_mut_name = &input.ptr_mut_name();
+    let ptr_name = Input::ptr_name(&input.name);
+    let ptr_mut_name = Input::ptr_mut_name(&input.name);
 
     let slice_name_str = format!("[{}]", input.name);
     let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
