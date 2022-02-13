@@ -40,8 +40,6 @@ use quote::quote;
 fn derive_trait(input: &Input) -> TokenStream {
     let name = &input.name;
     let vec_name = &input.vec_name();
-    let slice_name = &input.slice_name();
-    let slice_mut_name = &input.slice_mut_name();
     let ref_name = &input.ref_name();
     let ref_mut_name = &input.ref_mut_name();
     let ptr_name = &input.ptr_name();
@@ -50,10 +48,6 @@ fn derive_trait(input: &Input) -> TokenStream {
     quote! {
         impl soa_derive::StructOfArray for #name {
             type Type = #vec_name;
-        }
-        impl<'a> soa_derive::SoASlice<'a> for #name {
-            type Slice = #slice_name<'a>;
-            type SliceMut = #slice_mut_name<'a>;
         }
         impl<'a> soa_derive::SoARef<'a> for #name {
             type Ref = #ref_name<'a>;

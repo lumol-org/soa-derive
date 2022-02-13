@@ -11,8 +11,8 @@ pub fn derive(input: &Input) -> TokenStream {
     let attrs = &input.attrs.vec;
     let visibility = &input.visibility;
     let vec_name = &input.vec_name();
-    let slice_name = &input.slice_name();
-    let slice_mut_name = &input.slice_mut_name();
+    let slice_name = Input::slice_name(name);
+    let slice_mut_name = Input::slice_mut_name(&input.name);
     let ref_name = &input.ref_name();
     let ptr_name = &input.ptr_name();
     let ptr_mut_name = &input.ptr_mut_name();

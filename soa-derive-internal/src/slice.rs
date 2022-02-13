@@ -7,7 +7,7 @@ use crate::input::{Input, TokenStreamIterator};
 
 pub fn derive(input: &Input) -> TokenStream {
     let visibility = &input.visibility;
-    let slice_name = &input.slice_name();
+    let slice_name = Input::slice_name(&input.name);
     let attrs = &input.attrs.slice;
     let vec_name = &input.vec_name();
     let ref_name = &input.ref_name();
@@ -36,9 +36,10 @@ pub fn derive(input: &Input) -> TokenStream {
         |(field_ident, field_type, is_nested)| {
             let doc = format!("A slice of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
+                let field_slice_type = Input::slice_name(field_type);
                 quote! {
                     #[doc = #doc]
-                    pub #field_ident: <#field_type as soa_derive::SoASlice<'a>>::Slice,
+                    pub #field_ident: #field_slice_type<'a>,
                 }
             }
             else {
@@ -68,8 +69,9 @@ pub fn derive(input: &Input) -> TokenStream {
     let slice_from_raw_parts = input.iter_fields().map(
         |(field_ident, field_type, is_nested)| {
             if is_nested {
+                let field_slice_type = Input::slice_name(field_type);
                 quote! {
-                    #field_ident: <#field_type as soa_derive::SoASlice>::Slice::from_raw_parts(data.#field_ident, len),
+                    #field_ident: #field_slice_type::from_raw_parts(data.#field_ident, len),
                 }
             }
             else {
@@ -273,8 +275,8 @@ pub fn derive(input: &Input) -> TokenStream {
 
 pub fn derive_mut(input: &Input) -> TokenStream {
     let visibility = &input.visibility;
-    let slice_name = &input.slice_name();
-    let slice_mut_name = &input.slice_mut_name();
+    let slice_name = Input::slice_name(&input.name);
+    let slice_mut_name = Input::slice_mut_name(&input.name);
     let vec_name = &input.vec_name();
     let attrs = &input.attrs.slice_mut;
     let ref_mut_name = &input.ref_mut_name();
@@ -307,9 +309,10 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         |(field_ident, field_type, is_nested)| {
             let doc = format!("A mutable slice of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
+                let field_slice_type = Input::slice_mut_name(field_type);
                 quote! {
                     #[doc = #doc]
-                    pub #field_ident: <#field_type as soa_derive::SoASlice<'a>>::SliceMut,
+                    pub #field_ident: #field_slice_type<'a>,
                 }
             }
             else {
@@ -369,8 +372,9 @@ pub fn derive_mut(input: &Input) -> TokenStream {
     let slice_from_raw_parts_mut = input.iter_fields().map(
         |(field_ident, field_type, is_nested)| {
             if is_nested {
+                let field_slice_type = Input::slice_mut_name(field_type);
                 quote! {
-                    #field_ident: <#field_type as soa_derive::SoASlice>::SliceMut::from_raw_parts_mut(data.#field_ident, len),
+                    #field_ident: #field_slice_type::from_raw_parts_mut(data.#field_ident, len),
                 }
             }
             else {

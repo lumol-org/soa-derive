@@ -1,5 +1,4 @@
 use proc_macro2::TokenStream;
-use syn::Ident;
 use quote::quote;
 
 use crate::input::{Input, TokenStreamIterator};

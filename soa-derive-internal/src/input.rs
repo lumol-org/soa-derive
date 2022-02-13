@@ -1,7 +1,7 @@
 use std::convert::TryInto;
 
 use proc_macro2::Span;
-use quote::quote;
+use quote::{quote, ToTokens};
 
 use syn::{Attribute, Data, DeriveInput, Field, Ident, Path, Visibility, Type};
 use syn::{Meta, MetaList, NestedMeta};
@@ -227,12 +227,12 @@ impl Input {
         Ident::new(&format!("{}Vec", self.name), Span::call_site())
     }
 
-    pub fn slice_name(&self) -> Ident {
-        Ident::new(&format!("{}Slice", self.name), Span::call_site())
+    pub fn slice_name(name: &impl ToTokens) -> Ident {
+        Ident::new(&format!("{}Slice", name.to_token_stream()), Span::call_site())
     }
 
-    pub fn slice_mut_name(&self) -> Ident {
-        Ident::new(&format!("{}SliceMut", self.name), Span::call_site())
+    pub fn slice_mut_name(name: &impl ToTokens) -> Ident {
+        Ident::new(&format!("{}SliceMut", name.to_token_stream()), Span::call_site())
     }
 
     pub fn ref_name(&self) -> Ident {

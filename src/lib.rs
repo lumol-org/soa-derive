@@ -232,10 +232,6 @@ pub trait StructOfArray {
     type Type;
 }
 
-pub trait SoASlice<'a> {
-    type Slice: 'a;
-    type SliceMut: 'a;
-}
 pub trait SoARef<'a> {
     type Ref: 'a;
     type RefMut: 'a;
@@ -246,7 +242,7 @@ pub trait SoAPtr {
     type PtrMut;
 }
 
-pub trait SoAIter<'a>: SoASlice<'a> {
+pub trait SoAIter<'a> {
     type Iter: 'a;
     type IterMut: 'a;
 }
