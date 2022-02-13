@@ -7,8 +7,8 @@ pub fn derive(input: &Input) -> TokenStream {
     let vec_name = &input.vec_name();
     let slice_name = Input::slice_name(&input.name);
     let slice_mut_name = Input::slice_mut_name(&input.name);
-    let ref_name = &input.ref_name();
-    let ref_mut_name = &input.ref_mut_name();
+    let ref_name = Input::ref_name(&input.name);
+    let ref_mut_name = Input::ref_mut_name(&input.name);
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
                                    .collect::<Vec<_>>();

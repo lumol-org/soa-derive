@@ -11,8 +11,8 @@ pub fn derive(input: &Input) -> TokenStream {
     let vec_name = &input.vec_name();
     let ptr_name = &input.ptr_name();
     let ptr_mut_name = &input.ptr_mut_name();
-    let ref_name = &input.ref_name();
-    let ref_mut_name = &input.ref_mut_name();
+    let ref_name = Input::ref_name(&input.name);
+    let ref_mut_name = Input::ref_mut_name(&input.name);
 
     let doc_url = format!("[`{0}`](struct.{0}.html)", name);
     let ptr_doc_url = format!("[`{0}`](struct.{0}.html)", ptr_name);

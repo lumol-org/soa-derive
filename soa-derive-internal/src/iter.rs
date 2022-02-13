@@ -13,8 +13,8 @@ pub fn derive(input: &Input) -> TokenStream {
     let vec_name = &input.vec_name();
     let slice_name = Input::slice_name(name);
     let slice_mut_name = Input::slice_mut_name(&input.name);
-    let ref_name = &input.ref_name();
-    let ref_mut_name = &input.ref_mut_name();
+    let ref_name = Input::ref_name(&input.name);
+    let ref_mut_name = Input::ref_mut_name(&input.name);
 
     let ref_doc_url = format!("[`{0}`](struct.{0}.html)", ref_name);
     let ref_mut_doc_url = format!("[`{0}`](struct.{0}.html)", ref_mut_name);

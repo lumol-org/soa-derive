@@ -232,11 +232,6 @@ pub trait StructOfArray {
     type Type;
 }
 
-pub trait SoARef<'a> {
-    type Ref: 'a;
-    type RefMut: 'a;
-}
-
 pub trait SoAPtr {
     type Ptr;
     type PtrMut;

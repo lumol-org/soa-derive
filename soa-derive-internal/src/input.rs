@@ -235,12 +235,12 @@ impl Input {
         Ident::new(&format!("{}SliceMut", name.to_token_stream()), Span::call_site())
     }
 
-    pub fn ref_name(&self) -> Ident {
-        Ident::new(&format!("{}Ref", self.name), Span::call_site())
+    pub fn ref_name(name: &impl ToTokens) -> Ident {
+        Ident::new(&format!("{}Ref", name.to_token_stream()), Span::call_site())
     }
 
-    pub fn ref_mut_name(&self) -> Ident {
-        Ident::new(&format!("{}RefMut", self.name), Span::call_site())
+    pub fn ref_mut_name(name: &impl ToTokens) -> Ident {
+        Ident::new(&format!("{}RefMut", name.to_token_stream()), Span::call_site())
     }
 
     pub fn ptr_name(&self) -> Ident {

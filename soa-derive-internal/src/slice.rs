@@ -10,7 +10,7 @@ pub fn derive(input: &Input) -> TokenStream {
     let slice_name = Input::slice_name(&input.name);
     let attrs = &input.attrs.slice;
     let vec_name = &input.vec_name();
-    let ref_name = &input.ref_name();
+    let ref_name = Input::ref_name(&input.name);
     let ptr_name = &input.ptr_name();
 
     let slice_name_str = format!("[{}]", input.name);
@@ -279,7 +279,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
     let slice_mut_name = Input::slice_mut_name(&input.name);
     let vec_name = &input.vec_name();
     let attrs = &input.attrs.slice_mut;
-    let ref_mut_name = &input.ref_mut_name();
+    let ref_mut_name = Input::ref_mut_name(&input.name);
     let ptr_name = &input.ptr_name();
     let ptr_mut_name = &input.ptr_mut_name();
 
