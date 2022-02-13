@@ -4,7 +4,7 @@
 //!
 //! ```
 //! # #[macro_use] extern crate soa_derive;
-//! # fn main() {
+//! # mod cheese {
 //! #[derive(StructOfArray)]
 //! pub struct Cheese {
 //!     pub smell: f64,
@@ -40,7 +40,7 @@
 //!
 //! ```
 //! # #[macro_use] extern crate soa_derive;
-//! # fn main() {
+//! # mod cheese {
 //! #[derive(Debug, PartialEq, StructOfArray)]
 //! #[soa_derive(Debug, PartialEq)]
 //! pub struct Cheese {
@@ -59,7 +59,7 @@
 //!
 //! ```
 //! # #[macro_use] extern crate soa_derive;
-//! # fn main() {
+//! # mod cheese {
 //! #[derive(Debug, PartialEq, StructOfArray)]
 //! #[soa_attr(Vec, cfg_attr(test, derive(PartialEq)))]
 //! pub struct Cheese {
@@ -110,7 +110,7 @@
 //!
 //! ```no_run
 //! # #[macro_use] extern crate soa_derive;
-//! # fn main() {
+//! # mod cheese {
 //! # #[derive(Debug, PartialEq, StructOfArray)]
 //! # pub struct Cheese {
 //! #     pub smell: f64,
@@ -119,6 +119,7 @@
 //! #     pub name: String,
 //! # }
 //! # impl Cheese { fn new(name: &str) -> Cheese { unimplemented!() } }
+//! # fn main() {
 //! let mut vec = CheeseVec::new();
 //! vec.push(Cheese::new("stilton"));
 //! vec.push(Cheese::new("brie"));
@@ -130,6 +131,7 @@
 //!     println!("this is {}, with a smell power of {}", cheese.name, cheese.smell);
 //! }
 //! # }
+//! # }
 //! ```
 //!
 //! One of the main advantage of the SoA layout is to be able to only load some
@@ -138,7 +140,7 @@
 //!
 //! ```no_run
 //! # #[macro_use] extern crate soa_derive;
-//! # fn main() {
+//! # mod cheese {
 //! # #[derive(Debug, PartialEq, StructOfArray)]
 //! # pub struct Cheese {
 //! #     pub smell: f64,
@@ -147,6 +149,7 @@
 //! #     pub name: String,
 //! # }
 //! # impl Cheese { fn new(name: &str) -> Cheese { unimplemented!() } }
+//! # fn main() {
 //! # let mut vec = CheeseVec::new();
 //! # vec.push(Cheese::new("stilton"));
 //! # vec.push(Cheese::new("brie"));
@@ -156,6 +159,7 @@
 //!     println!("got cheese {}", name);
 //! }
 //! # }
+//! # }
 //! ```
 //!
 //! In order to iterate over multiple fields at the same time, one can use the
@@ -163,7 +167,7 @@
 //!
 //! ```no_run
 //! # #[macro_use] extern crate soa_derive;
-//! # fn main() {
+//! # mod cheese {
 //! # #[derive(Debug, PartialEq, StructOfArray)]
 //! # pub struct Cheese {
 //! #     pub smell: f64,
@@ -172,6 +176,7 @@
 //! #     pub name: String,
 //! # }
 //! # impl Cheese { fn new(name: &str) -> Cheese { unimplemented!() } }
+//! # fn main() {
 //! # let mut vec = CheeseVec::new();
 //! # vec.push(Cheese::new("stilton"));
 //! # vec.push(Cheese::new("brie"));
@@ -180,6 +185,7 @@
 //!     // smell is a mutable reference
 //!     *smell += 1.0;
 //! }
+//! # }
 //! # }
 //! ```
 //! 
@@ -190,6 +196,7 @@
 //! For example, the following code
 //! 
 //! ```
+//! # mod cheese {
 //! # use soa_derive::StructOfArray;
 //! #[derive(StructOfArray)]
 //! pub struct Point {
@@ -202,6 +209,7 @@
 //!     point: Point,
 //!     mass: f32,
 //! }
+//! # }
 //! ```
 //! 
 //! will generate structs that looks like this:
@@ -311,7 +319,7 @@ pub trait SoAIndexMut<T>: private_soa_indexes::Sealed {
 ///
 /// ```
 /// # #[macro_use] extern crate soa_derive;
-/// # fn main() {
+/// # mod cheese {
 /// #[derive(StructOfArray)]
 /// struct Cheese {
 ///     size: f64,
@@ -320,6 +328,7 @@ pub trait SoAIndexMut<T>: private_soa_indexes::Sealed {
 ///     name: String,
 /// }
 ///
+/// # fn main() {
 /// let mut vec = CheeseVec::new();
 /// // fill the vector
 ///
@@ -334,6 +343,7 @@ pub trait SoAIndexMut<T>: private_soa_indexes::Sealed {
 ///     *mass -= 1.0;
 /// }
 /// # }
+/// # }
 /// ```
 ///
 /// The iterator can also work with external iterators. In this case, the
@@ -342,7 +352,7 @@ pub trait SoAIndexMut<T>: private_soa_indexes::Sealed {
 ///
 /// ```
 /// # #[macro_use] extern crate soa_derive;
-/// # fn main() {
+/// # mod cheese {
 /// # #[derive(StructOfArray)]
 /// # struct Cheese {
 /// #     size: f64,
@@ -351,12 +361,14 @@ pub trait SoAIndexMut<T>: private_soa_indexes::Sealed {
 /// #     name: String,
 /// # }
 /// # #[derive(Debug)] struct Cellar;
+/// # fn main() {
 /// let mut vec = CheeseVec::new();
 /// let mut cellars = Vec::<Cellar>::new();
 ///
 /// for (name, mass, cellar) in soa_zip!(&vec, [name, mass], &cellars) {
 ///     println!("we have {} kg of {} in {:#?}", mass, name, cellar);
 /// }
+/// # }
 /// # }
 /// ```
 #[macro_export]
