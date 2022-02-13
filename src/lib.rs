@@ -232,6 +232,13 @@ pub trait StructOfArray {
     type Type;
 }
 
+/// Any struct derived by StructOfArray will auto impl this trait.
+/// 
+/// Useful for generic programming and implementation of attribute `nested_soa`.
+/// 
+/// `CheeseVec::iter(&'a self)` returns an iterator which has a type `<Cheese as SoAIter<'a>>::Iter`
+/// 
+/// `CheeseVec::iter_mut(&mut 'a self)` returns an iterator which has a type `<Cheese as SoAIter<'a>>::IterMut`
 pub trait SoAIter<'a> {
     type Iter: 'a;
     type IterMut: 'a;
