@@ -26,17 +26,10 @@ pub fn derive(input: &Input) -> TokenStream {
                                    .collect::<Vec<_>>();
     let fields_names_1 = &fields_names;
     let fields_names_2 = &fields_names;
-    let get_ptr_field_doc = |field_ident: &Ident| {
-        format!("A pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name)
-    };
-
-    let get_ptr_mut_field_doc = |field_ident: &Ident| {
-        format!("A mutable pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name)
-    };
 
     let ptr_fields = input.iter_fields().map(
         |(field_ident, field_type, is_nested)| {
-            let doc = get_ptr_field_doc(field_ident);
+            let doc = format!("A pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
                 quote! {
                     #[doc = #doc]
@@ -54,7 +47,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
     let ptr_mut_fields = input.iter_fields().map(
         |(field_ident, field_type, is_nested)| {
-            let doc = get_ptr_mut_field_doc(field_ident);
+            let doc = format!("A mutable pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
                 quote! {
                     #[doc = #doc]

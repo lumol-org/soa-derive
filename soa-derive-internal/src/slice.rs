@@ -32,13 +32,9 @@ pub fn derive(input: &Input) -> TokenStream {
         .map(|(i, _)| Ident::new(&format!("___soa_derive_private_2_{}", i), Span::call_site()))
         .collect::<Vec<_>>();
 
-    let get_field_doc = |field_ident: &Ident| {
-        format!("A slice of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name)
-    };
-
     let slice_fields = input.iter_fields().map(
         |(field_ident, field_type, is_nested)| {
-            let doc = get_field_doc(field_ident);
+            let doc = format!("A slice of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
                 quote! {
                     #[doc = #doc]
@@ -307,13 +303,9 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         .map(|(i, _)| Ident::new(&format!("___soa_derive_private_slice_2_{}", i), Span::call_site()))
         .collect::<Vec<_>>();
 
-    let get_field_doc = |field_ident: &Ident| {
-        format!("A mutable slice of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name)
-    };
-
     let slice_fields = input.iter_fields().map(
         |(field_ident, field_type, is_nested)| {
-            let doc = get_field_doc(field_ident);
+            let doc = format!("A mutable slice of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
                 quote! {
                     #[doc = #doc]

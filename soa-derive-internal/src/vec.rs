@@ -28,13 +28,9 @@ pub fn derive(input: &Input) -> TokenStream {
 
     let first_field = &fields_names[0];
 
-    let get_field_doc = |field_ident: &Ident| {
-        format!("A vector of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, name)
-    };
-
     let vec_fields = input.iter_fields().map(
         |(field_ident, field_type, is_nested)| {
-            let doc = get_field_doc(field_ident);
+            let doc = format!("A vector of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, name);
             if is_nested {
                 quote! {
                     #[doc = #doc]

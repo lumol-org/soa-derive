@@ -16,17 +16,9 @@ pub fn derive(input: &Input) -> TokenStream {
     let ref_doc_url = format!("[`{0}`](struct.{0}.html)", ref_name);
     let ref_mut_doc_url = format!("[`{0}`](struct.{0}.html)", ref_mut_name);
 
-    let get_ref_field_doc = |field_ident: &Ident| {
-        format!("A reference to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name)
-    };
-
-    let get_ref_mut_field_doc = |field_ident: &Ident| {
-        format!("A mutable reference to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name)
-    };
-
     let ref_fields = input.iter_fields().map(
         |(field_ident, field_type, is_nested)| {
-            let doc = get_ref_field_doc(field_ident);
+            let doc = format!("A reference to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
                 quote! {
                     #[doc = #doc]
@@ -44,7 +36,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
     let ref_mut_fields = input.iter_fields().map(
         |(field_ident, field_type, is_nested)| {
-            let doc = get_ref_mut_field_doc(field_ident);
+            let doc = format!("A mutable reference to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
                 quote! {
                     #[doc = #doc]
