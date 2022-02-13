@@ -1,7 +1,7 @@
 use proc_macro2::{TokenStream, Ident};
 use quote::quote;
 
-use crate::input::Input;
+use crate::input::{Input, TokenStreamIterator};
 
 pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
@@ -24,8 +24,8 @@ pub fn derive(input: &Input) -> TokenStream {
         format!("A mutable reference to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name)
     };
 
-    let ref_fields = input.fields_seq(
-        |field_ident, field_type, is_nested| {
+    let ref_fields = input.iter_fields().map(
+        |(field_ident, field_type, is_nested)| {
             let doc = get_ref_field_doc(field_ident);
             if is_nested {
                 quote! {
@@ -40,10 +40,10 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         },
-    );
+    ).concat();
 
-    let ref_mut_fields = input.fields_seq(
-        |field_ident, field_type, is_nested| {
+    let ref_mut_fields = input.iter_fields().map(
+        |(field_ident, field_type, is_nested)| {
             let doc = get_ref_mut_field_doc(field_ident);
             if is_nested {
                 quote! {
@@ -58,10 +58,10 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         },
-    );
+    ).concat();
 
-    let as_ref = input.fields_seq(
-        |field_ident, _, is_nested| {
+    let as_ref = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
             if is_nested {
                 quote! {
                     #field_ident: self.#field_ident.as_ref(),
@@ -73,10 +73,10 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         },
-    );
+    ).concat();
 
-    let as_mut = input.fields_seq(
-        |field_ident, _, is_nested| {
+    let as_mut = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
             if is_nested {
                 quote! {
                     #field_ident: self.#field_ident.as_mut(),
@@ -88,7 +88,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         },
-    );
+    ).concat();
 
     quote! {
         /// A reference to a

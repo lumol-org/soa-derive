@@ -3,7 +3,7 @@ use proc_macro2::{TokenStream};
 use quote::TokenStreamExt;
 use quote::quote;
 
-use crate::input::Input;
+use crate::input::{Input, TokenStreamIterator};
 
 pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
@@ -32,8 +32,8 @@ pub fn derive(input: &Input) -> TokenStream {
         format!("A vector of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, name)
     };
 
-    let vec_fields = input.fields_seq(
-        |field_ident, field_type, is_nested| {
+    let vec_fields = input.iter_fields().map(
+        |(field_ident, field_type, is_nested)| {
             let doc = get_field_doc(field_ident);
             if is_nested {
                 quote! {
@@ -48,10 +48,10 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         },
-    );
+    ).concat();
 
-    let vec_new = input.fields_seq(
-        |field_ident, field_type, is_nested| {
+    let vec_new = input.iter_fields().map(
+        |(field_ident, field_type, is_nested)| {
             if is_nested {
                 quote! {
                     #field_ident: <#field_type as StructOfArray>::Type::new(),
@@ -63,10 +63,10 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         },
-    );
+    ).concat();
 
-    let vec_with_capacity = input.fields_seq(
-        |field_ident, field_type, is_nested| {
+    let vec_with_capacity = input.iter_fields().map(
+        |(field_ident, field_type, is_nested)| {
             if is_nested {
                 quote! {
                     #field_ident: <#field_type as StructOfArray>::Type::with_capacity(capacity),
@@ -78,10 +78,10 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         },
-    );
+    ).concat();
 
-    let vec_slice = input.fields_seq(
-        |field_ident, _, is_nested| {
+    let vec_slice = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
             if is_nested {
                 quote! {
                     #field_ident: self.#field_ident.slice(range.clone()),
@@ -93,10 +93,10 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         },
-    );
+    ).concat();
 
-    let vec_slice_mut = input.fields_seq(
-        |field_ident, _, is_nested| {
+    let vec_slice_mut = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
             if is_nested {
                 quote! {
                     #field_ident: self.#field_ident.slice_mut(range.clone()),
@@ -108,10 +108,10 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         },
-    );
+    ).concat();
 
-    let vec_from_raw_parts = input.fields_seq(
-        |field_ident, field_type, is_nested| {
+    let vec_from_raw_parts = input.iter_fields().map(
+        |(field_ident, field_type, is_nested)| {
             if is_nested {
                 quote! {
                     #field_ident: <#field_type as StructOfArray>::Type::from_raw_parts(data.#field_ident, len, capacity),
@@ -123,7 +123,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         },
-    );
+    ).concat();
 
     let mut generated = quote! {
         /// An analog to `

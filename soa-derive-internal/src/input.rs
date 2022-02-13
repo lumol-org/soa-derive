@@ -250,38 +250,61 @@ impl Input {
     pub fn ptr_mut_name(&self) -> Ident {
         Ident::new(&format!("{}PtrMut", self.name), Span::call_site())
     }
+    pub fn iter_fields(&self) -> impl Iterator<Item = (&Ident, &Type, bool)> {
+        self.fields.iter().zip(self.field_is_nested.iter()).map(|(field, is_nested)| {
+            (field.ident.as_ref().unwrap(), &field.ty, *is_nested)
+        })
+    }
     pub fn fold_fields(&self, 
         gen_token_stream: impl Fn(&Ident, &Type, bool) -> proc_macro2::TokenStream, 
         f: impl Fn(&mut proc_macro2::TokenStream, proc_macro2::TokenStream)
     ) -> proc_macro2::TokenStream
     {
-        let mut seq = None;
-        self.fields.iter().zip(self.field_is_nested.iter())
-            .for_each(|(field, is_nested)| {
-                let field_ident = field.ident.as_ref().unwrap();
-                let field_type = &field.ty;
-
-                let next = gen_token_stream(field_ident, field_type, *is_nested);
-                match seq.as_mut() {
-                    None => {
-                        seq = Some(next);
-                    }
-                    Some(seq) => {
-                        f(seq, next);
-                    }
+        self.iter_fields().fold(None, |mut seq, (ident, ty, is_nested)| {
+            let next = gen_token_stream(ident, ty, is_nested);
+            match seq.as_mut() {
+                None => {
+                    seq = Some(next);
                 }
-            });
-        seq.unwrap()
-    }
-    pub fn fields_seq(&self, 
-        gen_token_stream: impl Fn(&Ident, &Type, bool) -> proc_macro2::TokenStream
-    ) -> proc_macro2::TokenStream
-    {
-        self.fold_fields(gen_token_stream, |seq, variant| {
-            *seq = quote! {
-                #seq
-                #variant
+                Some(seq) => {
+                    f(seq, next);
+                }
             }
-        })
+            seq
+        }).unwrap()
     }
+}
+pub(crate) trait TokenStreamIterator {
+    fn concat_by(self, f: impl Fn(proc_macro2::TokenStream, proc_macro2::TokenStream) -> proc_macro2::TokenStream) -> proc_macro2::TokenStream;
+    fn concat(self) -> proc_macro2::TokenStream;
+}
+
+impl<T: Iterator<Item = proc_macro2::TokenStream>> TokenStreamIterator for T {
+    fn concat_by(mut self, f: impl Fn(proc_macro2::TokenStream, proc_macro2::TokenStream) -> proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+        match self.next() {
+            Some(first) => {
+                self.fold(first, |current, next| {
+                    f(current, next)
+                })
+            },
+            None => quote!{},
+        }
+    }
+
+    fn concat(self) -> proc_macro2::TokenStream {
+        self.concat_by(|a, b| quote! { #a #b })
+    }
+}
+
+#[test]
+fn concat() {
+    let tokenstreams = vec![quote!{a}, quote!{b}, quote!{c}];
+    assert_eq!(tokenstreams.into_iter().concat().to_string(), "a b c");
+}
+#[test]
+fn concat_by() {
+    let tokenstreams = vec![quote!{a}, quote!{b}, quote!{c}];
+    assert_eq!(tokenstreams.into_iter().concat_by(|current, next| {
+        quote!{(#current, #next)}
+    }).to_string(), "((a , b) , c)");
 }

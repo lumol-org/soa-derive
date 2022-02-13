@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::input::Input;
+use crate::input::{Input, TokenStreamIterator};
 
 pub fn derive(input: &Input) -> TokenStream {
     let vec_name = &input.vec_name();
@@ -13,8 +13,8 @@ pub fn derive(input: &Input) -> TokenStream {
                                    .map(|field| field.ident.clone().unwrap())
                                    .collect::<Vec<_>>();
     
-    let get_unchecked = input.fields_seq(
-        |field_ident, _, is_nested| {
+    let get_unchecked = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
             if is_nested {
                 quote! {
                     #field_ident: self.clone().get_unchecked(slice.#field_ident),
@@ -26,10 +26,10 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         },
-    );
+    ).concat();
     
-    let get_unchecked_mut = input.fields_seq(
-        |field_ident, _, is_nested| {
+    let get_unchecked_mut = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
             if is_nested {
                 quote! {
                     #field_ident: self.clone().get_unchecked_mut(slice.#field_ident),
@@ -41,10 +41,10 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         },
-    );
+    ).concat();
 
-    let index = input.fields_seq(
-        |field_ident, _, is_nested| {
+    let index = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
             if is_nested {
                 quote! {
                     #field_ident: self.clone().index(slice.#field_ident),
@@ -56,10 +56,10 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         },
-    );
+    ).concat();
 
-    let index_mut = input.fields_seq(
-        |field_ident, _, is_nested| {
+    let index_mut = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
             if is_nested {
                 quote! {
                     #field_ident: self.clone().index_mut(slice.#field_ident),
@@ -71,7 +71,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         },
-    );
+    ).concat();
 
     let first_field_name = &fields_names[0];
 
