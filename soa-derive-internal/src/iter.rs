@@ -4,7 +4,7 @@ use syn::{Ident, Visibility};
 use quote::TokenStreamExt;
 use quote::quote;
 
-use crate::input::Input;
+use crate::input::{Input, TokenStreamIterator};
 
 pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
@@ -23,8 +23,8 @@ pub fn derive(input: &Input) -> TokenStream {
                                     .map(|field| field.ident.clone().unwrap())
                                     .collect::<Vec<_>>();
 
-    let iter_type = input.fold_fields(
-        |_, field_type, is_nested| {
+    let iter_type = input.iter_fields().map(
+        |(_, field_type, is_nested)| {
             if is_nested {
                 quote! {
                     <#field_type as soa_derive::SoAIter<'a>>::Iter
@@ -35,16 +35,16 @@ pub fn derive(input: &Input) -> TokenStream {
                     slice::Iter<'a, #field_type>
                 }
             }
-        },
+        }).concat_by(
         |seq, next| {
-            *seq = quote! {
+            quote! {
                 iter::Zip<#seq, #next>
             }
-        },
+        }
     );
 
-    let iter_mut_type = input.fold_fields(
-        |_, field_type, is_nested| {
+    let iter_mut_type = input.iter_fields().map(
+        |(_, field_type, is_nested)| {
             if is_nested {
                 quote! {
                     <#field_type as soa_derive::SoAIter<'a>>::IterMut
@@ -55,66 +55,66 @@ pub fn derive(input: &Input) -> TokenStream {
                     slice::IterMut<'a, #field_type>
                 }
             }
-        },
+        }).concat_by(
         |seq, next| {
-            *seq = quote! {
+            quote! {
                 iter::Zip<#seq, #next>
             }
-        },
+        }
     );
 
-    let iter_pat = input.fold_fields(
-        |field_ident, _, _| {
+    let iter_pat = input.iter_fields().map(
+        |(field_ident, _, _)| {
             quote! { #field_ident }
-        },
+        }).concat_by(
         |seq, next| {
-            *seq = quote! { (#seq, #next) }
+            quote! { (#seq, #next) }
         }
     );
 
-    let create_iter = input.fold_fields(
-        |field_ident, _, _| {
+    let create_iter = input.iter_fields().map(
+        |(field_ident, _, _)| {
             quote! { self.#field_ident.iter() }
-        },
+        }).concat_by(
         |seq, next| {
-            *seq = quote! { #seq.zip(#next) }
+            quote! { #seq.zip(#next) }
         }
     );
 
-    let create_iter_mut = input.fold_fields(
-        |field_ident, _, _| {
+    let create_iter_mut = input.iter_fields().map(
+        |(field_ident, _, _)| {
             quote! { self.#field_ident.iter_mut() }
-        },
+        }).concat_by(
         |seq, next| {
-            *seq = quote! { #seq.zip(#next) }
+            quote! { #seq.zip(#next) }
         }
     );
 
-    let create_into_iter = input.fold_fields(
-        |field_ident, _, is_nested| {
+    let create_into_iter = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
             if is_nested {
                 quote! { self.#field_ident.into_iter() }
             }
             else {
                 quote! { self.#field_ident.iter() }
             }
-        },
+        }).concat_by(
         |seq, next| {
-            *seq = quote! { #seq.zip(#next) }
+            quote! { #seq.zip(#next) }
         }
     );
 
-    let create_mut_into_iter = input.fold_fields(
-        |field_ident, _, is_nested| {
+    let create_mut_into_iter = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
             if is_nested {
                 quote! { self.#field_ident.into_iter() }
             }
             else {
                 quote! { self.#field_ident.iter_mut() }
             }
-        },
+        }).concat_by(
         |seq, next| {
-            *seq = quote! { #seq.zip(#next) }
+            quote! { #seq.zip(#next) }
         }
     );
 

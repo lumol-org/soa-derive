@@ -255,24 +255,6 @@ impl Input {
             (field.ident.as_ref().unwrap(), &field.ty, *is_nested)
         })
     }
-    pub fn fold_fields(&self, 
-        gen_token_stream: impl Fn(&Ident, &Type, bool) -> proc_macro2::TokenStream, 
-        f: impl Fn(&mut proc_macro2::TokenStream, proc_macro2::TokenStream)
-    ) -> proc_macro2::TokenStream
-    {
-        self.iter_fields().fold(None, |mut seq, (ident, ty, is_nested)| {
-            let next = gen_token_stream(ident, ty, is_nested);
-            match seq.as_mut() {
-                None => {
-                    seq = Some(next);
-                }
-                Some(seq) => {
-                    f(seq, next);
-                }
-            }
-            seq
-        }).unwrap()
-    }
 }
 pub(crate) trait TokenStreamIterator {
     fn concat_by(self, f: impl Fn(proc_macro2::TokenStream, proc_macro2::TokenStream) -> proc_macro2::TokenStream) -> proc_macro2::TokenStream;
