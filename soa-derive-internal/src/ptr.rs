@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::input::Input;
+use crate::input::{Input, TokenStreamIterator};
 
 pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
@@ -9,10 +9,10 @@ pub fn derive(input: &Input) -> TokenStream {
     let attrs = &input.attrs.ptr;
     let mut_attrs = &input.attrs.ptr_mut;
     let vec_name = &input.vec_name();
-    let ptr_name = &input.ptr_name();
-    let ptr_mut_name = &input.ptr_mut_name();
-    let ref_name = &input.ref_name();
-    let ref_mut_name = &input.ref_mut_name();
+    let ptr_name = Input::ptr_name(&input.name);
+    let ptr_mut_name = Input::ptr_mut_name(&input.name);
+    let ref_name = Input::ref_name(&input.name);
+    let ref_mut_name = Input::ref_mut_name(&input.name);
 
     let doc_url = format!("[`{0}`](struct.{0}.html)", name);
     let ptr_doc_url = format!("[`{0}`](struct.{0}.html)", ptr_name);
@@ -26,17 +26,73 @@ pub fn derive(input: &Input) -> TokenStream {
     let fields_names_1 = &fields_names;
     let fields_names_2 = &fields_names;
 
-    let fields_types = &input.fields.iter()
-                                    .map(|field| &field.ty)
-                                    .collect::<Vec<_>>();
+    let ptr_fields = input.iter_fields().map(
+        |(field_ident, field_type, is_nested)| {
+            let doc = format!("A pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
+            if is_nested {
+                let field_ptr_type = Input::ptr_name(field_type);
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: #field_ptr_type,
+                }
+            }
+            else {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: *const #field_type,
+                }
+            }
+        },
+    ).concat();
 
-    let fields_doc = fields_names.iter()
-        .map(|field| format!("A pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
-        .collect::<Vec<_>>();
+    let ptr_mut_fields = input.iter_fields().map(
+        |(field_ident, field_type, is_nested)| {
+            let doc = format!("A mutable pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
+            if is_nested {
+                let field_ptr_mut_type = Input::ptr_mut_name(field_type);
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: #field_ptr_mut_type,
+                }
+            }
+            else {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: *mut #field_type,
+                }
+            }
+        },
+    ).concat();
 
-    let fields_mut_doc = fields_names.iter()
-        .map(|field| format!("A mutable pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
-        .collect::<Vec<_>>();
+    let as_mut_ptr = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.as_mut_ptr(), 
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: self.#field_ident as *mut _, 
+                }
+            }
+        },
+    ).concat();
+
+    let as_ptr = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.as_ptr(), 
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: self.#field_ident, 
+                }
+            }
+        },
+    ).concat();
 
     quote! {
         /// An analog of a pointer to
@@ -45,10 +101,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #(#[#attrs])*
         #[derive(Copy, Clone)]
         #visibility struct #ptr_name {
-            #(
-                #[doc = #fields_doc]
-                pub #fields_names_1: *const #fields_types,
-            )*
+            #ptr_fields
         }
 
         /// An analog of a mutable pointer to
@@ -57,10 +110,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #(#[#mut_attrs])*
         #[derive(Copy, Clone)]
         #visibility struct #ptr_mut_name {
-            #(
-                #[doc = #fields_mut_doc]
-                pub #fields_names_1: *mut #fields_types,
-            )*
+            #ptr_mut_fields
         }
 
         #[allow(dead_code)]
@@ -72,7 +122,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `*const T as *mut T` transformation.
             #visibility fn as_mut_ptr(&self) -> #ptr_mut_name {
                 #ptr_mut_name {
-                    #(#fields_names_1: self.#fields_names_2 as *mut _, )*
+                    #as_mut_ptr
                 }
             }
 
@@ -172,7 +222,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `*mut T as *const T` transformation
             #visibility fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2, )*
+                    #as_ptr
                 }
             }
 
@@ -304,7 +354,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `&T as *const T` transformation
             #visibility fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2, )*
+                    #as_ptr
                 }
             }
         }
@@ -318,7 +368,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `&mut T as *const T` transformation
             #visibility fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2, )*
+                    #as_ptr
                 }
             }
 
@@ -329,7 +379,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ; *i.e.* do a `&mut T as *mut T` transformation
             #visibility fn as_mut_ptr(&mut self) -> #ptr_mut_name {
                 #ptr_mut_name {
-                    #(#fields_names_1: self.#fields_names_2, )*
+                    #as_mut_ptr
                 }
             }
         }

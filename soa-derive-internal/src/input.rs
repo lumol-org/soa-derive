@@ -1,9 +1,9 @@
 use std::convert::TryInto;
 
 use proc_macro2::Span;
-use quote::quote;
+use quote::{quote, ToTokens};
 
-use syn::{Data, DeriveInput, Field, Ident, Path, Visibility};
+use syn::{Attribute, Data, DeriveInput, Field, Ident, Path, Visibility, Type};
 use syn::{Meta, MetaList, NestedMeta};
 
 /// Representing the struct we are deriving
@@ -12,6 +12,8 @@ pub struct Input {
     pub name: Ident,
     /// The list of fields in the struct
     pub fields: Vec<Field>,
+    /// Is field marked with `#[nested_soa]`
+    pub field_is_nested: Vec<bool>,
     /// The struct overall visibility
     pub visibility: Visibility,
     /// Additional attributes requested with `#[soa_attr(...)]` or
@@ -147,10 +149,28 @@ fn create_derive_meta(path: Path) -> Meta {
     })
 }
 
+fn contains_nested_soa(attrs: &[Attribute]) -> bool {
+    for attr in attrs {
+        if let Ok(Meta::Path(path)) = attr.parse_meta() {
+            if path.is_ident("nested_soa") {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 impl Input {
     pub fn new(input: DeriveInput) -> Input {
-        let fields = match input.data {
-            Data::Struct(s) => s.fields.iter().cloned().collect::<Vec<_>>(),
+        let mut fields = Vec::new();
+        let mut field_is_nested = Vec::new();
+        match input.data {
+            Data::Struct(s) => {
+                for field in s.fields.iter().cloned() {
+                    fields.push(field.clone());
+                    field_is_nested.push(contains_nested_soa(&field.attrs));
+                }
+            }
             _ => panic!("#[derive(StructOfArray)] only supports struct"),
         };
 
@@ -182,7 +202,6 @@ impl Input {
                                     }
                                 }
                             }
-
                         }
                         _ => panic!(
                             "expected #[soa_derive(Traits, To, Derive)], got #[{}]",
@@ -200,6 +219,7 @@ impl Input {
             fields: fields,
             visibility: input.vis,
             attrs: extra_attrs,
+            field_is_nested
         }
     }
 
@@ -207,27 +227,66 @@ impl Input {
         Ident::new(&format!("{}Vec", self.name), Span::call_site())
     }
 
-    pub fn slice_name(&self) -> Ident {
-        Ident::new(&format!("{}Slice", self.name), Span::call_site())
+    pub fn slice_name(name: &impl ToTokens) -> Ident {
+        Ident::new(&format!("{}Slice", name.to_token_stream()), Span::call_site())
     }
 
-    pub fn slice_mut_name(&self) -> Ident {
-        Ident::new(&format!("{}SliceMut", self.name), Span::call_site())
+    pub fn slice_mut_name(name: &impl ToTokens) -> Ident {
+        Ident::new(&format!("{}SliceMut", name.to_token_stream()), Span::call_site())
     }
 
-    pub fn ref_name(&self) -> Ident {
-        Ident::new(&format!("{}Ref", self.name), Span::call_site())
+    pub fn ref_name(name: &impl ToTokens) -> Ident {
+        Ident::new(&format!("{}Ref", name.to_token_stream()), Span::call_site())
     }
 
-    pub fn ref_mut_name(&self) -> Ident {
-        Ident::new(&format!("{}RefMut", self.name), Span::call_site())
+    pub fn ref_mut_name(name: &impl ToTokens) -> Ident {
+        Ident::new(&format!("{}RefMut", name.to_token_stream()), Span::call_site())
     }
 
-    pub fn ptr_name(&self) -> Ident {
-        Ident::new(&format!("{}Ptr", self.name), Span::call_site())
+    pub fn ptr_name(name: &impl ToTokens) -> Ident {
+        Ident::new(&format!("{}Ptr", name.to_token_stream()), Span::call_site())
     }
 
-    pub fn ptr_mut_name(&self) -> Ident {
-        Ident::new(&format!("{}PtrMut", self.name), Span::call_site())
+    pub fn ptr_mut_name(name: &impl ToTokens) -> Ident {
+        Ident::new(&format!("{}PtrMut", name.to_token_stream()), Span::call_site())
     }
+    pub fn iter_fields(&self) -> impl Iterator<Item = (&Ident, &Type, bool)> {
+        self.fields.iter().zip(self.field_is_nested.iter()).map(|(field, is_nested)| {
+            (field.ident.as_ref().unwrap(), &field.ty, *is_nested)
+        })
+    }
+}
+pub(crate) trait TokenStreamIterator {
+    fn concat_by(self, f: impl Fn(proc_macro2::TokenStream, proc_macro2::TokenStream) -> proc_macro2::TokenStream) -> proc_macro2::TokenStream;
+    fn concat(self) -> proc_macro2::TokenStream;
+}
+
+impl<T: Iterator<Item = proc_macro2::TokenStream>> TokenStreamIterator for T {
+    fn concat_by(mut self, f: impl Fn(proc_macro2::TokenStream, proc_macro2::TokenStream) -> proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+        match self.next() {
+            Some(first) => {
+                self.fold(first, |current, next| {
+                    f(current, next)
+                })
+            },
+            None => quote!{},
+        }
+    }
+
+    fn concat(self) -> proc_macro2::TokenStream {
+        self.concat_by(|a, b| quote! { #a #b })
+    }
+}
+
+#[test]
+fn concat() {
+    let tokenstreams = vec![quote!{a}, quote!{b}, quote!{c}];
+    assert_eq!(tokenstreams.into_iter().concat().to_string(), "a b c");
+}
+#[test]
+fn concat_by() {
+    let tokenstreams = vec![quote!{a}, quote!{b}, quote!{c}];
+    assert_eq!(tokenstreams.into_iter().concat_by(|current, next| {
+        quote!{(#current, #next)}
+    }).to_string(), "((a , b) , c)");
 }

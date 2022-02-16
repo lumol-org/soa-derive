@@ -1,7 +1,7 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{TokenStream};
 use quote::quote;
 
-use crate::input::Input;
+use crate::input::{Input, TokenStreamIterator};
 
 pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
@@ -9,30 +9,80 @@ pub fn derive(input: &Input) -> TokenStream {
     let attrs = &input.attrs.ref_;
     let mut_attrs = &input.attrs.ref_mut;
     let vec_name = &input.vec_name();
-    let ref_name = &input.ref_name();
-    let ref_mut_name = &input.ref_mut_name();
+    let ref_name = Input::ref_name(&input.name);
+    let ref_mut_name = Input::ref_mut_name(&input.name);
 
     let doc_url = format!("[`{0}`](struct.{0}.html)", name);
     let ref_doc_url = format!("[`{0}`](struct.{0}.html)", ref_name);
     let ref_mut_doc_url = format!("[`{0}`](struct.{0}.html)", ref_mut_name);
 
-    let fields_names = input.fields.iter()
-                                   .map(|field| field.ident.clone().unwrap())
-                                   .collect::<Vec<_>>();
-    let fields_names_1 = &fields_names;
-    let fields_names_2 = &fields_names;
+    let ref_fields = input.iter_fields().map(
+        |(field_ident, field_type, is_nested)| {
+            let doc = format!("A reference to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
+            if is_nested {
+                let field_ref_type = Input::ref_name(field_type);
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: #field_ref_type<'a>,
+                }
+            }
+            else {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: &'a #field_type,
+                }
+            }
+        },
+    ).concat();
 
-    let fields_types = &input.fields.iter()
-                                    .map(|field| &field.ty)
-                                    .collect::<Vec<_>>();
+    let ref_mut_fields = input.iter_fields().map(
+        |(field_ident, field_type, is_nested)| {
+            let doc = format!("A mutable reference to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
+            if is_nested {
+                let field_ref_mut_type = Input::ref_mut_name(field_type);
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: #field_ref_mut_type<'a>,
+                }
+            }
+            else {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: &'a mut #field_type,
+                }
+            }
+        },
+    ).concat();
 
-    let fields_doc = fields_names.iter()
-                                 .map(|field| format!("A reference to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
-                                 .collect::<Vec<_>>();
+    let as_ref = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.as_ref(),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: & self.#field_ident,
+                }
+            }
+        },
+    ).concat();
 
-    let fields_mut_doc = fields_names.iter()
-                                     .map(|field| format!("A mutable reference to a `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
-                                     .collect::<Vec<_>>();
+    let as_mut = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.as_mut(),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: &mut self.#field_ident,
+                }
+            }
+        },
+    ).concat();
 
     quote! {
         /// A reference to a
@@ -41,10 +91,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #(#[#attrs])*
         #[derive(Copy, Clone)]
         #visibility struct #ref_name<'a> {
-            #(
-                #[doc = #fields_doc]
-                pub #fields_names_1: &'a #fields_types,
-            )*
+            #ref_fields
         }
 
         /// A mutable reference to a
@@ -52,10 +99,7 @@ pub fn derive(input: &Input) -> TokenStream {
         /// with struct of array layout.
         #(#[#mut_attrs])*
         #visibility struct #ref_mut_name<'a> {
-            #(
-                #[doc = #fields_mut_doc]
-                pub #fields_names_1: &'a mut #fields_types,
-            )*
+            #ref_mut_fields
         }
 
         #[allow(dead_code)]
@@ -67,7 +111,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// .
             #visibility fn as_ref(&self) -> #ref_name {
                 #ref_name {
-                    #(#fields_names_1: & self.#fields_names_2, )*
+                    #as_ref
                 }
             }
 
@@ -78,7 +122,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// .
             #visibility fn as_mut(&mut self) -> #ref_mut_name {
                 #ref_mut_name {
-                    #(#fields_names_1: &mut self.#fields_names_2, )*
+                    #as_mut
                 }
             }
         }

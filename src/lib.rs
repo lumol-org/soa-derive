@@ -4,7 +4,7 @@
 //!
 //! ```
 //! # #[macro_use] extern crate soa_derive;
-//! # fn main() {
+//! # mod cheese {
 //! #[derive(StructOfArray)]
 //! pub struct Cheese {
 //!     pub smell: f64,
@@ -40,7 +40,7 @@
 //!
 //! ```
 //! # #[macro_use] extern crate soa_derive;
-//! # fn main() {
+//! # mod cheese {
 //! #[derive(Debug, PartialEq, StructOfArray)]
 //! #[soa_derive(Debug, PartialEq)]
 //! pub struct Cheese {
@@ -59,7 +59,7 @@
 //!
 //! ```
 //! # #[macro_use] extern crate soa_derive;
-//! # fn main() {
+//! # mod cheese {
 //! #[derive(Debug, PartialEq, StructOfArray)]
 //! #[soa_attr(Vec, cfg_attr(test, derive(PartialEq)))]
 //! pub struct Cheese {
@@ -110,7 +110,7 @@
 //!
 //! ```no_run
 //! # #[macro_use] extern crate soa_derive;
-//! # fn main() {
+//! # mod cheese {
 //! # #[derive(Debug, PartialEq, StructOfArray)]
 //! # pub struct Cheese {
 //! #     pub smell: f64,
@@ -119,6 +119,7 @@
 //! #     pub name: String,
 //! # }
 //! # impl Cheese { fn new(name: &str) -> Cheese { unimplemented!() } }
+//! # fn main() {
 //! let mut vec = CheeseVec::new();
 //! vec.push(Cheese::new("stilton"));
 //! vec.push(Cheese::new("brie"));
@@ -130,6 +131,7 @@
 //!     println!("this is {}, with a smell power of {}", cheese.name, cheese.smell);
 //! }
 //! # }
+//! # }
 //! ```
 //!
 //! One of the main advantage of the SoA layout is to be able to only load some
@@ -138,7 +140,7 @@
 //!
 //! ```no_run
 //! # #[macro_use] extern crate soa_derive;
-//! # fn main() {
+//! # mod cheese {
 //! # #[derive(Debug, PartialEq, StructOfArray)]
 //! # pub struct Cheese {
 //! #     pub smell: f64,
@@ -147,6 +149,7 @@
 //! #     pub name: String,
 //! # }
 //! # impl Cheese { fn new(name: &str) -> Cheese { unimplemented!() } }
+//! # fn main() {
 //! # let mut vec = CheeseVec::new();
 //! # vec.push(Cheese::new("stilton"));
 //! # vec.push(Cheese::new("brie"));
@@ -156,6 +159,7 @@
 //!     println!("got cheese {}", name);
 //! }
 //! # }
+//! # }
 //! ```
 //!
 //! In order to iterate over multiple fields at the same time, one can use the
@@ -163,7 +167,7 @@
 //!
 //! ```no_run
 //! # #[macro_use] extern crate soa_derive;
-//! # fn main() {
+//! # mod cheese {
 //! # #[derive(Debug, PartialEq, StructOfArray)]
 //! # pub struct Cheese {
 //! #     pub smell: f64,
@@ -172,6 +176,7 @@
 //! #     pub name: String,
 //! # }
 //! # impl Cheese { fn new(name: &str) -> Cheese { unimplemented!() } }
+//! # fn main() {
 //! # let mut vec = CheeseVec::new();
 //! # vec.push(Cheese::new("stilton"));
 //! # vec.push(Cheese::new("brie"));
@@ -181,7 +186,46 @@
 //!     *smell += 1.0;
 //! }
 //! # }
+//! # }
 //! ```
+//! 
+//! ## Nested Struct of Arrays
+//! 
+//! In order to nest a struct of arrays inside another struct of arrays, one can use the `#[nested_soa]` attribute.
+//! 
+//! For example, the following code
+//! 
+//! ```
+//! # mod cheese {
+//! # use soa_derive::StructOfArray;
+//! #[derive(StructOfArray)]
+//! pub struct Point {
+//!     x: f32,
+//!     y: f32,
+//! }
+//! #[derive(StructOfArray)]
+//! pub struct Particle {
+//!     #[nested_soa]
+//!     point: Point,
+//!     mass: f32,
+//! }
+//! # }
+//! ```
+//! 
+//! will generate structs that looks like this:
+//! 
+//! ```
+//! pub struct PointVec {
+//!     x: Vec<f32>,
+//!     y: Vec<f32>,
+//! }
+//! pub struct ParticleVec {
+//!     point: PointVec, // rather than Vec<Point>
+//!     mass: Vec<f32>
+//! }
+//! ```
+//! 
+//! All helper structs will be also nested, for example `PointSlice` will be nested in `ParticleSlice`.
 
 // The proc macro is implemented in soa_derive_internal, and re-exported by this
 // crate. This is because a single crate can not define both a proc macro and a
@@ -196,6 +240,17 @@ pub trait StructOfArray {
     type Type;
 }
 
+/// Any struct derived by StructOfArray will auto impl this trait.
+/// 
+/// Useful for generic programming and implementation of attribute `nested_soa`.
+/// 
+/// `CheeseVec::iter(&'a self)` returns an iterator which has a type `<Cheese as SoAIter<'a>>::Iter`
+/// 
+/// `CheeseVec::iter_mut(&mut 'a self)` returns an iterator which has a type `<Cheese as SoAIter<'a>>::IterMut`
+pub trait SoAIter<'a> {
+    type Iter: 'a;
+    type IterMut: 'a;
+}
 
 mod private_soa_indexes {
     // From [`std::slice::SliceIndex`](https://doc.rust-lang.org/std/slice/trait.SliceIndex.html) code.
@@ -264,7 +319,7 @@ pub trait SoAIndexMut<T>: private_soa_indexes::Sealed {
 ///
 /// ```
 /// # #[macro_use] extern crate soa_derive;
-/// # fn main() {
+/// # mod cheese {
 /// #[derive(StructOfArray)]
 /// struct Cheese {
 ///     size: f64,
@@ -273,6 +328,7 @@ pub trait SoAIndexMut<T>: private_soa_indexes::Sealed {
 ///     name: String,
 /// }
 ///
+/// # fn main() {
 /// let mut vec = CheeseVec::new();
 /// // fill the vector
 ///
@@ -287,6 +343,7 @@ pub trait SoAIndexMut<T>: private_soa_indexes::Sealed {
 ///     *mass -= 1.0;
 /// }
 /// # }
+/// # }
 /// ```
 ///
 /// The iterator can also work with external iterators. In this case, the
@@ -295,7 +352,7 @@ pub trait SoAIndexMut<T>: private_soa_indexes::Sealed {
 ///
 /// ```
 /// # #[macro_use] extern crate soa_derive;
-/// # fn main() {
+/// # mod cheese {
 /// # #[derive(StructOfArray)]
 /// # struct Cheese {
 /// #     size: f64,
@@ -304,12 +361,14 @@ pub trait SoAIndexMut<T>: private_soa_indexes::Sealed {
 /// #     name: String,
 /// # }
 /// # #[derive(Debug)] struct Cellar;
+/// # fn main() {
 /// let mut vec = CheeseVec::new();
 /// let mut cellars = Vec::<Cellar>::new();
 ///
 /// for (name, mass, cellar) in soa_zip!(&vec, [name, mass], &cellars) {
 ///     println!("we have {} kg of {} in {:#?}", mass, name, cellar);
 /// }
+/// # }
 /// # }
 /// ```
 #[macro_export]

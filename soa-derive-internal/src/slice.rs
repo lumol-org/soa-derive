@@ -3,15 +3,15 @@ use syn::Ident;
 use quote::TokenStreamExt;
 use quote::quote;
 
-use crate::input::Input;
+use crate::input::{Input, TokenStreamIterator};
 
 pub fn derive(input: &Input) -> TokenStream {
     let visibility = &input.visibility;
-    let slice_name = &input.slice_name();
+    let slice_name = Input::slice_name(&input.name);
     let attrs = &input.attrs.slice;
     let vec_name = &input.vec_name();
-    let ref_name = &input.ref_name();
-    let ptr_name = &input.ptr_name();
+    let ref_name = Input::ref_name(&input.name);
+    let ptr_name = Input::ptr_name(&input.name);
 
     let slice_name_str = format!("[{}]", input.name);
     let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
@@ -20,6 +20,7 @@ pub fn derive(input: &Input) -> TokenStream {
     let fields_names = &input.fields.iter()
                                    .map(|field| field.ident.as_ref().unwrap())
                                    .collect::<Vec<_>>();
+
     let first_field = &fields_names[0];
 
     let fields_names_hygienic_1 = input.fields.iter()
@@ -31,13 +32,55 @@ pub fn derive(input: &Input) -> TokenStream {
         .map(|(i, _)| Ident::new(&format!("___soa_derive_private_2_{}", i), Span::call_site()))
         .collect::<Vec<_>>();
 
-    let fields_types = &input.fields.iter()
-                                    .map(|field| &field.ty)
-                                    .collect::<Vec<_>>();
+    let slice_fields = input.iter_fields().map(
+        |(field_ident, field_type, is_nested)| {
+            let doc = format!("A slice of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
+            if is_nested {
+                let field_slice_type = Input::slice_name(field_type);
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: #field_slice_type<'a>,
+                }
+            }
+            else {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: &'a [#field_type],
+                }
+            }
+        },
+    ).concat();
 
-    let fields_doc = fields_names.iter()
-                                 .map(|field| format!("A slice of `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
-                                 .collect::<Vec<_>>();
+    let slice_reborrow = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.reborrow(),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: &self.#field_ident,
+                }
+            }
+        },
+    ).concat();
+
+    let slice_from_raw_parts = input.iter_fields().map(
+        |(field_ident, field_type, is_nested)| {
+            if is_nested {
+                let field_slice_type = Input::slice_name(field_type);
+                quote! {
+                    #field_ident: #field_slice_type::from_raw_parts(data.#field_ident, len),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: ::std::slice::from_raw_parts(data.#field_ident, len),
+                }
+            }
+        },
+    ).concat();
 
     let mut generated = quote! {
         /// A slice of
@@ -49,10 +92,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #[derive(Copy, Clone)]
         #(#[#attrs])*
         #visibility struct #slice_name<'a> {
-            #(
-                #[doc = #fields_doc]
-                pub #fields_names: &'a [#fields_types],
-            )*
+            #slice_fields
         }
 
         #[allow(dead_code)]
@@ -192,7 +232,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 'a: 'b
             {
                 #slice_name {
-                    #(#fields_names: &self.#fields_names,)*
+                    #slice_reborrow
                 }
             }
 
@@ -208,7 +248,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// Similar to [`std::slice::from_raw_parts()`](https://doc.rust-lang.org/std/slice/fn.from_raw_parts.html).
             pub unsafe fn from_raw_parts<'b>(data: #ptr_name, len: usize) -> #slice_name<'b> {
                 #slice_name {
-                    #(#fields_names: ::std::slice::from_raw_parts(data.#fields_names, len),)*
+                    #slice_from_raw_parts
                 }
             }
         }
@@ -235,13 +275,13 @@ pub fn derive(input: &Input) -> TokenStream {
 
 pub fn derive_mut(input: &Input) -> TokenStream {
     let visibility = &input.visibility;
-    let slice_name = &input.slice_name();
-    let slice_mut_name = &input.slice_mut_name();
+    let slice_name = Input::slice_name(&input.name);
+    let slice_mut_name = Input::slice_mut_name(&input.name);
     let vec_name = &input.vec_name();
     let attrs = &input.attrs.slice_mut;
-    let ref_mut_name = &input.ref_mut_name();
-    let ptr_name = &input.ptr_name();
-    let ptr_mut_name = &input.ptr_mut_name();
+    let ref_mut_name = Input::ref_mut_name(&input.name);
+    let ptr_name = Input::ptr_name(&input.name);
+    let ptr_mut_name = Input::ptr_mut_name(&input.name);
 
     let slice_name_str = format!("[{}]", input.name);
     let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
@@ -252,6 +292,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
                                    .collect::<Vec<_>>();
+
     let fields_names_1 = &fields_names;
     let fields_names_2 = &fields_names;
     let first_field = &fields_names[0];
@@ -264,13 +305,85 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         .map(|(i, _)| Ident::new(&format!("___soa_derive_private_slice_2_{}", i), Span::call_site()))
         .collect::<Vec<_>>();
 
-    let fields_types = &input.fields.iter()
-                                    .map(|field| &field.ty)
-                                    .collect::<Vec<_>>();
+    let slice_fields = input.iter_fields().map(
+        |(field_ident, field_type, is_nested)| {
+            let doc = format!("A mutable slice of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
+            if is_nested {
+                let field_slice_type = Input::slice_mut_name(field_type);
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: #field_slice_type<'a>,
+                }
+            }
+            else {
+                quote! {
+                    #[doc = #doc]
+                    pub #field_ident: &'a mut [#field_type],
+                }
+            }
+        },
+    ).concat();
 
-    let fields_doc = fields_names.iter()
-                                 .map(|field| format!("A mutable slice of `{0}` from a [`{1}`](struct.{1}.html)", field, vec_name))
-                                 .collect::<Vec<_>>();
+    let slice_as_ref = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.as_ref(),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: self.#field_ident,
+                }
+            }
+        },
+    ).concat();
+
+    let slice_as_slice = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.as_slice(),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: &self.#field_ident,
+                }
+            }
+        },
+    ).concat();
+
+    let slice_reborrow = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.reborrow(),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: &mut self.#field_ident,
+                }
+            }
+        },
+    ).concat();
+
+    let slice_from_raw_parts_mut = input.iter_fields().map(
+        |(field_ident, field_type, is_nested)| {
+            if is_nested {
+                let field_slice_type = Input::slice_mut_name(field_type);
+                quote! {
+                    #field_ident: #field_slice_type::from_raw_parts_mut(data.#field_ident, len),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: ::std::slice::from_raw_parts_mut(data.#field_ident, len),
+                }
+            }
+        },
+    ).concat();
 
     let mut generated = quote! {
         /// A mutable slice of
@@ -281,10 +394,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         #[allow(dead_code)]
         #(#[#attrs])*
         #visibility struct #slice_mut_name<'a> {
-            #(
-                #[doc = #fields_doc]
-                pub #fields_names_1: &'a mut [#fields_types],
-            )*
+            #slice_fields
         }
 
         #[allow(dead_code)]
@@ -297,7 +407,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// version of the slices.
             pub fn as_ref(&self) -> #slice_name {
                 #slice_name {
-                    #(#fields_names_1: self.#fields_names_2,)*
+                    #slice_as_ref
                 }
             }
 
@@ -483,7 +593,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 'a: 'b
             {
                 #slice_name {
-                    #(#fields_names_1: &self.#fields_names_2,)*
+                    #slice_as_slice
                 }
             }
 
@@ -493,7 +603,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 'a: 'b
             {
                 #slice_mut_name {
-                    #(#fields_names_1: &mut *self.#fields_names_2,)*
+                    #slice_reborrow
                 }
             }
 
@@ -518,7 +628,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// Similar to [`std::slice::from_raw_parts_mut()`](https://doc.rust-lang.org/std/slice/fn.from_raw_parts_mut.html).
             pub unsafe fn from_raw_parts_mut<'b>(data: #ptr_mut_name, len: usize) -> #slice_mut_name<'b> {
                 #slice_mut_name {
-                    #(#fields_names_1: ::std::slice::from_raw_parts_mut(data.#fields_names_2, len),)*
+                    #slice_from_raw_parts_mut
                 }
             }
         }
