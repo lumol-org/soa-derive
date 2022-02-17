@@ -2,15 +2,16 @@ use proc_macro2::{TokenStream};
 use quote::quote;
 
 use crate::input::{Input, TokenStreamIterator};
+use crate::names;
 
 pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
     let visibility = &input.visibility;
     let attrs = &input.attrs.ref_;
     let mut_attrs = &input.attrs.ref_mut;
-    let vec_name = &input.vec_name();
-    let ref_name = Input::ref_name(&input.name);
-    let ref_mut_name = Input::ref_mut_name(&input.name);
+    let vec_name = names::vec_name(&input.name);
+    let ref_name = names::ref_name(&input.name);
+    let ref_mut_name = names::ref_mut_name(&input.name);
 
     let doc_url = format!("[`{0}`](struct.{0}.html)", name);
     let ref_doc_url = format!("[`{0}`](struct.{0}.html)", ref_name);
@@ -20,7 +21,7 @@ pub fn derive(input: &Input) -> TokenStream {
         |(field_ident, field_type, is_nested)| {
             let doc = format!("A reference to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
-                let field_ref_type = Input::ref_name(field_type);
+                let field_ref_type = names::ref_name(field_type);
                 quote! {
                     #[doc = #doc]
                     pub #field_ident: #field_ref_type<'a>,
@@ -39,7 +40,7 @@ pub fn derive(input: &Input) -> TokenStream {
         |(field_ident, field_type, is_nested)| {
             let doc = format!("A mutable reference to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
-                let field_ref_mut_type = Input::ref_mut_name(field_type);
+                let field_ref_mut_type = names::ref_mut_name(field_type);
                 quote! {
                     #[doc = #doc]
                     pub #field_ident: #field_ref_mut_type<'a>,

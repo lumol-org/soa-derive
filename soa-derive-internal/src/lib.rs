@@ -1,8 +1,7 @@
 #![warn(clippy::all, clippy::pedantic)]
+
 #![allow(clippy::needless_return, clippy::redundant_field_names)]
 #![allow(clippy::use_self, clippy::too_many_lines, clippy::missing_panics_doc)]
-// TODO: improve the code and make it simpler to read
-#![allow(clippy::cognitive_complexity)]
 
 extern crate proc_macro;
 
@@ -17,6 +16,8 @@ mod ptr;
 mod refs;
 mod slice;
 mod vec;
+
+pub(crate) mod names;
 
 #[proc_macro_derive(StructOfArray, attributes(soa_derive, soa_attr, nested_soa))]
 pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -39,7 +40,7 @@ use crate::input::Input;
 use quote::quote;
 fn derive_trait(input: &Input) -> TokenStream {
     let name = &input.name;
-    let vec_name = &input.vec_name();
+    let vec_name = names::vec_name(name);
 
     quote! {
         impl soa_derive::StructOfArray for #name {
