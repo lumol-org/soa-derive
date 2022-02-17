@@ -2,17 +2,18 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 use crate::input::{Input, TokenStreamIterator};
+use crate::names;
 
 pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
     let visibility = &input.visibility;
     let attrs = &input.attrs.ptr;
     let mut_attrs = &input.attrs.ptr_mut;
-    let vec_name = &input.vec_name();
-    let ptr_name = Input::ptr_name(&input.name);
-    let ptr_mut_name = Input::ptr_mut_name(&input.name);
-    let ref_name = Input::ref_name(&input.name);
-    let ref_mut_name = Input::ref_mut_name(&input.name);
+    let vec_name = names::vec_name(&input.name);
+    let ptr_name = names::ptr_name(&input.name);
+    let ptr_mut_name = names::ptr_mut_name(&input.name);
+    let ref_name = names::ref_name(&input.name);
+    let ref_mut_name = names::ref_mut_name(&input.name);
 
     let doc_url = format!("[`{0}`](struct.{0}.html)", name);
     let ptr_doc_url = format!("[`{0}`](struct.{0}.html)", ptr_name);
@@ -30,7 +31,7 @@ pub fn derive(input: &Input) -> TokenStream {
         |(field_ident, field_type, is_nested)| {
             let doc = format!("A pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
-                let field_ptr_type = Input::ptr_name(field_type);
+                let field_ptr_type = names::ptr_name(field_type);
                 quote! {
                     #[doc = #doc]
                     pub #field_ident: #field_ptr_type,
@@ -49,7 +50,7 @@ pub fn derive(input: &Input) -> TokenStream {
         |(field_ident, field_type, is_nested)| {
             let doc = format!("A mutable pointer to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
-                let field_ptr_mut_type = Input::ptr_mut_name(field_type);
+                let field_ptr_mut_type = names::ptr_mut_name(field_type);
                 quote! {
                     #[doc = #doc]
                     pub #field_ident: #field_ptr_mut_type,
@@ -68,12 +69,12 @@ pub fn derive(input: &Input) -> TokenStream {
         |(field_ident, _, is_nested)| {
             if is_nested {
                 quote! {
-                    #field_ident: self.#field_ident.as_mut_ptr(), 
+                    #field_ident: self.#field_ident.as_mut_ptr(),
                 }
             }
             else {
                 quote! {
-                    #field_ident: self.#field_ident as *mut _, 
+                    #field_ident: self.#field_ident as *mut _,
                 }
             }
         },
@@ -83,12 +84,12 @@ pub fn derive(input: &Input) -> TokenStream {
         |(field_ident, _, is_nested)| {
             if is_nested {
                 quote! {
-                    #field_ident: self.#field_ident.as_ptr(), 
+                    #field_ident: self.#field_ident.as_ptr(),
                 }
             }
             else {
                 quote! {
-                    #field_ident: self.#field_ident, 
+                    #field_ident: self.#field_ident,
                 }
             }
         },

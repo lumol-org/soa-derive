@@ -4,18 +4,19 @@ use quote::TokenStreamExt;
 use quote::quote;
 
 use crate::input::{Input, TokenStreamIterator};
+use crate::names;
 
 pub fn derive(input: &Input) -> TokenStream {
     let visibility = &input.visibility;
-    let slice_name = Input::slice_name(&input.name);
+    let slice_name = names::slice_name(&input.name);
     let attrs = &input.attrs.slice;
-    let vec_name = &input.vec_name();
-    let ref_name = Input::ref_name(&input.name);
-    let ptr_name = Input::ptr_name(&input.name);
+    let vec_name = names::vec_name(&input.name);
+    let ref_name = names::ref_name(&input.name);
+    let ptr_name = names::ptr_name(&input.name);
 
     let slice_name_str = format!("[{}]", input.name);
     let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
-    let vec_doc_url = format!("[`{0}`](struct.{0}.html)", input.vec_name());
+    let vec_doc_url = format!("[`{0}`](struct.{0}.html)", vec_name);
 
     let fields_names = &input.fields.iter()
                                    .map(|field| field.ident.as_ref().unwrap())
@@ -36,7 +37,7 @@ pub fn derive(input: &Input) -> TokenStream {
         |(field_ident, field_type, is_nested)| {
             let doc = format!("A slice of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
-                let field_slice_type = Input::slice_name(field_type);
+                let field_slice_type = names::slice_name(field_type);
                 quote! {
                     #[doc = #doc]
                     pub #field_ident: #field_slice_type<'a>,
@@ -69,7 +70,7 @@ pub fn derive(input: &Input) -> TokenStream {
     let slice_from_raw_parts = input.iter_fields().map(
         |(field_ident, field_type, is_nested)| {
             if is_nested {
-                let field_slice_type = Input::slice_name(field_type);
+                let field_slice_type = names::slice_name(field_type);
                 quote! {
                     #field_ident: #field_slice_type::from_raw_parts(data.#field_ident, len),
                 }
@@ -275,19 +276,19 @@ pub fn derive(input: &Input) -> TokenStream {
 
 pub fn derive_mut(input: &Input) -> TokenStream {
     let visibility = &input.visibility;
-    let slice_name = Input::slice_name(&input.name);
-    let slice_mut_name = Input::slice_mut_name(&input.name);
-    let vec_name = &input.vec_name();
+    let slice_name = names::slice_name(&input.name);
+    let slice_mut_name = names::slice_mut_name(&input.name);
+    let vec_name = names::vec_name(&input.name);
     let attrs = &input.attrs.slice_mut;
-    let ref_mut_name = Input::ref_mut_name(&input.name);
-    let ptr_name = Input::ptr_name(&input.name);
-    let ptr_mut_name = Input::ptr_mut_name(&input.name);
+    let ref_mut_name = names::ref_mut_name(&input.name);
+    let ptr_name = names::ptr_name(&input.name);
+    let ptr_mut_name = names::ptr_mut_name(&input.name);
 
     let slice_name_str = format!("[{}]", input.name);
     let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
     let slice_doc_url = format!("[`{0}`](struct.{0}.html)", slice_name);
     let slice_mut_doc_url = format!("[`{0}`](struct.{0}.html)", slice_mut_name);
-    let vec_doc_url = format!("[`{0}`](struct.{0}.html)", input.vec_name());
+    let vec_doc_url = format!("[`{0}`](struct.{0}.html)", vec_name);
 
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
@@ -309,7 +310,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         |(field_ident, field_type, is_nested)| {
             let doc = format!("A mutable slice of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
             if is_nested {
-                let field_slice_type = Input::slice_mut_name(field_type);
+                let field_slice_type = names::slice_mut_name(field_type);
                 quote! {
                     #[doc = #doc]
                     pub #field_ident: #field_slice_type<'a>,
@@ -372,7 +373,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
     let slice_from_raw_parts_mut = input.iter_fields().map(
         |(field_ident, field_type, is_nested)| {
             if is_nested {
-                let field_slice_type = Input::slice_mut_name(field_type);
+                let field_slice_type = names::slice_mut_name(field_type);
                 quote! {
                     #field_ident: #field_slice_type::from_raw_parts_mut(data.#field_ident, len),
                 }

@@ -5,16 +5,17 @@ use quote::TokenStreamExt;
 use quote::quote;
 
 use crate::input::{Input, TokenStreamIterator};
+use crate::names;
 
 pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
     let visibility = &input.visibility;
     let detail_mod = Ident::new(&format!("__detail_iter_{}", name.to_string().to_lowercase()), Span::call_site());
-    let vec_name = &input.vec_name();
-    let slice_name = Input::slice_name(name);
-    let slice_mut_name = Input::slice_mut_name(&input.name);
-    let ref_name = Input::ref_name(&input.name);
-    let ref_mut_name = Input::ref_mut_name(&input.name);
+    let vec_name = names::vec_name(&input.name);
+    let slice_name = names::slice_name(name);
+    let slice_mut_name = names::slice_mut_name(&input.name);
+    let ref_name = names::ref_name(&input.name);
+    let ref_mut_name = names::ref_mut_name(&input.name);
 
     let ref_doc_url = format!("[`{0}`](struct.{0}.html)", ref_name);
     let ref_mut_doc_url = format!("[`{0}`](struct.{0}.html)", ref_mut_name);

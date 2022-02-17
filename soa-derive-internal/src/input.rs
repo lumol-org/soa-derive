@@ -1,7 +1,7 @@
 use std::convert::TryInto;
 
 use proc_macro2::Span;
-use quote::{quote, ToTokens};
+use quote::quote;
 
 use syn::{Attribute, Data, DeriveInput, Field, Ident, Path, Visibility, Type};
 use syn::{Meta, MetaList, NestedMeta};
@@ -174,9 +174,7 @@ impl Input {
             _ => panic!("#[derive(StructOfArray)] only supports struct"),
         };
 
-        if fields.is_empty() {
-            panic!("#[derive(StructOfArray)] only supports struct with fields");
-        }
+        assert!(!fields.is_empty(), "#[derive(StructOfArray)] only supports struct with fields");
 
         let mut extra_attrs = ExtraAttributes::new();
 
@@ -189,9 +187,7 @@ impl Input {
                                 match element {
                                     NestedMeta::Meta(meta) => {
                                         let path = meta.path();
-                                        if path.is_ident("Copy") {
-                                            panic!("can not derive Copy for SoA vectors");
-                                        }
+                                        assert!(!path.is_ident("Copy"), "can not derive Copy for SoA vectors");
                                         extra_attrs.add_derive(path);
                                     }
                                     NestedMeta::Lit(_) => {
@@ -223,39 +219,13 @@ impl Input {
         }
     }
 
-    pub fn vec_name(&self) -> Ident {
-        Ident::new(&format!("{}Vec", self.name), Span::call_site())
-    }
-
-    pub fn slice_name(name: &impl ToTokens) -> Ident {
-        Ident::new(&format!("{}Slice", name.to_token_stream()), Span::call_site())
-    }
-
-    pub fn slice_mut_name(name: &impl ToTokens) -> Ident {
-        Ident::new(&format!("{}SliceMut", name.to_token_stream()), Span::call_site())
-    }
-
-    pub fn ref_name(name: &impl ToTokens) -> Ident {
-        Ident::new(&format!("{}Ref", name.to_token_stream()), Span::call_site())
-    }
-
-    pub fn ref_mut_name(name: &impl ToTokens) -> Ident {
-        Ident::new(&format!("{}RefMut", name.to_token_stream()), Span::call_site())
-    }
-
-    pub fn ptr_name(name: &impl ToTokens) -> Ident {
-        Ident::new(&format!("{}Ptr", name.to_token_stream()), Span::call_site())
-    }
-
-    pub fn ptr_mut_name(name: &impl ToTokens) -> Ident {
-        Ident::new(&format!("{}PtrMut", name.to_token_stream()), Span::call_site())
-    }
     pub fn iter_fields(&self) -> impl Iterator<Item = (&Ident, &Type, bool)> {
         self.fields.iter().zip(self.field_is_nested.iter()).map(|(field, is_nested)| {
             (field.ident.as_ref().unwrap(), &field.ty, *is_nested)
         })
     }
 }
+
 pub(crate) trait TokenStreamIterator {
     fn concat_by(self, f: impl Fn(proc_macro2::TokenStream, proc_macro2::TokenStream) -> proc_macro2::TokenStream) -> proc_macro2::TokenStream;
     fn concat(self) -> proc_macro2::TokenStream;
@@ -278,15 +248,21 @@ impl<T: Iterator<Item = proc_macro2::TokenStream>> TokenStreamIterator for T {
     }
 }
 
-#[test]
-fn concat() {
-    let tokenstreams = vec![quote!{a}, quote!{b}, quote!{c}];
-    assert_eq!(tokenstreams.into_iter().concat().to_string(), "a b c");
-}
-#[test]
-fn concat_by() {
-    let tokenstreams = vec![quote!{a}, quote!{b}, quote!{c}];
-    assert_eq!(tokenstreams.into_iter().concat_by(|current, next| {
-        quote!{(#current, #next)}
-    }).to_string(), "((a , b) , c)");
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn concat() {
+        let token_streams = vec![quote!{a}, quote!{b}, quote!{c}];
+        assert_eq!(token_streams.into_iter().concat().to_string(), "a b c");
+    }
+
+    #[test]
+    fn concat_by() {
+        let token_streams = vec![quote!{a}, quote!{b}, quote!{c}];
+        assert_eq!(token_streams.into_iter().concat_by(|current, next| {
+            quote!{(#current, #next)}
+        }).to_string(), "((a , b) , c)");
+    }
 }

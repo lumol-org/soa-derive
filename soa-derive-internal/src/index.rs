@@ -2,17 +2,18 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 use crate::input::{Input, TokenStreamIterator};
+use crate::names;
 
 pub fn derive(input: &Input) -> TokenStream {
-    let vec_name = &input.vec_name();
-    let slice_name = Input::slice_name(&input.name);
-    let slice_mut_name = Input::slice_mut_name(&input.name);
-    let ref_name = Input::ref_name(&input.name);
-    let ref_mut_name = Input::ref_mut_name(&input.name);
+    let vec_name = names::vec_name(&input.name);
+    let slice_name = names::slice_name(&input.name);
+    let slice_mut_name = names::slice_mut_name(&input.name);
+    let ref_name = names::ref_name(&input.name);
+    let ref_mut_name = names::ref_mut_name(&input.name);
     let fields_names = input.fields.iter()
                                    .map(|field| field.ident.clone().unwrap())
                                    .collect::<Vec<_>>();
-    
+
     let get_unchecked = input.iter_fields().map(
         |(field_ident, _, is_nested)| {
             if is_nested {
@@ -27,7 +28,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         },
     ).concat();
-    
+
     let get_unchecked_mut = input.iter_fields().map(
         |(field_ident, _, is_nested)| {
             if is_nested {

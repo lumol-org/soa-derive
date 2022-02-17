@@ -4,23 +4,24 @@ use quote::TokenStreamExt;
 use quote::quote;
 
 use crate::input::{Input, TokenStreamIterator};
+use crate::names;
 
 pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
     let vec_name_str = format!("Vec<{}>", name);
     let attrs = &input.attrs.vec;
     let visibility = &input.visibility;
-    let vec_name = &input.vec_name();
-    let slice_name = Input::slice_name(name);
-    let slice_mut_name = Input::slice_mut_name(&input.name);
-    let ref_name = Input::ref_name(&input.name);
-    let ptr_name = Input::ptr_name(&input.name);
-    let ptr_mut_name = Input::ptr_mut_name(&input.name);
+    let vec_name = names::vec_name(&input.name);
+    let slice_name = names::slice_name(name);
+    let slice_mut_name = names::slice_mut_name(&input.name);
+    let ref_name = names::ref_name(&input.name);
+    let ptr_name = names::ptr_name(&input.name);
+    let ptr_mut_name = names::ptr_mut_name(&input.name);
 
     let fields_names = &input.fields.iter()
                                    .map(|field| field.ident.as_ref().unwrap())
                                    .collect::<Vec<_>>();
-    
+
     let fields_names_hygienic = input.fields.iter()
         .enumerate()
         .map(|(i, _)| Ident::new(&format!("___soa_derive_private_{}", i), Span::call_site()))
