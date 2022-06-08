@@ -151,7 +151,7 @@ fn soa_big_do_work_1000(bencher: &mut Bencher) {
     bencher.iter(||{
         let mut s = 0.0;
         for (position, velocity) in vec.position.iter().zip(&vec.velocity) {
-            s += position.0 + velocity.0;
+            s += position.0 + velocity.0 * 0.1;
         }
         s
     })
@@ -162,7 +162,7 @@ fn soa_big_do_work_10000(bencher: &mut Bencher) {
     bencher.iter(||{
         let mut s = 0.0;
         for (position, velocity) in vec.position.iter().zip(&vec.velocity) {
-            s += position.0 + velocity.0;
+            s += position.0 + velocity.0 * 0.1;
         }
         s
     })
