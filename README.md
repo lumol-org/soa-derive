@@ -184,20 +184,20 @@ Here are a few [simple benchmarks](benches/soa.rs) results, on my machine:
 
 ```
 running 10 tests
-test aos_big_do_work_1000    ... bench:         997 ns/iter (+/- 192)
-test aos_big_do_work_10000   ... bench:      21,324 ns/iter (+/- 3,282)
-test aos_big_push            ... bench:          93 ns/iter (+/- 17)
-test aos_small_do_work_10000 ... bench:       8,822 ns/iter (+/- 1,459)
-test aos_small_push          ... bench:          10 ns/iter (+/- 4)
-test soa_big_do_work_1000    ... bench:         890 ns/iter (+/- 142)
-test soa_big_do_work_10000   ... bench:      10,538 ns/iter (+/- 1,621)
-test soa_big_push            ... bench:         171 ns/iter (+/- 44)
-test soa_small_do_work_10000 ... bench:       8,978 ns/iter (+/- 1,538)
-test soa_small_push          ... bench:          24 ns/iter (+/- 6)
+test aos_big_do_work_100k   ... bench:     415,315 ns/iter (+/- 72,861)
+test aos_big_do_work_10k    ... bench:      10,087 ns/iter (+/- 219)
+test aos_big_push           ... bench:          50 ns/iter (+/- 10)
+test aos_small_do_work_100k ... bench:      93,377 ns/iter (+/- 1,106)
+test aos_small_push         ... bench:           3 ns/iter (+/- 1)
+test soa_big_do_work_100k   ... bench:      93,719 ns/iter (+/- 2,793)
+test soa_big_do_work_10k    ... bench:       9,253 ns/iter (+/- 103)
+test soa_big_push           ... bench:          39 ns/iter (+/- 13)
+test soa_small_do_work_100k ... bench:      93,301 ns/iter (+/- 1,765)
+test soa_small_push         ... bench:           4 ns/iter (+/- 1)
 ```
 
 Benchmarks tests exist for soa (struct of array) and aos (array of struct)
-versions of the same code, using a small and a big struct.
+versions of the same code, using a small (24 bytes) and a big (240 bytes) struct.
 
 You can run the same benchmarks on your own system by cloning this repository
 and running `cargo bench`.

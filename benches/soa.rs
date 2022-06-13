@@ -41,7 +41,7 @@ impl Small {
 pub struct Big {
     position: (f64, f64, f64),
     velocity: (f64, f64, f64),
-    id: usize,
+    data: [usize; 18],
     name: String,
     userdata: String
 }
@@ -51,7 +51,7 @@ impl Big {
         Big {
             position: (1.0, 0.2, -2.3),
             velocity: (1.0, 0.2, -2.3),
-            id: 67,
+            data: [67; 18],
             name: "foo".into(),
             userdata: "bar".into()
         }
@@ -102,8 +102,8 @@ fn soa_big_push(bencher: &mut Bencher) {
     })
 }
 
-fn aos_small_do_work_10000(bencher: &mut Bencher) {
-    let vec = Small::aos_vec(10000);
+fn aos_small_do_work_100k(bencher: &mut Bencher) {
+    let vec = Small::aos_vec(100_000);
     bencher.iter(||{
         let mut s = 0.0;
         for v in &vec {
@@ -113,8 +113,8 @@ fn aos_small_do_work_10000(bencher: &mut Bencher) {
     })
 }
 
-fn soa_small_do_work_10000(bencher: &mut Bencher) {
-    let vec = Small::soa_vec(10000);
+fn soa_small_do_work_100k(bencher: &mut Bencher) {
+    let vec = Small::soa_vec(100_000);
     bencher.iter(||{
         let mut s = 0.0;
         for (x, y) in vec.x.iter().zip(&vec.y) {
@@ -124,8 +124,8 @@ fn soa_small_do_work_10000(bencher: &mut Bencher) {
     })
 }
 
-fn aos_big_do_work_1000(bencher: &mut Bencher) {
-    let vec = Big::aos_vec(1000);
+fn aos_big_do_work_10k(bencher: &mut Bencher) {
+    let vec = Big::aos_vec(10_000);
     bencher.iter(||{
         let mut s = 0.0;
         for v in &vec {
@@ -135,8 +135,8 @@ fn aos_big_do_work_1000(bencher: &mut Bencher) {
     })
 }
 
-fn aos_big_do_work_10000(bencher: &mut Bencher) {
-    let vec = Big::aos_vec(10000);
+fn aos_big_do_work_100k(bencher: &mut Bencher) {
+    let vec = Big::aos_vec(100_000);
     bencher.iter(||{
         let mut s = 0.0;
         for v in &vec {
@@ -146,23 +146,23 @@ fn aos_big_do_work_10000(bencher: &mut Bencher) {
     })
 }
 
-fn soa_big_do_work_1000(bencher: &mut Bencher) {
-    let vec = Big::soa_vec(1000);
+fn soa_big_do_work_10k(bencher: &mut Bencher) {
+    let vec = Big::soa_vec(10_000);
     bencher.iter(||{
         let mut s = 0.0;
         for (position, velocity) in vec.position.iter().zip(&vec.velocity) {
-            s += position.0 + velocity.0 * 0.1;
+            s += position.0 + velocity.0;
         }
         s
     })
 }
 
-fn soa_big_do_work_10000(bencher: &mut Bencher) {
-    let vec = Big::soa_vec(10000);
+fn soa_big_do_work_100k(bencher: &mut Bencher) {
+    let vec = Big::soa_vec(100_000);
     bencher.iter(||{
         let mut s = 0.0;
         for (position, velocity) in vec.position.iter().zip(&vec.velocity) {
-            s += position.0 + velocity.0 * 0.1;
+            s += position.0 + velocity.0;
         }
         s
     })
@@ -170,11 +170,11 @@ fn soa_big_do_work_10000(bencher: &mut Bencher) {
 
 
 benchmark_group!(aos,
-    aos_small_push, aos_big_push, aos_small_do_work_10000, aos_big_do_work_1000,
-    aos_big_do_work_10000
+    aos_small_push, aos_big_push, aos_small_do_work_100k, aos_big_do_work_10k,
+    aos_big_do_work_100k
 );
 benchmark_group!(soa,
-    soa_small_push, soa_big_push, soa_small_do_work_10000, soa_big_do_work_1000,
-    soa_big_do_work_10000
+    soa_small_push, soa_big_push, soa_small_do_work_100k, soa_big_do_work_10k,
+    soa_big_do_work_100k
 );
 benchmark_main!(soa, aos);
