@@ -280,6 +280,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
     let slice_mut_name = names::slice_mut_name(&input.name);
     let vec_name = names::vec_name(&input.name);
     let attrs = &input.attrs.slice_mut;
+    let ref_name = names::ref_name(&input.name);
     let ref_mut_name = names::ref_mut_name(&input.name);
     let ptr_name = names::ptr_name(&input.name);
     let ptr_mut_name = names::ptr_mut_name(&input.name);
@@ -384,6 +385,35 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 }
             }
         },
+    ).concat();
+
+    let nested_ord = input.iter_fields().map(
+        |(_, field_type, is_nested)| {
+            if is_nested {
+                let field_ref_type = names::ref_name(field_type);
+
+                quote! {
+                    // TODO: lifetime might have to be different for each nested SoA (?)
+                    for<'b> #field_ref_type<'b>: Ord,
+                }
+            } else {
+                quote! {}
+            }
+        }
+    ).concat();
+
+    let slice_sort = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
+            if is_nested {
+                quote! {
+                    self.#field_ident.apply_permutation(permutation);
+                }
+            } else {
+                quote! {
+                    permutation.apply_slice_in_place(&mut self.#field_ident);
+                }
+            }
+        }
     ).concat();
 
     let mut generated = quote! {
@@ -631,6 +661,29 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 #slice_mut_name {
                     #slice_from_raw_parts_mut
                 }
+            }
+        }
+
+        #[allow(dead_code)]
+        impl<'a> #slice_mut_name<'a>
+        where
+            for<'b> #ref_name<'b>: Ord,
+            #nested_ord
+        {
+            #[doc(hidden)]
+            pub fn apply_permutation(&mut self, permutation: &mut soa_derive::Permutation) {
+                #slice_sort
+            }
+
+            /// Similar to [`std::slice::sort()`](https://doc.rust-lang.org/std/primitive.slice.html#method.sort).
+            pub fn sort(&mut self) {
+                use soa_derive::Permutation;
+        
+                let mut permutation: Vec<usize> = (0..self.len()).collect();
+                permutation.sort_by_key(|i| self.index(*i));
+                
+                let mut permutation = Permutation::oneline(permutation).inverse();
+                self.apply_permutation(&mut permutation);
             }
         }
     };

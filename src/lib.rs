@@ -234,7 +234,8 @@ pub use soa_derive_internal::StructOfArray;
 
 // External dependency necessary for implementing the sorting methods.
 // It is basically used by the macro-generated code.
-pub use permutation::permutation;
+#[doc(hidden)]
+pub use permutation::permutation::*;
 
 /// Any struct derived by StructOfArray will auto impl this trait You can use
 /// `<Cheese as StructOfArray>::Type` instead of explicit named type
