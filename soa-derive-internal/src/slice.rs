@@ -393,7 +393,6 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 let field_ref_type = names::ref_name(field_type);
 
                 quote! {
-                    // TODO: lifetime might have to be different for each nested SoA (?)
                     for<'b> #field_ref_type<'b>: Ord,
                 }
             } else {
@@ -402,7 +401,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         }
     ).concat();
 
-    let slice_sort = input.iter_fields().map(
+    let apply_permutation = input.iter_fields().map(
         |(field_ident, _, is_nested)| {
             if is_nested {
                 quote! {
@@ -665,10 +664,12 @@ pub fn derive_mut(input: &Input) -> TokenStream {
 
             #[doc(hidden)]
             pub fn apply_permutation(&mut self, permutation: &mut soa_derive::Permutation) {
-                #slice_sort
+                #apply_permutation
             }
-
-            /// Similar to [`std::slice::sort_by()`](https://doc.rust-lang.org/std/primitive.slice.html#method.sort_by).
+            
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::sort_by()`](https://doc.rust-lang.org/std/primitive.slice.html#method.sort_by).
             pub fn sort_by<F>(&mut self, mut f: F)
             where
                 F: FnMut(#ref_name, #ref_name) -> std::cmp::Ordering,
@@ -682,7 +683,9 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 self.apply_permutation(&mut permutation);
             }
 
-            /// Similar to [`std::slice::sort_by_key()`](https://doc.rust-lang.org/std/primitive.slice.html#method.sort_by_key).
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::sort_by_key()`](https://doc.rust-lang.org/std/primitive.slice.html#method.sort_by_key).
             pub fn sort_by_key<F, K>(&mut self, mut f: F)
             where
                 F: FnMut(#ref_name) -> K,
@@ -704,7 +707,9 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             for<'b> #ref_name<'b>: Ord,
             #nested_ord
         {
-            /// Similar to [`std::slice::sort()`](https://doc.rust-lang.org/std/primitive.slice.html#method.sort).
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::sort()`](https://doc.rust-lang.org/std/primitive.slice.html#method.sort).
             pub fn sort(&mut self) {
                 use soa_derive::Permutation;
         
