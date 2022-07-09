@@ -662,6 +662,40 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                     #slice_from_raw_parts_mut
                 }
             }
+
+            #[doc(hidden)]
+            pub fn apply_permutation(&mut self, permutation: &mut soa_derive::Permutation) {
+                #slice_sort
+            }
+
+            /// Similar to [`std::slice::sort_by()`](https://doc.rust-lang.org/std/primitive.slice.html#method.sort_by).
+            pub fn sort_by<F>(&mut self, mut f: F)
+            where
+                F: FnMut(#ref_name, #ref_name) -> std::cmp::Ordering,
+            {
+                use soa_derive::Permutation;
+        
+                let mut permutation: Vec<usize> = (0..self.len()).collect();
+                permutation.sort_by(|j, k| f(self.index(*j), self.index(*k)));
+                
+                let mut permutation = Permutation::oneline(permutation).inverse();
+                self.apply_permutation(&mut permutation);
+            }
+
+            /// Similar to [`std::slice::sort_by_key()`](https://doc.rust-lang.org/std/primitive.slice.html#method.sort_by_key).
+            pub fn sort_by_key<F, K>(&mut self, mut f: F)
+            where
+                F: FnMut(#ref_name) -> K,
+                K: Ord, 
+            {
+                use soa_derive::Permutation;
+        
+                let mut permutation: Vec<usize> = (0..self.len()).collect();
+                permutation.sort_by_key(|i| f(self.index(*i)));
+                
+                let mut permutation = Permutation::oneline(permutation).inverse();
+                self.apply_permutation(&mut permutation);
+            }
         }
 
         #[allow(dead_code)]
@@ -670,11 +704,6 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             for<'b> #ref_name<'b>: Ord,
             #nested_ord
         {
-            #[doc(hidden)]
-            pub fn apply_permutation(&mut self, permutation: &mut soa_derive::Permutation) {
-                #slice_sort
-            }
-
             /// Similar to [`std::slice::sort()`](https://doc.rust-lang.org/std/primitive.slice.html#method.sort).
             pub fn sort(&mut self) {
                 use soa_derive::Permutation;
