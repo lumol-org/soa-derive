@@ -20,6 +20,7 @@ members = [
 
 [dependencies]
 soa_derive_internal = {path = "soa-derive-internal", version = "0.12"}
+permutation = "0.4.0"
 
 [dev-dependencies]
 bencher = "0.1"
