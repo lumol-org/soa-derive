@@ -232,6 +232,11 @@
 // macro_rules macro.
 pub use soa_derive_internal::StructOfArray;
 
+// External dependency necessary for implementing the sorting methods.
+// It is basically used by the macro-generated code.
+#[doc(hidden)]
+pub use permutation::permutation::*;
+
 /// Any struct derived by StructOfArray will auto impl this trait You can use
 /// `<Cheese as StructOfArray>::Type` instead of explicit named type
 /// `CheeseVec`; This will helpful in generics programing that generate struct

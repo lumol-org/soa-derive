@@ -126,3 +126,24 @@ fn split_non_mut() {
     assert_eq!(end.len(), 3);
     assert_eq!(end.name[0], "Na");
 }
+
+#[test]
+fn sort() {
+    let mut particles = ParticleVec::new();
+    particles.push(Particle::new(String::from("Na3"), 168.0));
+    particles.push(Particle::new(String::from("Na"), 56.0));
+    particles.push(Particle::new(String::from("Na4"), 224.0));
+    particles.push(Particle::new(String::from("Na2"), 112.0));
+
+    let mut slice = particles.as_mut_slice();
+
+    slice.sort_by(|j, k| { j.partial_cmp(&k).unwrap() });
+
+    let mut ordered_particles = ParticleVec::new();
+    ordered_particles.push(Particle::new(String::from("Na"), 56.0));
+    ordered_particles.push(Particle::new(String::from("Na2"), 112.0));
+    ordered_particles.push(Particle::new(String::from("Na3"), 168.0));
+    ordered_particles.push(Particle::new(String::from("Na4"), 224.0));
+
+    assert_eq!(particles, ordered_particles);
+}
