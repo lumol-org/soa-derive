@@ -137,7 +137,7 @@ fn sort() {
 
     let mut slice = particles.as_mut_slice();
 
-    slice.sort_by(|j, k| { j.partial_cmp(&k).unwrap() });
+    slice.sort_by(|j, k| j.partial_cmp(&k).unwrap());
 
     let mut ordered_particles = ParticleVec::new();
     ordered_particles.push(Particle::new(String::from("Na"), 56.0));
