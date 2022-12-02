@@ -71,6 +71,14 @@ fn split() {
         assert_eq!(end.len(), 3);
         assert_eq!(end.name[0], "Na");
     }
+
+    {
+        let (start, end) = slice.into_split_at_mut(1);
+        assert_eq!(start.len(), 1);
+        assert_eq!(start.name[0], "Cl");
+        assert_eq!(end.len(), 3);
+        assert_eq!(end.name[0], "Na");
+    }
 }
 
 #[test]

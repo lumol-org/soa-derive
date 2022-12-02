@@ -354,6 +354,21 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         })
         .concat();
 
+    let into_split_at_mut = input
+        .iter_fields()
+        .map(|(_, _, is_nested)| {
+            if is_nested {
+                quote! {
+                    into_split_at_mut
+                }
+            } else {
+                quote! {
+                    split_at_mut
+                }
+            }
+        })
+        .collect::<Vec<_>>();
+
     let slice_as_ref = input
         .iter_fields()
         .map(|(field_ident, _, is_nested)| {
@@ -557,6 +572,20 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             pub fn split_at_mut(&mut self, mid: usize) -> (#slice_mut_name, #slice_mut_name) {
                 #(
                     let (#slice_names_1, #slice_names_2) = self.#fields_names_2.split_at_mut(mid);
+                )*
+                let left = #slice_mut_name{#(#fields_names_1: #slice_names_1),*};
+                let right = #slice_mut_name{#(#fields_names_1: #slice_names_2),*};
+                (left, right)
+            }
+
+            /// Similar to [`
+            #[doc = #slice_name_str]
+            /// ::split_at_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_at_mut).
+            ///
+            /// This method can retain the life-time of the slice.
+            pub fn into_split_at_mut(mut self, mid: usize) -> (#slice_mut_name<'a>, #slice_mut_name<'a>) {
+                #(
+                    let (#slice_names_1, #slice_names_2) = self.#fields_names_2.#into_split_at_mut(mid);
                 )*
                 let left = #slice_mut_name{#(#fields_names_1: #slice_names_1),*};
                 let right = #slice_mut_name{#(#fields_names_1: #slice_names_2),*};
