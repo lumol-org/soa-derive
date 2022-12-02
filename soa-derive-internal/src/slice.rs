@@ -692,8 +692,10 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 }
             }
 
-            #[doc(hidden)]
-            fn apply_permutation(&mut self, permutation: &mut soa_derive::Permutation) {
+            /// Apply the permutation.
+            ///
+            /// See [`Self::sort_by()`] and [`Self::sort_by_key()`]
+            pub fn apply_permutation(&mut self, permutation: &mut soa_derive::Permutation) {
                 #apply_permutation
             }
 
