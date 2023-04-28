@@ -1,4 +1,4 @@
-use proc_macro2::{TokenStream};
+use proc_macro2::TokenStream;
 use quote::quote;
 
 use crate::input::{Input, TokenStreamIterator};
@@ -12,6 +12,10 @@ pub fn derive(input: &Input) -> TokenStream {
     let vec_name = names::vec_name(&input.name);
     let ref_name = names::ref_name(&input.name);
     let ref_mut_name = names::ref_mut_name(&input.name);
+
+    let fields_types = &input.fields.iter()
+        .map(|field| field.ty.clone())
+        .collect::<Vec<_>>();
 
     let doc_url = format!("[`{0}`](struct.{0}.html)", name);
     let ref_doc_url = format!("[`{0}`](struct.{0}.html)", ref_name);
@@ -85,6 +89,21 @@ pub fn derive(input: &Input) -> TokenStream {
         },
     ).concat();
 
+    let to_owned = input.iter_fields().map(
+        |(field_ident, _, is_nested)| {
+            if is_nested {
+                quote! {
+                    #field_ident: self.#field_ident.to_owned(),
+                }
+            }
+            else {
+                quote! {
+                    #field_ident: self.#field_ident.clone(),
+                }
+            }
+        },
+    ).concat();
+
     quote! {
         /// A reference to a
         #[doc = #doc_url]
@@ -124,6 +143,38 @@ pub fn derive(input: &Input) -> TokenStream {
             #visibility fn as_mut(&mut self) -> #ref_mut_name {
                 #ref_mut_name {
                     #as_mut
+                }
+            }
+        }
+
+        impl<'a> #ref_name<'a> {
+            /// Convert a reference to
+            #[doc = #doc_url]
+            /// into an owned value. This is only available if all fields
+            /// implement `Clone`.
+            pub fn to_owned(&self) -> #name
+                // only expose to_owned is all fields are Clone
+                // https://github.com/rust-lang/rust/issues/48214#issuecomment-1150463333
+                where #( for<'b> #fields_types: Clone, )*
+            {
+                #name {
+                    #to_owned
+                }
+            }
+        }
+
+        impl<'a> #ref_mut_name<'a> {
+            /// Convert a mutable reference to
+            #[doc = #doc_url]
+            /// into an owned value. This is only available if all fields
+            /// implement `Clone`.
+            pub fn to_owned(&self) -> #name
+                // only expose to_owned is all fields are Clone
+                // https://github.com/rust-lang/rust/issues/48214#issuecomment-1150463333
+                where #( for<'b> #fields_types: Clone, )*
+            {
+                #name {
+                    #to_owned
                 }
             }
         }

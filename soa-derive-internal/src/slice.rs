@@ -19,8 +19,8 @@ pub fn derive(input: &Input) -> TokenStream {
     let vec_doc_url = format!("[`{0}`](struct.{0}.html)", vec_name);
 
     let fields_names = &input.fields.iter()
-                                   .map(|field| field.ident.as_ref().unwrap())
-                                   .collect::<Vec<_>>();
+        .map(|field| field.ident.as_ref().unwrap())
+        .collect::<Vec<_>>();
 
     let first_field = &fields_names[0];
 
@@ -666,7 +666,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             fn apply_permutation(&mut self, permutation: &mut soa_derive::Permutation) {
                 #apply_permutation
             }
-            
+
             /// Similar to [`
             #[doc = #slice_name_str]
             /// ::sort_by()`](https://doc.rust-lang.org/std/primitive.slice.html#method.sort_by).
@@ -675,10 +675,10 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 F: FnMut(#ref_name, #ref_name) -> std::cmp::Ordering,
             {
                 use soa_derive::Permutation;
-        
+
                 let mut permutation: Vec<usize> = (0..self.len()).collect();
                 permutation.sort_by(|j, k| f(self.index(*j), self.index(*k)));
-                
+
                 let mut permutation = Permutation::oneline(permutation).inverse();
                 self.apply_permutation(&mut permutation);
             }
@@ -689,13 +689,13 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             pub fn sort_by_key<F, K>(&mut self, mut f: F)
             where
                 F: FnMut(#ref_name) -> K,
-                K: Ord, 
+                K: Ord,
             {
                 use soa_derive::Permutation;
-        
+
                 let mut permutation: Vec<usize> = (0..self.len()).collect();
                 permutation.sort_by_key(|i| f(self.index(*i)));
-                
+
                 let mut permutation = Permutation::oneline(permutation).inverse();
                 self.apply_permutation(&mut permutation);
             }
@@ -712,10 +712,10 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::sort()`](https://doc.rust-lang.org/std/primitive.slice.html#method.sort).
             pub fn sort(&mut self) {
                 use soa_derive::Permutation;
-        
+
                 let mut permutation: Vec<usize> = (0..self.len()).collect();
                 permutation.sort_by_key(|i| self.index(*i));
-                
+
                 let mut permutation = Permutation::oneline(permutation).inverse();
                 self.apply_permutation(&mut permutation);
             }
