@@ -17,6 +17,7 @@ fn private() {
 }
 
 pub struct Empty;
+
 #[derive(StructOfArray)]
 pub struct NoTraits {
     inner: Empty,
