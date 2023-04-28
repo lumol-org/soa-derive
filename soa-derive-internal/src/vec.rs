@@ -84,6 +84,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
 
         #[allow(dead_code)]
+        #[allow(clippy::forget_non_drop)]
         impl #vec_name {
             /// Similar to [`
             #[doc = #vec_name_str]
@@ -194,7 +195,12 @@ pub fn derive(input: &Input) -> TokenStream {
             #[doc = #vec_name_str]
             /// ::insert()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.insert).
             pub fn insert(&mut self, index: usize, element: #name) {
-                // similar to push, we can not use move and have to rely on ptr read/write
+                if index > self.len() {
+                    panic!("index out of bounds: the len is {} but the index is {}", self.len(), index);
+                }
+
+                // similar to push, we can not use move and have to rely on ptr
+                // read/write
                 unsafe {
                     #(self.#fields_names.insert(index, ::std::ptr::read(&element.#fields_names));)*
                 }
@@ -396,10 +402,11 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
+        #[allow(clippy::drop_non_drop)]
         impl Drop for #vec_name {
             fn drop(&mut self) {
                 while let Some(value) = self.pop() {
-                    drop(value);
+                    ::std::mem::drop(value);
                 }
             }
         }

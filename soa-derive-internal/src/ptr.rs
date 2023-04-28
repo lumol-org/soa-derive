@@ -188,6 +188,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
 
         #[allow(dead_code)]
+        #[allow(clippy::forget_non_drop)]
         impl #ptr_mut_name {
             /// Convert a
             #[doc = #ptr_mut_doc_url]
