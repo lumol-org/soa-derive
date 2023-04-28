@@ -2,6 +2,7 @@
 
 #![allow(clippy::needless_return, clippy::redundant_field_names)]
 #![allow(clippy::use_self, clippy::too_many_lines, clippy::missing_panics_doc)]
+#![allow(clippy::uninlined_format_args)]
 
 extern crate proc_macro;
 
