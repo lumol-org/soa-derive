@@ -1,15 +1,14 @@
-use std::convert::TryInto;
-
 use proc_macro2::Span;
 use quote::quote;
 
-use syn::{Attribute, Data, DeriveInput, Field, Ident, Path, Visibility, Type};
-use syn::{Meta, MetaList, NestedMeta};
+use syn::punctuated::Punctuated;
+use syn::{Attribute, Data, DeriveInput, Field, Path, Visibility, Type, Token};
+use syn::{Meta, MetaList};
 
 /// Representing the struct we are deriving
 pub struct Input {
     /// The input struct name
-    pub name: Ident,
+    pub name: syn::Ident,
     /// The list of fields in the struct
     pub fields: Vec<Field>,
     /// Is field marked with `#[nested_soa]`
@@ -48,79 +47,25 @@ impl ExtraAttributes {
         }
     }
 
-    /// parse a single `#[soa_attr(...)]`
-    fn parse(&mut self, meta: &Meta) {
-        match meta {
-            Meta::List(MetaList { nested, .. }) => {
-                let [soa_type, attr]: [NestedMeta; 2] = nested.into_iter()
-                    .cloned()
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap_or_else(|_| panic!(
-                        "expected #[soa_attr(\"Types, To, Add, Attribute\", \
-                        \"Attribute\")], got #[{}]", quote!(#meta)
-                    ));
-
-                let attr = match attr {
-                    NestedMeta::Meta(meta) => meta,
-                    NestedMeta::Lit(_) => {
-                        panic!("expected an attribute, got {}", quote!(attr))
-                    }
-                };
-
-                match soa_type {
-                    NestedMeta::Meta(Meta::Path(path)) => match path.get_ident() {
-                        Some(ident) => match ident.to_string().as_str() {
-                            "Vec" => {
-                                self.vec.push(attr);
-                            },
-                            "Slice" => {
-                                self.slice.push(attr);
-                            },
-                            "SliceMut" => {
-                                self.slice_mut.push(attr);
-                            },
-                            "Ref" => {
-                                self.ref_.push(attr);
-                            },
-                            "RefMut" => {
-                                self.ref_mut.push(attr);
-                            },
-                            "Ptr" => {
-                                self.ptr.push(attr);
-                            },
-                            "PtrMut" => {
-                                self.ptr_mut.push(attr);
-                            },
-                            _ => panic!("expected a soa type, got {}", ident),
-                        },
-                        None => {
-                            panic!("expected a soa type, got {}", quote!(#path));
-                        }
-                    },
-                    _ => {
-                        panic!("expected a soa type, got {}", quote!(#soa_type));
-                    }
-                };
-            }
-            _ => panic!("expected #[soa_attr(...)], got #[{}]", quote!(#meta)),
-        }
-    }
-
     /// Add a single trait from `#[soa_derive]`
-    fn add_derive(&mut self, path: &Path) {
-        let derive_only_vec = |path: &Path| {
+    fn add_derive(&mut self, ident: &proc_macro2::Ident) {
+        let derive_only_vec = |ident| {
             static EXCEPTIONS: &[&str] = &["Clone", "Deserialize", "Serialize"];
             for exception in EXCEPTIONS {
-                if path.is_ident(exception) {
+                if ident == exception {
                     return true;
                 }
             }
             return false;
         };
 
-        let derive = create_derive_meta(path.clone());
-        if !derive_only_vec(path) {
+        let derive = Meta::List(MetaList {
+            path: Path::from(syn::Ident::new("derive", Span::call_site())),
+            delimiter: syn::MacroDelimiter::Paren(syn::token::Paren(Span::call_site())),
+            tokens: quote!{ #ident },
+        });
+
+        if !derive_only_vec(ident) {
             self.slice.push(derive.clone());
             self.slice_mut.push(derive.clone());
             self.ref_.push(derive.clone());
@@ -132,32 +77,19 @@ impl ExtraAttributes {
         // always add this derive to the Vec struct
         self.vec.push(derive);
 
-        if path.is_ident("Clone") {
+        if ident == "Clone" {
             self.derive_clone = true;
         }
     }
 }
 
-fn create_derive_meta(path: Path) -> Meta {
-    let mut nested = syn::punctuated::Punctuated::new();
-    nested.push(NestedMeta::Meta(Meta::Path(path)));
-
-    Meta::List(MetaList {
-        path: Path::from(Ident::new("derive", Span::call_site())),
-        paren_token: syn::token::Paren {span: Span::call_site()},
-        nested: nested
-    })
-}
-
 fn contains_nested_soa(attrs: &[Attribute]) -> bool {
     for attr in attrs {
-        if let Ok(Meta::Path(path)) = attr.parse_meta() {
-            if path.is_ident("nested_soa") {
-                return true;
-            }
+        if attr.path().is_ident("nested_soa") {
+            return true;
         }
     }
-    false
+    return false;
 }
 
 impl Input {
@@ -179,33 +111,53 @@ impl Input {
         let mut extra_attrs = ExtraAttributes::new();
 
         for attr in input.attrs {
-            if let Ok(meta) = attr.parse_meta() {
-                if meta.path().is_ident("soa_derive") {
-                    match meta {
-                        Meta::List(ref list) => {
-                            for element in &list.nested {
-                                match element {
-                                    NestedMeta::Meta(meta) => {
-                                        let path = meta.path();
-                                        assert!(!path.is_ident("Copy"), "can not derive Copy for SoA vectors");
-                                        extra_attrs.add_derive(path);
-                                    }
-                                    NestedMeta::Lit(_) => {
-                                        panic!(
-                                            "expected #[soa_derive(Traits, To, Derive)], got #[{}]",
-                                            quote!(#meta)
-                                        );
-                                    }
-                                }
-                            }
+            if attr.path().is_ident("soa_derive") {
+                attr.parse_nested_meta(|meta| {
+                    match meta.path.get_ident() {
+                        Some(ident) => {
+                            assert!(ident != "Copy", "can not derive Copy for SoA vectors");
+                            extra_attrs.add_derive(ident);
                         }
-                        _ => panic!(
-                            "expected #[soa_derive(Traits, To, Derive)], got #[{}]",
-                            quote!(#meta)
-                        ),
+                        None => {
+                            panic!(
+                                "expected #[soa_derive(Traits, To, Derive)], got #[{}]",
+                                quote!(attr)
+                            );
+                        }
                     }
-                } else if meta.path().is_ident("soa_attr") {
-                    extra_attrs.parse(&meta);
+                    Ok(())
+                }).expect("failed to parse soa_derive");
+            }
+
+            if attr.path().is_ident("soa_attr") {
+                let nested = attr.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
+                    .expect("expected attribute like #[soa_attr(<Type>, <attr>)]");
+                assert!(nested.len() == 2, "expected attribute like #[soa_attr(<Type>, <attr>)]");
+
+                let soa_type = nested.first().expect("should have 2 elements");
+                let attr = nested.last().expect("should have 2 elements").clone();
+
+                match soa_type.path().get_ident() {
+                    Some(ident) => {
+                        if ident == "Vec" {
+                            extra_attrs.vec.push(attr);
+                        } else if ident == "Slice" {
+                            extra_attrs.slice.push(attr);
+                        } else if ident == "SliceMut" {
+                            extra_attrs.slice_mut.push(attr);
+                        } else if ident == "Ref" {
+                            extra_attrs.ref_.push(attr);
+                        } else if ident == "RefMut" {
+                            extra_attrs.ref_mut.push(attr);
+                        } else if ident == "Ptr" {
+                            extra_attrs.ptr.push(attr);
+                        } else if ident == "PtrMut" {
+                            extra_attrs.ptr_mut.push(attr);
+                        } else {
+                            panic!("expected one of the SoA type, got {}", quote!(#soa_type));
+                        }
+                    }
+                    None => panic!("expected one of the SoA type, got {}", quote!(#soa_type))
                 }
             }
         }
@@ -219,7 +171,7 @@ impl Input {
         }
     }
 
-    pub fn iter_fields(&self) -> impl Iterator<Item = (&Ident, &Type, bool)> {
+    pub fn iter_fields(&self) -> impl Iterator<Item = (&syn::Ident, &Type, bool)> {
         self.fields.iter().zip(self.field_is_nested.iter()).map(|(field, is_nested)| {
             (field.ident.as_ref().unwrap(), &field.ty, *is_nested)
         })
