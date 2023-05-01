@@ -21,8 +21,8 @@ pub fn derive(input: &Input) -> TokenStream {
     let ref_mut_doc_url = format!("[`{0}`](struct.{0}.html)", ref_mut_name);
 
     let fields_names = &input.fields.iter()
-                                    .map(|field| field.ident.clone().unwrap())
-                                    .collect::<Vec<_>>();
+        .map(|field| field.ident.clone().unwrap())
+        .collect::<Vec<_>>();
 
     let iter_type = input.iter_fields().map(
         |(_, field_type, is_nested)| {
