@@ -3,7 +3,7 @@ use proc_macro2::{TokenStream};
 use quote::TokenStreamExt;
 use quote::quote;
 
-use crate::input::{Input, TokenStreamIterator};
+use crate::input::Input;
 use crate::names;
 
 pub fn derive(input: &Input) -> TokenStream {
@@ -18,6 +18,8 @@ pub fn derive(input: &Input) -> TokenStream {
     let ptr_name = names::ptr_name(&input.name);
     let ptr_mut_name = names::ptr_mut_name(&input.name);
 
+    let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
+
     let fields_names = &input.fields.iter()
         .map(|field| field.ident.as_ref().unwrap())
         .collect::<Vec<_>>();
@@ -29,98 +31,41 @@ pub fn derive(input: &Input) -> TokenStream {
 
     let first_field = &fields_names[0];
 
-    let vec_fields = input.iter_fields().map(
-        |(field_ident, field_type, is_nested)| {
-            let doc = format!("A vector of `{0}` from a [`{1}`](struct.{1}.html)", field_ident, name);
-            if is_nested {
-                quote! {
-                    #[doc = #doc]
-                    pub #field_ident: <#field_type as StructOfArray>::Type,
-                }
-            }
-            else {
-                quote! {
-                    #[doc = #doc]
-                    pub #field_ident: Vec<#field_type>,
-                }
-            }
+    let vec_fields_types = input.map_fields_nested_or(
+        |_, field_type| {
+            let vec_type = names::vec_name(field_type);
+            quote! { #vec_type }
         },
-    ).concat();
+        |_, field_type| quote! { Vec<#field_type> },
+    ).collect::<Vec<_>>();
 
-    let vec_new = input.iter_fields().map(
-        |(field_ident, field_type, is_nested)| {
-            if is_nested {
-                quote! {
-                    #field_ident: <#field_type as StructOfArray>::Type::new(),
-                }
-            }
-            else {
-                quote! {
-                    #field_ident: Vec::new(),
-                }
-            }
-        },
-    ).concat();
+    let vec_new = input.map_fields_nested_or(
+        |_, field_type| quote! { <#field_type as StructOfArray>::Type::new()},
+        |_, _| quote! { Vec::new() },
+    ).collect::<Vec<_>>();
 
-    let vec_with_capacity = input.iter_fields().map(
-        |(field_ident, field_type, is_nested)| {
-            if is_nested {
-                quote! {
-                    #field_ident: <#field_type as StructOfArray>::Type::with_capacity(capacity),
-                }
-            }
-            else {
-                quote! {
-                    #field_ident: Vec::with_capacity(capacity),
-                }
-            }
-        },
-    ).concat();
+    let vec_with_capacity = input.map_fields_nested_or(
+        |_, field_type| quote! { <#field_type as StructOfArray>::Type::with_capacity(capacity) },
+        |_, _| quote! { Vec::with_capacity(capacity) },
+    ).collect::<Vec<_>>();
 
-    let vec_slice = input.iter_fields().map(
-        |(field_ident, _, is_nested)| {
-            if is_nested {
-                quote! {
-                    #field_ident: self.#field_ident.slice(range.clone()),
-                }
-            }
-            else {
-                quote! {
-                    #field_ident: &self.#field_ident[range.clone()],
-                }
-            }
-        },
-    ).concat();
+    let vec_slice = input.map_fields_nested_or(
+        |ident, _| quote! { self.#ident.slice(range.clone()) },
+        |ident, _| quote! { &self.#ident[range.clone()] },
+    ).collect::<Vec<_>>();
 
-    let vec_slice_mut = input.iter_fields().map(
-        |(field_ident, _, is_nested)| {
-            if is_nested {
-                quote! {
-                    #field_ident: self.#field_ident.slice_mut(range.clone()),
-                }
-            }
-            else {
-                quote! {
-                    #field_ident: &mut self.#field_ident[range.clone()],
-                }
-            }
-        },
-    ).concat();
+    let vec_slice_mut = input.map_fields_nested_or(
+        |ident, _| quote! { self.#ident.slice_mut(range.clone()) },
+        |ident, _| quote! { &mut self.#ident[range.clone()] },
+    ).collect::<Vec<_>>();
 
-    let vec_from_raw_parts = input.iter_fields().map(
-        |(field_ident, field_type, is_nested)| {
-            if is_nested {
-                quote! {
-                    #field_ident: <#field_type as StructOfArray>::Type::from_raw_parts(data.#field_ident, len, capacity),
-                }
-            }
-            else {
-                quote! {
-                    #field_ident: Vec::from_raw_parts(data.#field_ident, len, capacity),
-                }
-            }
+    let vec_from_raw_parts = input.map_fields_nested_or(
+        |ident, field_type| {
+            let vec_type = names::vec_name(field_type);
+            quote! { #vec_type::from_raw_parts(data.#ident, len, capacity) }
         },
-    ).concat();
+        |ident, _| quote! { Vec::from_raw_parts(data.#ident, len, capacity) },
+    ).collect::<Vec<_>>();
 
     let mut generated = quote! {
         /// An analog to `
@@ -129,7 +74,13 @@ pub fn derive(input: &Input) -> TokenStream {
         #[allow(dead_code)]
         #(#[#attrs])*
         #visibility struct #vec_name {
-            #vec_fields
+            #(
+                /// a vector of `
+                #[doc = stringify!(#fields_names)]
+                ///` from a
+                #[doc = #doc_url]
+                pub #fields_names: #vec_fields_types,
+            )*
         }
 
         #[allow(dead_code)]
@@ -139,7 +90,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::new()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.new)
             pub fn new() -> #vec_name {
                 #vec_name {
-                    #vec_new
+                    #( #fields_names: #vec_new, )*
                 }
             }
 
@@ -149,7 +100,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// initializing all fields with the given `capacity`.
             pub fn with_capacity(capacity: usize) -> #vec_name {
                 #vec_name {
-                    #vec_with_capacity
+                    #( #fields_names: #vec_with_capacity, )*
                 }
             }
 
@@ -310,7 +261,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// is analogous to `Index<Range<usize>>`.
             pub fn slice(&self, range: ::std::ops::Range<usize>) -> #slice_name {
                 #slice_name {
-                    #vec_slice
+                    #( #fields_names: #vec_slice, )*
                 }
             }
 
@@ -318,7 +269,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// `range`. This is analogous to `IndexMut<Range<usize>>`.
             pub fn slice_mut(&mut self, range: ::std::ops::Range<usize>) -> #slice_mut_name {
                 #slice_mut_name {
-                    #vec_slice_mut
+                    #( #fields_names: #vec_slice_mut, )*
                 }
             }
 
@@ -427,7 +378,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::from_raw_parts()`](https://doc.rust-lang.org/std/struct.Vec.html#method.from_raw_parts).
             pub unsafe fn from_raw_parts(data: #ptr_mut_name, len: usize, capacity: usize) -> #vec_name {
                 #vec_name {
-                    #vec_from_raw_parts
+                    #( #fields_names: #vec_from_raw_parts, )*
                 }
             }
         }

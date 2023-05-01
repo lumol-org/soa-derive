@@ -1,7 +1,8 @@
 use proc_macro2::{Span, TokenStream};
-use quote::ToTokens;
 use syn::{Ident, Visibility};
+
 use quote::TokenStreamExt;
+use quote::ToTokens;
 use quote::quote;
 
 use crate::input::{Input, TokenStreamIterator};
@@ -24,105 +25,62 @@ pub fn derive(input: &Input) -> TokenStream {
         .map(|field| field.ident.clone().unwrap())
         .collect::<Vec<_>>();
 
-    let iter_type = input.iter_fields().map(
-        |(_, field_type, is_nested)| {
-            if is_nested {
-                quote! {
-                    <#field_type as soa_derive::SoAIter<'a>>::Iter
-                }
-            }
-            else {
-                quote! {
-                    slice::Iter<'a, #field_type>
-                }
-            }
-        }).concat_by(
-        |seq, next| {
-            quote! {
-                iter::Zip<#seq, #next>
-            }
-        }
+    let iter_type = input.map_fields_nested_or(
+        |_, field_type| quote! { <#field_type as soa_derive::SoAIter<'a>>::Iter },
+        |_, field_type| quote! { slice::Iter<'a, #field_type> },
+    ).concat_by(
+        |seq, next| { quote! { iter::Zip<#seq, #next> } }
     );
 
-    let iter_mut_type = input.iter_fields().map(
-        |(_, field_type, is_nested)| {
-            if is_nested {
-                quote! {
-                    <#field_type as soa_derive::SoAIter<'a>>::IterMut
-                }
-            }
-            else {
-                quote! {
-                    slice::IterMut<'a, #field_type>
-                }
-            }
-        }).concat_by(
-        |seq, next| {
-            quote! {
-                iter::Zip<#seq, #next>
-            }
-        }
+    let iter_mut_type = input.map_fields_nested_or(
+        |_, field_type| quote! { <#field_type as soa_derive::SoAIter<'a>>::IterMut },
+        |_, field_type| quote! { slice::IterMut<'a, #field_type> },
+    ).concat_by(
+        |seq, next| { quote! { iter::Zip<#seq, #next> } }
     );
 
-    let iter_pat = input.iter_fields().map(
-        |(field_ident, _, _)| {
-            quote! { #field_ident }
-        }).concat_by(
-        |seq, next| {
-            quote! { (#seq, #next) }
-        }
+    let create_into_iter = input.map_fields_nested_or(
+        |ident, _| quote! { self.#ident.into_iter() },
+        |ident, _| quote! { self.#ident.iter() },
+    ).concat_by(
+        |seq, next| { quote! { #seq.zip(#next) } }
     );
 
-    let create_iter = input.iter_fields().map(
-        |(field_ident, _, _)| {
-            quote! { self.#field_ident.iter() }
-        }).concat_by(
-        |seq, next| {
-            quote! { #seq.zip(#next) }
-        }
-    );
-
-    let create_iter_mut = input.iter_fields().map(
-        |(field_ident, _, _)| {
-            quote! { self.#field_ident.iter_mut() }
-        }).concat_by(
-        |seq, next| {
-            quote! { #seq.zip(#next) }
-        }
-    );
-
-    let create_into_iter = input.iter_fields().map(
-        |(field_ident, _, is_nested)| {
-            if is_nested {
-                quote! { self.#field_ident.into_iter() }
-            }
-            else {
-                quote! { self.#field_ident.iter() }
-            }
-        }).concat_by(
-        |seq, next| {
-            quote! { #seq.zip(#next) }
-        }
-    );
-
-    let create_mut_into_iter = input.iter_fields().map(
-        |(field_ident, _, is_nested)| {
-            if is_nested {
-                quote! { self.#field_ident.into_iter() }
-            }
-            else {
-                quote! { self.#field_ident.iter_mut() }
-            }
-        }).concat_by(
-        |seq, next| {
-            quote! { #seq.zip(#next) }
-        }
+    let create_mut_into_iter = input.map_fields_nested_or(
+        |ident, _| quote! { self.#ident.into_iter() },
+        |ident, _| quote! { self.#ident.iter_mut() },
+    ).concat_by(
+        |seq, next| { quote! { #seq.zip(#next) } }
     );
 
     let iter_visibility = match visibility {
         Visibility::Inherited => quote!{pub(super)},
         other => other.to_token_stream(),
     };
+
+    let iter_pat = fields_names.iter().fold(None, |seq, ident| {
+        if let Some(seq) = seq {
+            Some(quote! { (#seq, #ident) })
+        } else {
+            Some(quote!{ #ident })
+        }
+    }).expect("should be Some");
+
+    let create_iter = fields_names.iter().fold(None, |seq, ident| {
+        if let Some(seq) = seq {
+            Some(quote! { #seq.zip(self.#ident.iter()) })
+        } else {
+            Some(quote! { self.#ident.iter() })
+        }
+    }).expect("should be Some");
+
+    let create_iter_mut = fields_names.iter().fold(None, |seq, ident| {
+        if let Some(seq) = seq {
+            Some(quote! { #seq.zip(self.#ident.iter_mut()) })
+        } else {
+            Some(quote! { self.#ident.iter_mut() })
+        }
+    }).expect("should be Some");
 
     let mut generated = quote! {
         #[allow(non_snake_case, dead_code)]
