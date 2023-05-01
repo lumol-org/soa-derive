@@ -43,8 +43,8 @@ fn split() {
     let mut particles = ParticleVec::new();
     {
         let mut slice = particles.as_mut_slice();
-        assert_eq!(slice.split_first_mut(), None);
-        assert_eq!(slice.split_last_mut(), None);
+        assert_eq!(slice.reborrow().split_first_mut(), None);
+        assert_eq!(slice.reborrow().split_last_mut(), None);
     }
     particles.push(Particle::new(String::from("Cl"), 0.0));
     particles.push(Particle::new(String::from("Na"), 0.0));
@@ -53,19 +53,19 @@ fn split() {
 
     let mut slice = particles.as_mut_slice();
     {
-        let (first, end) = slice.split_first_mut().unwrap();
+        let (first, end) = slice.reborrow().split_first_mut().unwrap();
         assert_eq!(first.name, "Cl");
         assert_eq!(end.len(), 3);
     }
 
     {
-        let (last, start) = slice.split_last_mut().unwrap();
+        let (last, start) = slice.reborrow().split_last_mut().unwrap();
         assert_eq!(last.name, "Zn");
         assert_eq!(start.len(), 3);
     }
 
     {
-        let (start, end) = slice.split_at_mut(1);
+        let (start, end) = slice.reborrow().split_at_mut(1);
         assert_eq!(start.len(), 1);
         assert_eq!(start.name[0], "Cl");
         assert_eq!(end.len(), 3);
