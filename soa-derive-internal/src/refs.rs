@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::input::{Input, TokenStreamIterator};
+use crate::input::Input;
 use crate::names;
 
 pub fn derive(input: &Input) -> TokenStream {
@@ -18,91 +18,44 @@ pub fn derive(input: &Input) -> TokenStream {
         .collect::<Vec<_>>();
 
     let doc_url = format!("[`{0}`](struct.{0}.html)", name);
+    let vec_doc_url = format!("[`{0}`](struct.{0}.html)", vec_name);
     let ref_doc_url = format!("[`{0}`](struct.{0}.html)", ref_name);
     let ref_mut_doc_url = format!("[`{0}`](struct.{0}.html)", ref_mut_name);
 
-    let ref_fields = input.iter_fields().map(
-        |(field_ident, field_type, is_nested)| {
-            let doc = format!("A reference to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
-            if is_nested {
-                let field_ref_type = names::ref_name(field_type);
-                quote! {
-                    #[doc = #doc]
-                    pub #field_ident: #field_ref_type<'a>,
-                }
-            }
-            else {
-                quote! {
-                    #[doc = #doc]
-                    pub #field_ident: &'a #field_type,
-                }
-            }
-        },
-    ).concat();
+    let fields_names = &input.fields.iter()
+        .map(|field| field.ident.clone().unwrap())
+        .collect::<Vec<_>>();
 
-    let ref_mut_fields = input.iter_fields().map(
-        |(field_ident, field_type, is_nested)| {
-            let doc = format!("A mutable reference to a `{0}` from a [`{1}`](struct.{1}.html)", field_ident, vec_name);
-            if is_nested {
-                let field_ref_mut_type = names::ref_mut_name(field_type);
-                quote! {
-                    #[doc = #doc]
-                    pub #field_ident: #field_ref_mut_type<'a>,
-                }
-            }
-            else {
-                quote! {
-                    #[doc = #doc]
-                    pub #field_ident: &'a mut #field_type,
-                }
-            }
+    let ref_fields_types = input.map_fields_nested_or(
+        |_, field_type| {
+            let field_ptr_type = names::ref_name(field_type);
+            quote! { #field_ptr_type<'a> }
         },
-    ).concat();
+        |_, field_type| quote! { &'a #field_type },
+    ).collect::<Vec<_>>();
 
-    let as_ref = input.iter_fields().map(
-        |(field_ident, _, is_nested)| {
-            if is_nested {
-                quote! {
-                    #field_ident: self.#field_ident.as_ref(),
-                }
-            }
-            else {
-                quote! {
-                    #field_ident: & self.#field_ident,
-                }
-            }
+    let ref_mut_fields_types = input.map_fields_nested_or(
+        |_, field_type| {
+            let field_ptr_type = names::ref_mut_name(field_type);
+            quote! { #field_ptr_type<'a> }
         },
-    ).concat();
+        |_, field_type| quote! { &'a mut #field_type },
+    ).collect::<Vec<_>>();
 
-    let as_mut = input.iter_fields().map(
-        |(field_ident, _, is_nested)| {
-            if is_nested {
-                quote! {
-                    #field_ident: self.#field_ident.as_mut(),
-                }
-            }
-            else {
-                quote! {
-                    #field_ident: &mut self.#field_ident,
-                }
-            }
-        },
-    ).concat();
+    let as_ref = input.map_fields_nested_or(
+        |ident, _| quote! { self.#ident.as_ref() },
+        |ident, _| quote! { &self.#ident },
+    ).collect::<Vec<_>>();
 
-    let to_owned = input.iter_fields().map(
-        |(field_ident, _, is_nested)| {
-            if is_nested {
-                quote! {
-                    #field_ident: self.#field_ident.to_owned(),
-                }
-            }
-            else {
-                quote! {
-                    #field_ident: self.#field_ident.clone(),
-                }
-            }
-        },
-    ).concat();
+    let as_mut = input.map_fields_nested_or(
+        |ident, _| quote! { self.#ident.as_mut() },
+        |ident, _| quote! { &mut self.#ident },
+    ).collect::<Vec<_>>();
+
+    let to_owned = input.map_fields_nested_or(
+        |ident, _| quote! { self.#ident.to_owned() },
+        |ident, _| quote! { self.#ident.clone() },
+    ).collect::<Vec<_>>();
 
     quote! {
         /// A reference to a
@@ -111,7 +64,15 @@ pub fn derive(input: &Input) -> TokenStream {
         #(#[#attrs])*
         #[derive(Copy, Clone)]
         #visibility struct #ref_name<'a> {
-            #ref_fields
+            #(
+                /// reference to the `
+                #[doc = stringify!(#fields_names)]
+                ///` field of a single
+                #[doc = #doc_url]
+                /// inside a
+                #[doc = #vec_doc_url]
+                pub #fields_names: #ref_fields_types,
+            )*
         }
 
         /// A mutable reference to a
@@ -119,7 +80,15 @@ pub fn derive(input: &Input) -> TokenStream {
         /// with struct of array layout.
         #(#[#mut_attrs])*
         #visibility struct #ref_mut_name<'a> {
-            #ref_mut_fields
+            #(
+                /// reference to the `
+                #[doc = stringify!(#fields_names)]
+                ///` field of a single
+                #[doc = #doc_url]
+                /// inside a
+                #[doc = #vec_doc_url]
+                pub #fields_names: #ref_mut_fields_types,
+            )*
         }
 
         #[allow(dead_code)]
@@ -131,7 +100,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// .
             #visibility fn as_ref(&self) -> #ref_name {
                 #ref_name {
-                    #as_ref
+                    #( #fields_names: #as_ref, )*
                 }
             }
 
@@ -142,7 +111,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// .
             #visibility fn as_mut(&mut self) -> #ref_mut_name {
                 #ref_mut_name {
-                    #as_mut
+                    #( #fields_names: #as_mut, )*
                 }
             }
         }
@@ -158,7 +127,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 where #( for<'b> #fields_types: Clone, )*
             {
                 #name {
-                    #to_owned
+                    #( #fields_names: #to_owned, )*
                 }
             }
         }
@@ -174,7 +143,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 where #( for<'b> #fields_types: Clone, )*
             {
                 #name {
-                    #to_owned
+                    #( #fields_names: #to_owned, )*
                 }
             }
         }
