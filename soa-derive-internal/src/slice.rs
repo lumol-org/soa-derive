@@ -291,18 +291,16 @@ pub fn derive_mut(input: &Input) -> TokenStream {
     let slice_mut_doc_url = format!("[`{0}`](struct.{0}.html)", slice_mut_name);
     let vec_doc_url = format!("[`{0}`](struct.{0}.html)", vec_name);
 
-    let fields_names = input.fields.iter()
-                                   .map(|field| field.ident.clone().unwrap())
-                                   .collect::<Vec<_>>();
+    let fields_names = &input.fields.iter()
+        .map(|field| field.ident.clone().unwrap())
+        .collect::<Vec<_>>();
 
-    let fields_names_1 = &fields_names;
-    let fields_names_2 = &fields_names;
     let first_field = &fields_names[0];
-    let slice_names_1 = &input.fields.iter()
+    let fields_names_hygienic_1 = &input.fields.iter()
         .enumerate()
         .map(|(i, _)| Ident::new(&format!("___soa_derive_private_slice_1_{}", i), Span::call_site()))
         .collect::<Vec<_>>();
-    let slice_names_2 = &input.fields.iter()
+    let fields_names_hygienic_2 = &input.fields.iter()
         .enumerate()
         .map(|(i, _)| Ident::new(&format!("___soa_derive_private_slice_2_{}", i), Span::call_site()))
         .collect::<Vec<_>>();
@@ -447,7 +445,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// the length of all fields should be the same.
             pub fn len(&self) -> usize {
                 let len = self.#first_field.len();
-                #(debug_assert_eq!(self.#fields_names_1.len(), len);)*
+                #(debug_assert_eq!(self.#fields_names.len(), len);)*
                 len
             }
 
@@ -457,7 +455,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// the length of all fields should be the same.
             pub fn is_empty(&self) -> bool {
                 let empty = self.#first_field.is_empty();
-                #(debug_assert_eq!(self.#fields_names_1.is_empty(), empty);)*
+                #(debug_assert_eq!(self.#fields_names.is_empty(), empty);)*
                 empty
             }
 
@@ -469,9 +467,9 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                     None
                 } else {
                     #(
-                        let #fields_names_1 = self.#fields_names_2.first_mut().unwrap();
+                        let #fields_names = self.#fields_names.first_mut().unwrap();
                     )*
-                    Some(#ref_mut_name{#(#fields_names_1: #fields_names_2),*})
+                    Some(#ref_mut_name{#(#fields_names: #fields_names),*})
                 }
             }
 
@@ -483,10 +481,10 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                     None
                 } else {
                     #(
-                        let (#fields_names_1, #slice_names_1) = self.#fields_names_2.split_first_mut().unwrap();
+                        let (#fields_names, #fields_names_hygienic_1) = self.#fields_names.split_first_mut().unwrap();
                     )*
-                    let ref_ = #ref_mut_name{#(#fields_names_1: #fields_names_2),*};
-                    let slice = #slice_mut_name{#(#fields_names_1: #slice_names_1),*};
+                    let ref_ = #ref_mut_name{#(#fields_names: #fields_names),*};
+                    let slice = #slice_mut_name{#(#fields_names: #fields_names_hygienic_1),*};
                     Some((ref_, slice))
                 }
             }
@@ -499,9 +497,9 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                     None
                 } else {
                     #(
-                        let #fields_names_1 = self.#fields_names_2.last_mut().unwrap();
+                        let #fields_names = self.#fields_names.last_mut().unwrap();
                     )*
-                    Some(#ref_mut_name{#(#fields_names_1: #fields_names_2),*})
+                    Some(#ref_mut_name{#(#fields_names: #fields_names),*})
                 }
             }
 
@@ -513,10 +511,10 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                     None
                 } else {
                     #(
-                        let (#fields_names_1, #slice_names_1) = self.#fields_names_2.split_last_mut().unwrap();
+                        let (#fields_names, #fields_names_hygienic_1) = self.#fields_names.split_last_mut().unwrap();
                     )*
-                    let ref_ = #ref_mut_name{#(#fields_names_1: #fields_names_2),*};
-                    let slice = #slice_mut_name{#(#fields_names_1: #slice_names_1),*};
+                    let ref_ = #ref_mut_name{#(#fields_names: #fields_names),*};
+                    let slice = #slice_mut_name{#(#fields_names: #fields_names_hygienic_1),*};
                     Some((ref_, slice))
                 }
             }
@@ -526,10 +524,10 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::split_at_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_at_mut).
             pub fn split_at_mut(&mut self, mid: usize) -> (#slice_mut_name, #slice_mut_name) {
                 #(
-                    let (#slice_names_1, #slice_names_2) = self.#fields_names_2.split_at_mut(mid);
+                    let (#fields_names_hygienic_1, #fields_names_hygienic_2) = self.#fields_names.split_at_mut(mid);
                 )*
-                let left = #slice_mut_name{#(#fields_names_1: #slice_names_1),*};
-                let right = #slice_mut_name{#(#fields_names_1: #slice_names_2),*};
+                let left = #slice_mut_name{#(#fields_names: #fields_names_hygienic_1),*};
+                let right = #slice_mut_name{#(#fields_names: #fields_names_hygienic_2),*};
                 (left, right)
             }
 
@@ -538,7 +536,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::swap()`](https://doc.rust-lang.org/std/primitive.slice.html#method.swap).
             pub fn swap(&mut self, a: usize, b: usize) {
                 #(
-                    self.#fields_names_1.swap(a, b);
+                    self.#fields_names.swap(a, b);
                 )*
             }
 
@@ -642,7 +640,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::as_ptr()`](https://doc.rust-lang.org/std/primitive.slice.html#method.as_ptr).
             pub fn as_ptr(&self) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2.as_ptr(),)*
+                    #(#fields_names: self.#fields_names.as_ptr(),)*
                 }
             }
 
@@ -651,7 +649,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::as_mut_ptr()`](https://doc.rust-lang.org/std/primitive.slice.html#method.as_mut_ptr).
             pub fn as_mut_ptr(&mut self) -> #ptr_mut_name {
                 #ptr_mut_name {
-                    #(#fields_names_1: self.#fields_names_2.as_mut_ptr(),)*
+                    #(#fields_names: self.#fields_names.as_mut_ptr(),)*
                 }
             }
 
@@ -731,7 +729,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 /// ::to_vec()`](https://doc.rust-lang.org/std/primitive.slice.html#method.to_vec).
                 pub fn to_vec(&self) -> #vec_name {
                     #vec_name {
-                        #(#fields_names_1: self.#fields_names_2.to_vec(),)*
+                        #(#fields_names: self.#fields_names.to_vec(),)*
                     }
                 }
             }

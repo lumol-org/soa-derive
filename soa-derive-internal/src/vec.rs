@@ -19,8 +19,8 @@ pub fn derive(input: &Input) -> TokenStream {
     let ptr_mut_name = names::ptr_mut_name(&input.name);
 
     let fields_names = &input.fields.iter()
-                                   .map(|field| field.ident.as_ref().unwrap())
-                                   .collect::<Vec<_>>();
+        .map(|field| field.ident.as_ref().unwrap())
+        .collect::<Vec<_>>();
 
     let fields_names_hygienic = input.fields.iter()
         .enumerate()

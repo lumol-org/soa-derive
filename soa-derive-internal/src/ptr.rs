@@ -21,11 +21,9 @@ pub fn derive(input: &Input) -> TokenStream {
     let ref_doc_url = format!("[`{0}`](struct.{0}.html)", ref_name);
     let ref_mut_doc_url = format!("[`{0}`](struct.{0}.html)", ref_mut_name);
 
-    let fields_names = input.fields.iter()
-                                   .map(|field| field.ident.clone().unwrap())
-                                   .collect::<Vec<_>>();
-    let fields_names_1 = &fields_names;
-    let fields_names_2 = &fields_names;
+    let fields_names = &input.fields.iter()
+        .map(|field| field.ident.clone().unwrap())
+        .collect::<Vec<_>>();
 
     let ptr_fields = input.iter_fields().map(
         |(field_ident, field_type, is_nested)| {
@@ -129,7 +127,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
             /// Similar to [`*const T::is_null()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.is_null).
             pub fn is_null(self) -> bool {
-                false #( || self.#fields_names_1.is_null())*
+                false #( || self.#fields_names.is_null())*
             }
 
             /// Similar to [`*const T::as_ref()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.as_ref),
@@ -139,7 +137,7 @@ pub fn derive(input: &Input) -> TokenStream {
                     None
                 } else {
                     Some(#ref_name {
-                        #(#fields_names_1: self.#fields_names_2.as_ref().expect("should not be null"), )*
+                        #(#fields_names: self.#fields_names.as_ref().expect("should not be null"), )*
                     })
                 }
             }
@@ -148,14 +146,14 @@ pub fn derive(input: &Input) -> TokenStream {
             /// with the same safety caveats.
             pub unsafe fn offset(self, count: isize) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2.offset(count), )*
+                    #(#fields_names: self.#fields_names.offset(count), )*
                 }
             }
 
             /// Similar to [`*const T::offset()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.offset).
             pub fn wrapping_offset(self, count: isize) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2.wrapping_offset(count), )*
+                    #(#fields_names: self.#fields_names.wrapping_offset(count), )*
                 }
             }
 
@@ -163,7 +161,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// with the same safety caveats.
             pub unsafe fn add(self, count: usize) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2.add(count), )*
+                    #(#fields_names: self.#fields_names.add(count), )*
                 }
             }
 
@@ -171,21 +169,21 @@ pub fn derive(input: &Input) -> TokenStream {
             /// with the same safety caveats.
             pub unsafe fn sub(self, count: usize) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2.sub(count), )*
+                    #(#fields_names: self.#fields_names.sub(count), )*
                 }
             }
 
             /// Similar to [`*const T::wrapping_add()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.wrapping_add).
             pub fn wrapping_add(self, count: usize) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2.wrapping_add(count), )*
+                    #(#fields_names: self.#fields_names.wrapping_add(count), )*
                 }
             }
 
             /// Similar to [`*const T::wrapping_sub()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.wrapping_sub).
             pub fn wrapping_sub(self, count: usize) -> #ptr_name {
                 #ptr_name {
-                    #(#fields_names_1: self.#fields_names_2.wrapping_sub(count), )*
+                    #(#fields_names: self.#fields_names.wrapping_sub(count), )*
                 }
             }
 
@@ -193,7 +191,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// with the same safety caveats.
             pub unsafe fn read(self) -> #name {
                 #name {
-                    #(#fields_names_1: self.#fields_names_2.read(), )*
+                    #(#fields_names: self.#fields_names.read(), )*
                 }
             }
 
@@ -201,7 +199,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// with the same safety caveats.
             pub unsafe fn read_volatile(self) -> #name {
                 #name {
-                    #(#fields_names_1: self.#fields_names_2.read_volatile(), )*
+                    #(#fields_names: self.#fields_names.read_volatile(), )*
                 }
             }
 
@@ -209,7 +207,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// with the same safety caveats.
             pub unsafe fn read_unaligned(self) -> #name {
                 #name {
-                    #(#fields_names_1: self.#fields_names_2.read_unaligned(), )*
+                    #(#fields_names: self.#fields_names.read_unaligned(), )*
                 }
             }
         }
@@ -229,7 +227,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
             /// Similar to [`*mut T::is_null()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.is_null).
             pub fn is_null(self) -> bool {
-                false #( || self.#fields_names_1.is_null())*
+                false #( || self.#fields_names.is_null())*
             }
 
             /// Similar to [`*mut T::as_ref()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.as_ref),
@@ -239,7 +237,7 @@ pub fn derive(input: &Input) -> TokenStream {
                     None
                 } else {
                     Some(#ref_name {
-                        #(#fields_names_1: self.#fields_names_2.as_ref().expect("should not be null"), )*
+                        #(#fields_names: self.#fields_names.as_ref().expect("should not be null"), )*
                     })
                 }
             }
@@ -251,7 +249,7 @@ pub fn derive(input: &Input) -> TokenStream {
                     None
                 } else {
                     Some(#ref_mut_name {
-                        #(#fields_names_1: self.#fields_names_2.as_mut().expect("should not be null"), )*
+                        #(#fields_names: self.#fields_names.as_mut().expect("should not be null"), )*
                     })
                 }
             }
@@ -260,14 +258,14 @@ pub fn derive(input: &Input) -> TokenStream {
             /// with the same safety caveats.
             pub unsafe fn offset(self, count: isize) -> #ptr_mut_name {
                 #ptr_mut_name {
-                    #(#fields_names_1: self.#fields_names_2.offset(count), )*
+                    #(#fields_names: self.#fields_names.offset(count), )*
                 }
             }
 
             /// Similar to [`*mut T::wrapping_offset()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.wrapping_offset)
             pub fn wrapping_offset(self, count: isize) -> #ptr_mut_name {
                 #ptr_mut_name {
-                    #(#fields_names_1: self.#fields_names_2.wrapping_offset(count), )*
+                    #(#fields_names: self.#fields_names.wrapping_offset(count), )*
                 }
             }
 
@@ -275,7 +273,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// with the same safety caveats.
             pub unsafe fn add(self, count: usize) -> #ptr_mut_name {
                 #ptr_mut_name {
-                    #(#fields_names_1: self.#fields_names_2.add(count), )*
+                    #(#fields_names: self.#fields_names.add(count), )*
                 }
             }
 
@@ -283,7 +281,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// with the same safety caveats.
             pub unsafe fn sub(self, count: usize) -> #ptr_mut_name {
                 #ptr_mut_name {
-                    #(#fields_names_1: self.#fields_names_2.sub(count), )*
+                    #(#fields_names: self.#fields_names.sub(count), )*
                 }
             }
 
@@ -291,7 +289,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// with the same safety caveats.
             pub fn wrapping_add(self, count: usize) -> #ptr_mut_name {
                 #ptr_mut_name {
-                    #(#fields_names_1: self.#fields_names_2.wrapping_add(count), )*
+                    #(#fields_names: self.#fields_names.wrapping_add(count), )*
                 }
             }
 
@@ -299,7 +297,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// with the same safety caveats.
             pub fn wrapping_sub(self, count: usize) -> #ptr_mut_name {
                 #ptr_mut_name {
-                    #(#fields_names_1: self.#fields_names_2.wrapping_sub(count), )*
+                    #(#fields_names: self.#fields_names.wrapping_sub(count), )*
                 }
             }
 
@@ -307,7 +305,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// with the same safety caveats.
             pub unsafe fn read(self) -> #name {
                 #name {
-                    #(#fields_names_1: self.#fields_names_2.read(), )*
+                    #(#fields_names: self.#fields_names.read(), )*
                 }
             }
 
@@ -315,7 +313,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// with the same safety caveats.
             pub unsafe fn read_volatile(self) -> #name {
                 #name {
-                    #(#fields_names_1: self.#fields_names_2.read_volatile(), )*
+                    #(#fields_names: self.#fields_names.read_volatile(), )*
                 }
             }
 
@@ -323,26 +321,26 @@ pub fn derive(input: &Input) -> TokenStream {
             /// with the same safety caveats.
             pub unsafe fn read_unaligned(self) -> #name {
                 #name {
-                    #(#fields_names_1: self.#fields_names_2.read_unaligned(), )*
+                    #(#fields_names: self.#fields_names.read_unaligned(), )*
                 }
             }
 
             /// Similar to [`*mut T::write()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.write),
             /// with the same safety caveats.
             pub unsafe fn write(self, val: #name) {
-                #(self.#fields_names_1.write(val.#fields_names_2); )*
+                #(self.#fields_names.write(val.#fields_names); )*
             }
 
             /// Similar to [`*mut T::write_volatile()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.write_volatile),
             /// with the same safety caveats.
             pub unsafe fn write_volatile(self, val: #name) {
-                #(self.#fields_names_1.write_volatile(val.#fields_names_2); )*
+                #(self.#fields_names.write_volatile(val.#fields_names); )*
             }
 
             /// Similar to [`*mut T::write_unaligned()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.write_unaligned),
             /// with the same safety caveats.
             pub unsafe fn write_unaligned(self, val: #name) {
-                #(self.#fields_names_1.write_unaligned(val.#fields_names_2); )*
+                #(self.#fields_names.write_unaligned(val.#fields_names); )*
             }
         }
 
