@@ -75,7 +75,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
         #[allow(dead_code)]
         impl<'a> #slice_name<'a> {
-            /// Similar to [`
+            /// Similar to [`&
             #[doc = #slice_name_str]
             /// ::len()`](https://doc.rust-lang.org/std/primitive.slice.html#method.len),
             /// the length of all fields should be the same.
@@ -85,7 +85,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 len
             }
 
-            /// Similar to [`
+            /// Similar to [`&
             #[doc = #slice_name_str]
             /// ::is_empty()`](https://doc.rust-lang.org/std/primitive.slice.html#method.is_empty),
             /// the length of all fields should be the same.
@@ -95,7 +95,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 empty
             }
 
-            /// Similar to [`
+            /// Similar to [`&
             #[doc = #slice_name_str]
             /// ::first()`](https://doc.rust-lang.org/std/primitive.slice.html#method.first).
             pub fn first(&self) -> Option<#ref_name<'a>> {
@@ -109,7 +109,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
 
-            /// Similar to [`
+            /// Similar to [`&
             #[doc = #slice_name_str]
             /// ::split_first()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_first).
             pub fn split_first(&self) -> Option<(#ref_name<'a>, #slice_name<'a>)> {
@@ -125,7 +125,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
 
-            /// Similar to [`
+            /// Similar to [`&
             #[doc = #slice_name_str]
             /// ::last()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last).
             pub fn last(&self) -> Option<#ref_name<'a>> {
@@ -139,7 +139,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
 
-            /// Similar to [`
+            /// Similar to [`&
             #[doc = #slice_name_str]
             /// ::split_last()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_last).
             pub fn split_last(&self) -> Option<(#ref_name<'a>, #slice_name<'a>)> {
@@ -155,7 +155,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
 
-            /// Similar to [`
+            /// Similar to [`&
             #[doc = #slice_name_str]
             /// ::split_at()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_at).
             pub fn split_at(&self, mid: usize) -> (#slice_name<'a>, #slice_name<'a>) {
@@ -167,7 +167,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 (left, right)
             }
 
-            /// Similar to [`
+            /// Similar to [`&
             #[doc = #slice_name_str]
             /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
             pub fn get<'b, I>(&'b self, index: I) -> Option<I::RefOutput>
@@ -179,7 +179,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 index.get(slice)
             }
 
-            /// Similar to [`
+            /// Similar to [`&
             #[doc = #slice_name_str]
             /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
             pub unsafe fn get_unchecked<'b, I>(&'b self, index: I) -> I::RefOutput
@@ -191,9 +191,11 @@ pub fn derive(input: &Input) -> TokenStream {
                 index.get_unchecked(slice)
             }
 
-            /// Similar to [`std::ops::Index` trait](https://doc.rust-lang.org/std/ops/trait.Index.html) on
+            /// Similar to the
+            /// [`std::ops::Index`](https://doc.rust-lang.org/std/ops/trait.Index.html)
+            /// trait for `&
             #[doc = #slice_name_str]
-            /// .
+            ///` .
             /// This is required because we cannot implement `std::ops::Index` directly since it requires returning a reference.
             pub fn index<'b, I>(&'b self, index: I) -> I::RefOutput
             where
@@ -214,7 +216,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
 
-            /// Similar to [`
+            /// Similar to [`&
             #[doc = #slice_name_str]
             /// ::as_ptr()`](https://doc.rust-lang.org/std/primitive.slice.html#method.as_ptr).
             pub fn as_ptr(&self) -> #ptr_name {
@@ -236,7 +238,7 @@ pub fn derive(input: &Input) -> TokenStream {
         generated.append_all(quote!{
             #[allow(dead_code)]
             impl<'a> #slice_name<'a> {
-                /// Similar to [`
+                /// Similar to [`&
                 #[doc = #slice_name_str]
                 /// ::to_vec()`](https://doc.rust-lang.org/std/primitive.slice.html#method.to_vec).
                 pub fn to_vec(&self) -> #vec_name {
@@ -359,7 +361,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 }
             }
 
-            /// Similar to [`
+            /// Similar to [`&
             #[doc = #slice_name_str]
             /// ::len()`](https://doc.rust-lang.org/std/primitive.slice.html#method.len),
             /// the length of all fields should be the same.
@@ -369,7 +371,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 len
             }
 
-            /// Similar to [`
+            /// Similar to [`&
             #[doc = #slice_name_str]
             /// ::is_empty()`](https://doc.rust-lang.org/std/primitive.slice.html#method.is_empty),
             /// the length of all fields should be the same.
@@ -379,7 +381,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 empty
             }
 
-            /// Similar to [`
+            /// Similar to [`&mut
             #[doc = #slice_name_str]
             /// ::first_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.first_mut).
             pub fn first_mut(&mut self) -> Option<#ref_mut_name> {
@@ -393,10 +395,14 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 }
             }
 
-            /// Similar to [`
+            /// Similar to [`&mut
             #[doc = #slice_name_str]
-            /// ::split_first_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_first_mut).
-            pub fn split_first_mut(&mut self) -> Option<(#ref_mut_name, #slice_mut_name)> {
+            ///::split_first_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_first_mut).
+            ///
+            /// The main difference is that this function consumes the slice.
+            /// You should use [`Self::reborrow()`] first if you want the
+            /// returned values to have a shorter lifetime.
+            pub fn split_first_mut(mut self) -> Option<(#ref_mut_name<'a>, #slice_mut_name<'a>)> {
                 if self.is_empty() {
                     None
                 } else {
@@ -409,7 +415,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 }
             }
 
-            /// Similar to [`
+            /// Similar to [`&mut
             #[doc = #slice_name_str]
             /// ::last_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last_mut).
             pub fn last_mut(&mut self) -> Option<#ref_mut_name> {
@@ -423,10 +429,14 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 }
             }
 
-            /// Similar to [`
+            /// Similar to [`&mut
             #[doc = #slice_name_str]
             /// ::last_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last_mut).
-            pub fn split_last_mut(&mut self) -> Option<(#ref_mut_name, #slice_mut_name)> {
+            ///
+            /// The main difference is that this function consumes the slice.
+            /// You should use [`Self::reborrow()`] first if you want the
+            /// returned values to have a shorter lifetime.
+            pub fn split_last_mut(mut self) -> Option<(#ref_mut_name<'a>, #slice_mut_name<'a>)> {
                 if self.is_empty() {
                     None
                 } else {
@@ -439,10 +449,14 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 }
             }
 
-            /// Similar to [`
+            /// Similar to [`&mut
             #[doc = #slice_name_str]
             /// ::split_at_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.split_at_mut).
-            pub fn split_at_mut(&mut self, mid: usize) -> (#slice_mut_name, #slice_mut_name) {
+            ///
+            /// The main difference is that this function consumes the slice.
+            /// You should use [`Self::reborrow()`] first if you want the
+            /// returned values to have a shorter lifetime.
+            pub fn split_at_mut(mut self, mid: usize) -> (#slice_mut_name<'a>, #slice_mut_name<'a>) {
                 #(
                     let (#fields_names_hygienic_1, #fields_names_hygienic_2) = self.#fields_names.split_at_mut(mid);
                 )*
@@ -451,7 +465,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 (left, right)
             }
 
-            /// Similar to [`
+            /// Similar to [`&mut
             #[doc = #slice_name_str]
             /// ::swap()`](https://doc.rust-lang.org/std/primitive.slice.html#method.swap).
             pub fn swap(&mut self, a: usize, b: usize) {
@@ -460,7 +474,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 )*
             }
 
-            /// Similar to [`
+            /// Similar to [`&
             #[doc = #slice_name_str]
             /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
             pub fn get<'b, I>(&'b self, index: I) -> Option<I::RefOutput>
@@ -472,7 +486,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 index.get(slice)
             }
 
-            /// Similar to [`
+            /// Similar to [`&
             #[doc = #slice_name_str]
             /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
             pub unsafe fn get_unchecked<'b, I>(&'b self, index: I) -> I::RefOutput
@@ -485,9 +499,11 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             }
 
 
-            /// Similar to [`std::ops::Index` trait](https://doc.rust-lang.org/std/ops/trait.Index.html) on
+            /// Similar to the
+            /// [`std::ops::Index`](https://doc.rust-lang.org/std/ops/trait.Index.html)
+            /// trait for `&
             #[doc = #slice_name_str]
-            /// .
+            ///` .
             /// This is required because we cannot implement that trait.
             pub fn index<'b, I>(&'b self, index: I) -> I::RefOutput
             where
@@ -498,7 +514,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 index.index(slice)
             }
 
-            /// Similar to [`
+            /// Similar to [`&mut
             #[doc = #slice_name_str]
             /// ::get_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_mut).
             pub fn get_mut<'b, I>(&'b mut self, index: I) -> Option<I::MutOutput>
@@ -510,7 +526,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 index.get_mut(slice)
             }
 
-            /// Similar to [`
+            /// Similar to [`&mut
             #[doc = #slice_name_str]
             /// ::get_unchecked_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked_mut).
             pub unsafe fn get_unchecked_mut<'b, I>(&'b mut self, index: I) -> I::MutOutput
@@ -522,9 +538,11 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 index.get_unchecked_mut(slice)
             }
 
-            /// Similar to [`std::ops::IndexMut` trait](https://doc.rust-lang.org/std/ops/trait.IndexMut.html) on
+            /// Similar to the
+            /// [`std::ops::IndexMut`](https://doc.rust-lang.org/std/ops/trait.IndexMut.html)
+            /// trait for `&mut
             #[doc = #slice_name_str]
-            /// .
+            ///` .
             /// This is required because we cannot implement `std::ops::IndexMut` directly since it requires returning a mutable reference.
             pub fn index_mut<'b, I>(&'b mut self, index: I) -> I::MutOutput
             where
@@ -555,7 +573,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 }
             }
 
-            /// Similar to [`
+            /// Similar to [`&
             #[doc = #slice_name_str]
             /// ::as_ptr()`](https://doc.rust-lang.org/std/primitive.slice.html#method.as_ptr).
             pub fn as_ptr(&self) -> #ptr_name {
@@ -564,7 +582,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 }
             }
 
-            /// Similar to [`
+            /// Similar to [`&mut
             #[doc = #slice_name_str]
             /// ::as_mut_ptr()`](https://doc.rust-lang.org/std/primitive.slice.html#method.as_mut_ptr).
             pub fn as_mut_ptr(&mut self) -> #ptr_mut_name {
@@ -585,7 +603,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 #( #apply_permutation; )*
             }
 
-            /// Similar to [`
+            /// Similar to [`&mut
             #[doc = #slice_name_str]
             /// ::sort_by()`](https://doc.rust-lang.org/std/primitive.slice.html#method.sort_by).
             pub fn sort_by<F>(&mut self, mut f: F)
@@ -601,7 +619,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 self.apply_permutation(&mut permutation);
             }
 
-            /// Similar to [`
+            /// Similar to [`&mut
             #[doc = #slice_name_str]
             /// ::sort_by_key()`](https://doc.rust-lang.org/std/primitive.slice.html#method.sort_by_key).
             pub fn sort_by_key<F, K>(&mut self, mut f: F)
@@ -624,7 +642,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         where
             #( #nested_ord, )*
         {
-            /// Similar to [`
+            /// Similar to [`&mut
             #[doc = #slice_name_str]
             /// ::sort()`](https://doc.rust-lang.org/std/primitive.slice.html#method.sort).
             pub fn sort(&mut self) {
@@ -643,7 +661,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         generated.append_all(quote!{
             #[allow(dead_code)]
             impl<'a> #slice_mut_name<'a> {
-                /// Similar to [`
+                /// Similar to [`&
                 #[doc = #slice_name_str]
                 /// ::to_vec()`](https://doc.rust-lang.org/std/primitive.slice.html#method.to_vec).
                 pub fn to_vec(&self) -> #vec_name {
