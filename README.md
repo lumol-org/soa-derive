@@ -1,6 +1,6 @@
 # Automatic Struct of Array generation for Rust
 
-[![Build Status](https://travis-ci.org/lumol-org/soa-derive.svg?branch=master)](https://travis-ci.org/lumol-org/soa-derive)
+[![Test](https://github.com/lumol-org/soa-derive/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/lumol-org/soa-derive/actions/workflows/tests.yml)
 [![Crates.io](https://img.shields.io/crates/v/soa_derive.svg)](https://crates.io/crates/soa_derive)
 
 This crate provides a custom derive (`#[derive(StructOfArray)]`) to
