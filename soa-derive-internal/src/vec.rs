@@ -84,6 +84,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
 
         #[allow(dead_code)]
+        #[allow(clippy::forget_non_drop)]
         impl #vec_name {
             /// Similar to [`
             #[doc = #vec_name_str]
@@ -150,7 +151,14 @@ pub fn derive(input: &Input) -> TokenStream {
             #[doc = #vec_name_str]
             /// ::push()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.push).
             pub fn push(&mut self, value: #name) {
-                #(self.#fields_names.push(value.#fields_names);)*
+                // We need to use ptr read/write instead of moving out of the
+                // fields in case the value struct implements Drop.
+                unsafe {
+                    #(self.#fields_names.push(::std::ptr::read(&value.#fields_names));)*
+                }
+                // if value implements Drop, we don't want to run it here, only
+                // when the vec itself will be dropped.
+                ::std::mem::forget(value);
             }
 
             /// Similar to [`
@@ -187,7 +195,18 @@ pub fn derive(input: &Input) -> TokenStream {
             #[doc = #vec_name_str]
             /// ::insert()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.insert).
             pub fn insert(&mut self, index: usize, element: #name) {
-                #(self.#fields_names.insert(index, element.#fields_names);)*
+                if index > self.len() {
+                    panic!("index out of bounds: the len is {} but the index is {}", self.len(), index);
+                }
+
+                // similar to push, we can not use move and have to rely on ptr
+                // read/write
+                unsafe {
+                    #(self.#fields_names.insert(index, ::std::ptr::read(&element.#fields_names));)*
+                }
+                // if value implements Drop, we don't want to run it here, only
+                // when the vec itself will be dropped.
+                ::std::mem::forget(element);
             }
 
             /// Similar to [`
@@ -379,6 +398,15 @@ pub fn derive(input: &Input) -> TokenStream {
             pub unsafe fn from_raw_parts(data: #ptr_mut_name, len: usize, capacity: usize) -> #vec_name {
                 #vec_name {
                     #( #fields_names: #vec_from_raw_parts, )*
+                }
+            }
+        }
+
+        #[allow(clippy::drop_non_drop)]
+        impl Drop for #vec_name {
+            fn drop(&mut self) {
+                while let Some(value) = self.pop() {
+                    ::std::mem::drop(value);
                 }
             }
         }

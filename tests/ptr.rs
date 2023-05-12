@@ -1,6 +1,9 @@
 #![allow(clippy::float_cmp)]
 
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 mod particles;
+
 use self::particles::{Particle, ParticleVec, ParticleSlice, ParticleSliceMut};
 
 #[test]
@@ -129,4 +132,37 @@ fn vec() {
 
     assert_eq!(particles.name[2], "Fe");
     assert_eq!(particles.mass[2], 3.0);
+}
+
+#[derive(Clone, soa_derive::StructOfArray)]
+#[soa_derive(Clone)]
+struct CountOnDrop {
+    data: usize,
+}
+
+static DROP_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+impl Drop for CountOnDrop {
+    fn drop(&mut self) {
+        DROP_COUNTER.fetch_add(1, Ordering::SeqCst);
+    }
+}
+
+#[test]
+fn write() {
+    {
+        let mut vec = CountOnDropVec::new();
+        vec.push(CountOnDrop { data: 0 });
+
+        let ptr = vec.as_mut_ptr();
+        unsafe {
+            // this does not drop the already existing value in the vec
+            ptr.write(CountOnDrop { data: 4 });
+        }
+
+        assert_eq!(vec.data[0], 4);
+    }
+
+    // std::mem::forget(vec);
+    assert_eq!(DROP_COUNTER.load(Ordering::SeqCst), 1);
 }

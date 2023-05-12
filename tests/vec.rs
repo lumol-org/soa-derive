@@ -3,6 +3,7 @@
 mod particles;
 use self::particles::{Particle, ParticleVec};
 use soa_derive::StructOfArray;
+use std::{cell::Cell, rc::Rc};
 
 #[test]
 fn ty() {
@@ -160,4 +161,30 @@ fn retain() {
     assert_eq!(particles.len(), 2);
     assert_eq!(particles.index(0).name, "Cl");
     assert_eq!(particles.index(1).name, "C");
+}
+
+#[derive(StructOfArray)]
+struct IncrOnDrop {
+    cell: Rc<Cell<usize>>,
+}
+
+impl Drop for IncrOnDrop {
+    fn drop(&mut self) {
+        self.cell.set(self.cell.get() + 1);
+    }
+}
+
+#[test]
+fn drop_vec() {
+    let counter = Rc::new(Cell::default());
+    let mut vec = IncrOnDropVec::new();
+    for _ in 0..5 {
+        vec.push(IncrOnDrop {
+            cell: counter.clone(),
+        });
+    }
+
+    assert_eq!(counter.get(), 0);
+    drop(vec);
+    assert_eq!(counter.get(), 5);
 }

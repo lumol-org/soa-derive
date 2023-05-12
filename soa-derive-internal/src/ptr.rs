@@ -188,6 +188,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
 
         #[allow(dead_code)]
+        #[allow(clippy::forget_non_drop)]
         impl #ptr_mut_name {
             /// Convert a
             #[doc = #ptr_mut_doc_url]
@@ -303,19 +304,34 @@ pub fn derive(input: &Input) -> TokenStream {
             /// Similar to [`*mut T::write()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.write),
             /// with the same safety caveats.
             pub unsafe fn write(self, val: #name) {
-                #(self.#fields_names.write(val.#fields_names); )*
+                unsafe {
+                    #(self.#fields_names.write(::std::ptr::read(&val.#fields_names));)*
+                }
+                // if val implements Drop, we don't want to run it here, only
+                // when the vec itself will be dropped
+                ::std::mem::forget(val);
             }
 
             /// Similar to [`*mut T::write_volatile()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.write_volatile),
             /// with the same safety caveats.
             pub unsafe fn write_volatile(self, val: #name) {
-                #(self.#fields_names.write_volatile(val.#fields_names); )*
+                unsafe {
+                    #(self.#fields_names.write_volatile(::std::ptr::read(&val.#fields_names));)*
+                }
+                // if val implements Drop, we don't want to run it here, only
+                // when the vec itself will be dropped
+                ::std::mem::forget(val);
             }
 
             /// Similar to [`*mut T::write_unaligned()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.write_unaligned),
             /// with the same safety caveats.
             pub unsafe fn write_unaligned(self, val: #name) {
-                #(self.#fields_names.write_unaligned(val.#fields_names); )*
+                unsafe {
+                    #(self.#fields_names.write_unaligned(::std::ptr::read(&val.#fields_names));)*
+                }
+                // if val implements Drop, we don't want to run it here, only
+                // when the vec itself will be dropped
+                ::std::mem::forget(val);
             }
         }
 
