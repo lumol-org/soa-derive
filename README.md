@@ -208,4 +208,4 @@ This crate distributed under either the MIT or the Apache license, at your
 choice. Contributions are welcome, please open an issue before to discuss your
 changes !
 
-The code is based on an initial idea by @maikklein:  https://maikklein.github.io/post/soa-rust/
+Thanks to @maikklein for the initial idea: https://maikklein.github.io/soa-rust/
