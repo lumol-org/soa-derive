@@ -163,6 +163,22 @@ fn retain() {
     assert_eq!(particles.index(1).name, "C");
 }
 
+#[test]
+fn retain_mut() {
+    let mut particles = ParticleVec::new();
+    particles.push(Particle::new(String::from("Cl"), 1.0));
+    particles.push(Particle::new(String::from("Na"), 1.0));
+    particles.push(Particle::new(String::from("Zn"), 0.0));
+    particles.push(Particle::new(String::from("C"), 1.0));
+
+    particles.retain_mut(|particle| {
+        particle.name.make_ascii_uppercase();
+        *particle.mass > 0.5
+    });
+    assert_eq!(particles.len(), 3);
+    assert!(["CL", "NA", "C"].iter().copied().eq(particles.name.iter()));
+}
+
 #[derive(StructOfArray)]
 struct IncrOnDrop {
     cell: Rc<Cell<usize>>,

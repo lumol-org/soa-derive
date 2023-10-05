@@ -15,6 +15,7 @@ pub fn derive(input: &Input) -> TokenStream {
     let slice_name = names::slice_name(name);
     let slice_mut_name = names::slice_mut_name(&input.name);
     let ref_name = names::ref_name(&input.name);
+    let ref_mut_name = names::ref_mut_name(&input.name);
     let ptr_name = names::ptr_name(&input.name);
     let ptr_mut_name = names::ptr_mut_name(&input.name);
 
@@ -303,6 +304,28 @@ pub fn derive(input: &Input) -> TokenStream {
                     let mut slice = self.as_mut_slice();
                     for i in 0..len {
                         if !f(slice.get(i).unwrap()) {
+                            del += 1;
+                        } else if del > 0 {
+                            slice.swap(i - del, i);
+                        }
+                    }
+                }
+                if del > 0 {
+                    self.truncate(len - del);
+                }
+            }
+
+            /// Similar to [`
+            #[doc = #vec_name_str]
+            /// ::retain_mut()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.retain_mut).
+            pub fn retain_mut<F>(&mut self, mut f: F) where F: FnMut(#ref_mut_name) -> bool {
+                let len = self.len();
+                let mut del = 0;
+
+                {
+                    let mut slice = self.as_mut_slice();
+                    for i in 0..len {
+                        if !f(slice.get_mut(i).unwrap()) {
                             del += 1;
                         } else if del > 0 {
                             slice.swap(i - del, i);
