@@ -1,4 +1,4 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 
 use crate::input::Input;
@@ -24,6 +24,11 @@ pub fn derive(input: &Input) -> TokenStream {
 
     let fields_names = &input.fields.iter()
         .map(|field| field.ident.clone().unwrap())
+        .collect::<Vec<_>>();
+
+    let fields_names_hygienic = input.fields.iter()
+        .enumerate()
+        .map(|(i, _)| Ident::new(&format!("___soa_derive_private_{}", i), Span::call_site()))
         .collect::<Vec<_>>();
 
     let ref_fields_types = input.map_fields_nested_or(
@@ -55,6 +60,11 @@ pub fn derive(input: &Input) -> TokenStream {
     let to_owned = input.map_fields_nested_or(
         |ident, _| quote! { self.#ident.to_owned() },
         |ident, _| quote! { self.#ident.clone() },
+    ).collect::<Vec<_>>();
+
+    let ref_replace = input.map_fields_nested_or(
+        |ident, _| quote! { self.#ident.replace(field) },
+        |ident, _| quote! { ::std::mem::replace(&mut *self.#ident, field) },
     ).collect::<Vec<_>>();
 
     quote! {
@@ -145,6 +155,19 @@ pub fn derive(input: &Input) -> TokenStream {
                 #name {
                     #( #fields_names: #to_owned, )*
                 }
+            }
+
+            /// Similar to [`std::mem::replace()`](https://doc.rust-lang.org/std/mem/fn.replace.html).
+            pub fn replace(&mut self, val: #name) -> #name {
+                #(
+                    let field = unsafe { ::std::ptr::read(&val.#fields_names) };
+                    let #fields_names_hygienic = #ref_replace;
+                )*
+                // if val implements Drop, we don't want to run it here, only
+                // when the vec itself will be dropped
+                ::std::mem::forget(val);
+
+                #name{#(#fields_names: #fields_names_hygienic),*}
             }
         }
     }
