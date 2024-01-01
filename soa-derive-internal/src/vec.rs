@@ -1,5 +1,4 @@
-use proc_macro2::{Ident, Span};
-use proc_macro2::{TokenStream};
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::TokenStreamExt;
 use quote::quote;
 
@@ -66,6 +65,11 @@ pub fn derive(input: &Input) -> TokenStream {
             quote! { #vec_type::from_raw_parts(data.#ident, len, capacity) }
         },
         |ident, _| quote! { Vec::from_raw_parts(data.#ident, len, capacity) },
+    ).collect::<Vec<_>>();
+
+    let vec_replace = input.map_fields_nested_or(
+        |ident, _| quote! { self.#ident.replace(index, field) },
+        |ident, _| quote! { ::std::mem::replace(&mut self.#ident[index], field) },
     ).collect::<Vec<_>>();
 
     let mut generated = quote! {
@@ -208,6 +212,25 @@ pub fn derive(input: &Input) -> TokenStream {
                 // if value implements Drop, we don't want to run it here, only
                 // when the vec itself will be dropped.
                 ::std::mem::forget(element);
+            }
+
+            /// Similar to [`std::mem::replace()`](https://doc.rust-lang.org/std/mem/fn.replace.html).
+            pub fn replace(&mut self, index: usize, element: #name) -> #name {
+                if index > self.len() {
+                    panic!("index out of bounds: the len is {} but the index is {}", self.len(), index);
+                }
+
+                // similar to push, we can not use move and have to rely on ptr
+                // read/write
+                #(
+                    let field = unsafe { ::std::ptr::read(&element.#fields_names) };
+                    let #fields_names_hygienic = #vec_replace;
+                )*
+                // if value implements Drop, we don't want to run it here, only
+                // when the vec itself will be dropped.
+                ::std::mem::forget(element);
+
+                #name{#(#fields_names: #fields_names_hygienic),*}
             }
 
             /// Similar to [`
