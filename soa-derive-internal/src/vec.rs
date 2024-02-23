@@ -40,11 +40,6 @@ pub fn derive(input: &Input) -> TokenStream {
         |_, field_type| quote! { Vec<#field_type> },
     ).collect::<Vec<_>>();
 
-    let vec_new = input.map_fields_nested_or(
-        |_, field_type| quote! { <#field_type as StructOfArray>::Type::new()},
-        |_, _| quote! { Vec::new() },
-    ).collect::<Vec<_>>();
-
     let vec_with_capacity = input.map_fields_nested_or(
         |_, field_type| quote! { <#field_type as StructOfArray>::Type::with_capacity(capacity) },
         |_, _| quote! { Vec::with_capacity(capacity) },
@@ -92,9 +87,7 @@ pub fn derive(input: &Input) -> TokenStream {
             #[doc = #vec_name_str]
             /// ::new()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.new)
             pub fn new() -> #vec_name {
-                #vec_name {
-                    #( #fields_names: #vec_new, )*
-                }
+                Default::default()
             }
 
             /// Similar to [`
