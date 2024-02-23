@@ -116,6 +116,7 @@ impl Input {
                     match meta.path.get_ident() {
                         Some(ident) => {
                             assert!(ident != "Copy", "can not derive Copy for SoA vectors");
+                            assert!(ident != "Default", "Default is already derived for SoA vectors");
                             extra_attrs.add_derive(ident);
                         }
                         None => {

@@ -74,6 +74,7 @@ pub fn derive(input: &Input) -> TokenStream {
         /// ` with Struct of Array (SoA) layout
         #[allow(dead_code)]
         #(#[#attrs])*
+        #[derive(Default)]
         #visibility struct #vec_name {
             #(
                 /// a vector of `
