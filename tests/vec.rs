@@ -11,6 +11,11 @@ fn ty() {
 }
 
 #[test]
+fn default() {
+    assert_eq!(ParticleVec::new(), ParticleVec::default());
+}
+
+#[test]
 fn push() {
     let mut particles = ParticleVec::new();
     particles.push(Particle::new(String::from("Na"), 56.0));
