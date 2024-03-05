@@ -63,6 +63,7 @@ pub fn derive(input: &Input) -> TokenStream {
         #[allow(dead_code)]
         #[derive(Copy, Clone)]
         #(#[#attrs])*
+        #[derive(Default)]
         #visibility struct #slice_name<'a> {
             #(
                 /// slice of `
@@ -337,6 +338,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         /// .
         #[allow(dead_code)]
         #(#[#attrs])*
+        #[derive(Default)]
         #visibility struct #slice_mut_name<'a> {
             #(
                 /// slice of `
