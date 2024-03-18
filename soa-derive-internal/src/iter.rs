@@ -289,6 +289,14 @@ pub fn derive(input: &Input) -> TokenStream {
                     self.as_mut_slice().into_iter()
                 }
             }
+
+            impl Extend<#name> for #vec_name {
+                fn extend<I: IntoIterator<Item = #name>>(&mut self, iter: I) {
+                    for item in iter {
+                        self.push(item)
+                    }
+                }
+            }
         });
     }
 

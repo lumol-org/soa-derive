@@ -69,3 +69,19 @@ fn from_iter() {
 
     assert_eq!(particles, particles_from_iter)
 }
+
+#[test]
+fn extend() {
+    let vec_with_particles = vec![
+        Particle::new(String::from("Na"), 0.0),
+        Particle::new(String::from("Cl"), 0.0),
+        Particle::new(String::from("Zn"), 0.0),
+    ];
+
+    let particles_from_iter: ParticleVec = vec_with_particles.clone().into_iter().collect();
+
+    let mut particles = ParticleVec::new();
+    particles.extend(vec_with_particles);
+
+    assert_eq!(particles, particles_from_iter)
+}
