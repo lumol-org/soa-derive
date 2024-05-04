@@ -601,7 +601,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             }
 
             #[doc(hidden)]
-            fn apply_permutation(&mut self, permutation: &mut soa_derive::Permutation) {
+            pub fn apply_permutation(&mut self, permutation: &mut soa_derive::Permutation) {
                 #( #apply_permutation; )*
             }
 
