@@ -601,7 +601,9 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             }
 
             #[doc(hidden)]
-            pub fn apply_permutation(&mut self, permutation: &mut soa_derive::Permutation) {
+            /// this is `pub` due to the issue in https://github.com/lumol-org/soa-derive/pull/65
+            /// but should not be used directly
+            pub fn __private_apply_permutation(&mut self, permutation: &mut soa_derive::Permutation) {
                 #( #apply_permutation; )*
             }
 
