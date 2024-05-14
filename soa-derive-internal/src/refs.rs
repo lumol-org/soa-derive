@@ -122,7 +122,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// into an owned value. This is only available if all fields
             /// implement `Clone`.
             pub fn to_owned(&self) -> #name
-                // only expose to_owned is all fields are Clone
+                // only expose to_owned if all fields are Clone
                 // https://github.com/rust-lang/rust/issues/48214#issuecomment-1150463333
                 where #( for<'b> #fields_types: Clone, )*
             {
@@ -138,7 +138,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// into an owned value. This is only available if all fields
             /// implement `Clone`.
             pub fn to_owned(&self) -> #name
-                // only expose to_owned is all fields are Clone
+                // only expose to_owned if all fields are Clone
                 // https://github.com/rust-lang/rust/issues/48214#issuecomment-1150463333
                 where #( for<'b> #fields_types: Clone, )*
             {
