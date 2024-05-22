@@ -192,7 +192,6 @@ impl Input {
 
 pub(crate) trait TokenStreamIterator: Iterator<Item = proc_macro2::TokenStream> {
     fn concat_by(self, f: impl Fn(proc_macro2::TokenStream, proc_macro2::TokenStream) -> proc_macro2::TokenStream) -> proc_macro2::TokenStream;
-    fn concat(self) -> proc_macro2::TokenStream;
 }
 
 impl<T: Iterator<Item = proc_macro2::TokenStream>> TokenStreamIterator for T {
@@ -206,21 +205,11 @@ impl<T: Iterator<Item = proc_macro2::TokenStream>> TokenStreamIterator for T {
             None => quote!{},
         }
     }
-
-    fn concat(self) -> proc_macro2::TokenStream {
-        self.concat_by(|a, b| quote! { #a #b })
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn concat() {
-        let token_streams = vec![quote!{a}, quote!{b}, quote!{c}];
-        assert_eq!(token_streams.into_iter().concat().to_string(), "a b c");
-    }
 
     #[test]
     fn concat_by() {

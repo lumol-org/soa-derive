@@ -163,6 +163,5 @@ fn write() {
         assert_eq!(vec.data[0], 4);
     }
 
-    // std::mem::forget(vec);
     assert_eq!(DROP_COUNTER.load(Ordering::SeqCst), 1);
 }

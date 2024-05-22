@@ -26,8 +26,8 @@ fn index_vec_with_usize() {
     soa.push(particle.clone());
 
     // SoAIndex
-    assert_eq!(soa.get(0).unwrap().name, &aos.get(0).unwrap().name);
-    assert_eq!(soa.get(0).unwrap().mass, &aos.get(0).unwrap().mass);
+    assert_eq!(soa.get(0).unwrap().name, &aos.first().unwrap().name);
+    assert_eq!(soa.get(0).unwrap().mass, &aos.first().unwrap().mass);
     assert_eq!(aos.get(1), None);
     assert_eq!(soa.get(1), None);
 
@@ -64,7 +64,7 @@ fn index_vec_with_usize() {
 
 #[test]
 fn index_vec_with_ranges() {
-    let particles = vec![
+    let particles = [
         Particle::new(String::from("Cl"), 1.0),
         Particle::new(String::from("Na"), 2.0),
         Particle::new(String::from("Br"), 3.0),
@@ -142,8 +142,8 @@ fn index_slice_with_usize() {
     let aos_slice = aos.as_slice();
     let soa_slice = soa.as_slice();
 
-    assert_eq!(soa_slice.get(0).unwrap().name, &aos_slice.get(0).unwrap().name);
-    assert_eq!(soa_slice.get(0).unwrap().mass, &aos_slice.get(0).unwrap().mass);
+    assert_eq!(soa_slice.get(0).unwrap().name, &aos_slice.first().unwrap().name);
+    assert_eq!(soa_slice.get(0).unwrap().mass, &aos_slice.first().unwrap().mass);
     assert_eq!(aos_slice.get(1), None);
     assert_eq!(soa_slice.get(1), None);
 
@@ -183,7 +183,7 @@ fn index_slice_with_usize() {
 
 #[test]
 fn index_slice_with_ranges() {
-    let particles = vec![
+    let particles = [
         Particle::new(String::from("Cl"), 1.0),
         Particle::new(String::from("Na"), 2.0),
         Particle::new(String::from("Br"), 3.0),

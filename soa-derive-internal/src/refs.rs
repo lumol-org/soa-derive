@@ -158,6 +158,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
 
             /// Similar to [`std::mem::replace()`](https://doc.rust-lang.org/std/mem/fn.replace.html).
+            #[allow(clippy::forget_non_drop)]
             pub fn replace(&mut self, val: #name) -> #name {
                 #(
                     let field = unsafe { ::std::ptr::read(&val.#fields_names) };
