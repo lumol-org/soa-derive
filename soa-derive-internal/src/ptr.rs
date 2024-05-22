@@ -303,6 +303,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
             /// Similar to [`*mut T::write()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.write),
             /// with the same safety caveats.
+            #[allow(clippy::forget_non_drop)]
             pub unsafe fn write(self, val: #name) {
                 unsafe {
                     #(self.#fields_names.write(::std::ptr::read(&val.#fields_names));)*
@@ -314,6 +315,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
             /// Similar to [`*mut T::write_volatile()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.write_volatile),
             /// with the same safety caveats.
+            #[allow(clippy::forget_non_drop)]
             pub unsafe fn write_volatile(self, val: #name) {
                 unsafe {
                     #(self.#fields_names.write_volatile(::std::ptr::read(&val.#fields_names));)*
@@ -325,6 +327,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
             /// Similar to [`*mut T::write_unaligned()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.write_unaligned),
             /// with the same safety caveats.
+            #[allow(clippy::forget_non_drop)]
             pub unsafe fn write_unaligned(self, val: #name) {
                 unsafe {
                     #(self.#fields_names.write_unaligned(::std::ptr::read(&val.#fields_names));)*
