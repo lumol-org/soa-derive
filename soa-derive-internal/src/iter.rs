@@ -25,6 +25,10 @@ pub fn derive(input: &Input) -> TokenStream {
         .map(|field| field.ident.clone().unwrap())
         .collect::<Vec<_>>();
 
+    let fields_types = &input.fields.iter()
+        .map(|field| field.ty.clone())
+        .collect::<Vec<_>>();
+
     let iter_type = input.map_fields_nested_or(
         |_, field_type| quote! { <#field_type as soa_derive::SoAIter<'a>>::Iter },
         |_, field_type| quote! { slice::Iter<'a, #field_type> },
@@ -287,6 +291,24 @@ pub fn derive(input: &Input) -> TokenStream {
 
                 fn into_iter(self) -> Self::IntoIter {
                     self.as_mut_slice().into_iter()
+                }
+            }
+
+            impl Extend<#name> for #vec_name {
+                fn extend<I: IntoIterator<Item = #name>>(&mut self, iter: I) {
+                    for item in iter {
+                        self.push(item)
+                    }
+                }
+            }
+
+            impl<'a> Extend<#ref_name<'a>> for #vec_name
+                // only expose if all fields are Clone
+                // https://github.com/rust-lang/rust/issues/48214#issuecomment-1150463333
+                where #( for<'b> #fields_types: Clone, )*
+            {
+                fn extend<I: IntoIterator<Item = #ref_name<'a>>>(&mut self, iter: I) {
+                    self.extend(iter.into_iter().map(|item| item.to_owned()))
                 }
             }
         });
