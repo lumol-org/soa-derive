@@ -86,7 +86,7 @@ fn slice_mut() {
     assert_eq!(slice.mass[0], 42.0);
 
     unsafe {
-        let slice = ParticleSliceMut::from_raw_parts_mut(ptr, 2);
+        let slice = ParticleSliceMut::from_raw_parts_mut(slice.as_mut_ptr(), 2);
 
         for mass in slice.mass {
             *mass = -1.0;
