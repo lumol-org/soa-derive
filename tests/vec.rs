@@ -1,9 +1,11 @@
 #![allow(clippy::float_cmp)]
 
+use std::cell::Cell;
+use std::rc::Rc;
+
 mod particles;
 use self::particles::{Particle, ParticleVec};
 use soa_derive::StructOfArray;
-use std::{cell::Cell, rc::Rc};
 
 #[test]
 fn ty() {

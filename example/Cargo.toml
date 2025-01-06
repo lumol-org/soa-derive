@@ -5,6 +5,7 @@ authors = ["Luthaf <luthaf@luthaf.fr>"]
 repository = "https://github.com/lumol-org/soa-derive"
 license = "BSD"
 publish = false
+edition = "2021"
 
 [dependencies]
 soa_derive = {path = ".."}
