@@ -28,7 +28,7 @@
 // Deny most of allow by default lints, just to be sure we don't create warning in user code.
 // They are to be selectively allowed in the implementation
 #![deny(absolute_paths_not_starting_with_crate, anonymous_parameters, bare_trait_objects)]
-#![deny(box_pointers, missing_copy_implementations, missing_debug_implementations)]
+#![deny(missing_copy_implementations, missing_debug_implementations)]
 #![deny(missing_docs, trivial_casts, trivial_numeric_casts, unreachable_pub)]
 #![deny(unstable_features, unused_extern_crates, unused_import_braces, unused_labels)]
 #![deny(unused_lifetimes, unused_qualifications, unused_results, variant_size_differences)]
