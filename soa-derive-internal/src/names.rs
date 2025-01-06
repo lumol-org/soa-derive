@@ -27,6 +27,16 @@ pub fn ref_mut_name(name: impl ToTokens) -> Ident {
     Ident::new(&format!("{}RefMut", name.to_token_stream()), Span::call_site())
 }
 
+/// Get the ident for the iterator type associated with `name`
+pub fn iter_name(name: impl ToTokens) -> Ident {
+    Ident::new(&format!("{}Iter", name.to_token_stream()), Span::call_site())
+}
+
+/// Get the ident for the mutable iterator type associated with `name`
+pub fn iter_mut_name(name: impl ToTokens) -> Ident {
+    Ident::new(&format!("{}IterMut", name.to_token_stream()), Span::call_site())
+}
+
 /// Get the ident for the pointer type associated with `name`
 pub fn ptr_name(name: impl ToTokens) -> Ident {
     Ident::new(&format!("{}Ptr", name.to_token_stream()), Span::call_site())
