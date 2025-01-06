@@ -1,7 +1,4 @@
-use proc_macro2::{Span, TokenStream};
-use syn::{Ident, Visibility};
-
-use quote::ToTokens;
+use proc_macro2::TokenStream;
 use quote::quote;
 
 use crate::input::{Input, TokenStreamIterator};
@@ -10,13 +7,15 @@ use crate::names;
 pub fn derive(input: &Input) -> TokenStream {
     let name = &input.name;
     let visibility = &input.visibility;
-    let detail_mod = Ident::new(&format!("__detail_iter_{}", name.to_string().to_lowercase()), Span::call_site());
     let vec_name = names::vec_name(&input.name);
     let slice_name = names::slice_name(name);
     let slice_mut_name = names::slice_mut_name(&input.name);
     let ref_name = names::ref_name(&input.name);
     let ref_mut_name = names::ref_mut_name(&input.name);
+    let iter_name = names::iter_name(&input.name);
+    let iter_mut_name = names::iter_mut_name(&input.name);
 
+    let doc_url = format!("[`{0}`](struct.{0}.html)", name);
     let ref_doc_url = format!("[`{0}`](struct.{0}.html)", ref_name);
     let ref_mut_doc_url = format!("[`{0}`](struct.{0}.html)", ref_mut_name);
 
@@ -30,16 +29,16 @@ pub fn derive(input: &Input) -> TokenStream {
 
     let iter_type = input.map_fields_nested_or(
         |_, field_type| quote! { <#field_type as soa_derive::SoAIter<'a>>::Iter },
-        |_, field_type| quote! { slice::Iter<'a, #field_type> },
+        |_, field_type| quote! { ::std::slice::Iter<'a, #field_type> },
     ).concat_by(
-        |seq, next| { quote! { iter::Zip<#seq, #next> } }
+        |seq, next| { quote! { ::std::iter::Zip<#seq, #next> } }
     );
 
     let iter_mut_type = input.map_fields_nested_or(
         |_, field_type| quote! { <#field_type as soa_derive::SoAIter<'a>>::IterMut },
-        |_, field_type| quote! { slice::IterMut<'a, #field_type> },
+        |_, field_type| quote! { ::std::slice::IterMut<'a, #field_type> },
     ).concat_by(
-        |seq, next| { quote! { iter::Zip<#seq, #next> } }
+        |seq, next| { quote! { ::std::iter::Zip<#seq, #next> } }
     );
 
     let create_into_iter = input.map_fields_nested_or(
@@ -55,11 +54,6 @@ pub fn derive(input: &Input) -> TokenStream {
     ).concat_by(
         |seq, next| { quote! { #seq.zip(#next) } }
     );
-
-    let iter_visibility = match visibility {
-        Visibility::Inherited => quote!{pub(super)},
-        other => other.to_token_stream(),
-    };
 
     let iter_pat = fields_names.iter().fold(None, |seq, ident| {
         if let Some(seq) = seq {
@@ -86,156 +80,153 @@ pub fn derive(input: &Input) -> TokenStream {
     }).expect("should be Some");
 
     return quote! {
-        #[allow(non_snake_case, dead_code)]
-        mod #detail_mod {
-            use super::*;
-            use std::slice;
-            #[allow(unused_imports)]
-            use std::iter;
+        /// Iterator over
+        #[doc = #doc_url]
+        #[allow(missing_debug_implementations)]
+        #visibility struct #iter_name<'a>(#iter_type);
 
-            #[allow(missing_debug_implementations)]
-            #iter_visibility struct Iter<'a>(pub(super) #iter_type);
+        impl<'a> Iterator for #iter_name<'a> {
+            type Item = #ref_name<'a>;
 
-            impl<'a> Iterator for Iter<'a> {
-                type Item = #ref_name<'a>;
-
-                #[inline]
-                fn next(&mut self) -> Option<#ref_name<'a>> {
-                    self.0.next().and_then(|#iter_pat|
-                        Some(#ref_name{
-                            #(#fields_names,)*
-                        })
-                    )
-                }
-
-                #[inline]
-                fn size_hint(&self) -> (usize, Option<usize>) {
-                    self.0.size_hint()
-                }
+            #[inline]
+            fn next(&mut self) -> Option<#ref_name<'a>> {
+                self.0.next().and_then(|#iter_pat|
+                    Some(#ref_name{
+                        #(#fields_names,)*
+                    })
+                )
             }
 
-            impl<'a> DoubleEndedIterator for Iter<'a> {
-
-                #[inline]
-                fn next_back(&mut self) -> Option<#ref_name<'a>> {
-                    self.0.next_back().and_then(|#iter_pat|
-                        Some(#ref_name{
-                            #(#fields_names,)*
-                        })
-                    )
-                }
+            #[inline]
+            fn size_hint(&self) -> (usize, Option<usize>) {
+                self.0.size_hint()
             }
-            impl<'a> ExactSizeIterator for Iter<'a> {
-                fn len(&self) -> usize {
-                    self.0.len()
-                }
+        }
+
+        impl<'a> DoubleEndedIterator for #iter_name<'a> {
+            #[inline]
+            fn next_back(&mut self) -> Option<#ref_name<'a>> {
+                self.0.next_back().and_then(|#iter_pat|
+                    Some(#ref_name{
+                        #(#fields_names,)*
+                    })
+                )
             }
+        }
 
-            impl #vec_name {
-                /// Get an iterator over the
-                #[doc = #ref_doc_url]
-                /// in this vector
-                #visibility fn iter(&self) -> Iter {
-                    self.as_slice().into_iter()
-                }
+        impl<'a> ExactSizeIterator for #iter_name<'a> {
+            fn len(&self) -> usize {
+                self.0.len()
             }
+        }
 
-            impl<'a> #slice_name<'a> {
-                /// Get an iterator over the
-                #[doc = #ref_doc_url]
-                /// in this slice.
-                #visibility fn iter(&self) -> Iter {
-                    Iter(#create_iter)
-                }
-                /// Get an iterator over the
-                #[doc = #ref_doc_url]
-                /// in this slice.
-                #visibility fn into_iter(self) -> Iter<'a> {
-                    Iter(#create_into_iter)
-                }
+        impl #vec_name {
+            /// Get an iterator over the
+            #[doc = #ref_doc_url]
+            /// in this vector
+            pub fn iter(&self) -> #iter_name {
+                self.as_slice().into_iter()
             }
+        }
 
-            #[allow(missing_debug_implementations)]
-            #iter_visibility struct IterMut<'a>(pub(super) #iter_mut_type);
-
-            impl<'a> Iterator for IterMut<'a> {
-                type Item = #ref_mut_name<'a>;
-
-                #[inline]
-                fn next(&mut self) -> Option<#ref_mut_name<'a>> {
-                    self.0.next().and_then(|#iter_pat|
-                        Some(#ref_mut_name{
-                            #(#fields_names,)*
-                        })
-                    )
-                }
-
-                #[inline]
-                fn size_hint(&self) -> (usize, Option<usize>) {
-                    self.0.size_hint()
-                }
+        impl<'a> #slice_name<'a> {
+            /// Get an iterator over the
+            #[doc = #ref_doc_url]
+            /// in this slice.
+            pub fn iter(&self) -> #iter_name {
+                #iter_name(#create_iter)
             }
 
-            impl<'a> DoubleEndedIterator for IterMut<'a> {
-
-                #[inline]
-                fn next_back(&mut self) -> Option<#ref_mut_name<'a>> {
-                    self.0.next_back().and_then(|#iter_pat|
-                        Some(#ref_mut_name{
-                            #(#fields_names,)*
-                        })
-                    )
-                }
+            /// Get an iterator over the
+            #[doc = #ref_doc_url]
+            /// in this slice.
+            pub fn into_iter(self) -> #iter_name<'a> {
+                #iter_name(#create_into_iter)
             }
-            impl<'a> ExactSizeIterator for IterMut<'a> {
-                fn len(&self) -> usize {
-                    self.0.len()
-                }
-            }
+        }
 
-            impl #vec_name {
-                /// Get a mutable iterator over the
-                #[doc = #ref_mut_doc_url]
-                /// in this vector
-                #visibility fn iter_mut(&mut self) -> IterMut {
-                    self.as_mut_slice().into_iter()
-                }
-            }
+        /// Mutable iterator over
+        #[doc = #doc_url]
+        #[allow(missing_debug_implementations)]
+        #visibility struct #iter_mut_name<'a>(#iter_mut_type);
 
-            impl<'a> #slice_mut_name<'a> {
-                /// Get an iterator over the
-                #[doc = #ref_doc_url]
-                /// in this vector
-                #visibility fn iter(&mut self) -> Iter {
-                    self.as_ref().into_iter()
-                }
+        impl<'a> Iterator for #iter_mut_name<'a> {
+            type Item = #ref_mut_name<'a>;
 
-                /// Get a mutable iterator over the
-                #[doc = #ref_mut_doc_url]
-                /// in this vector
-                #visibility fn iter_mut(&mut self) -> IterMut {
-                    IterMut(#create_iter_mut)
-                }
-                /// Get a mutable iterator over the
-                #[doc = #ref_mut_doc_url]
-                /// in this vector
-                #visibility fn into_iter(self) -> IterMut<'a> {
-                    IterMut(#create_mut_into_iter)
-                }
+            #[inline]
+            fn next(&mut self) -> Option<#ref_mut_name<'a>> {
+                self.0.next().and_then(|#iter_pat|
+                    Some(#ref_mut_name{
+                        #(#fields_names,)*
+                    })
+                )
             }
 
-            impl<'a> soa_derive::SoAIter<'a> for #name {
-                type Iter = Iter<'a>;
-                type IterMut = IterMut<'a>;
+            #[inline]
+            fn size_hint(&self) -> (usize, Option<usize>) {
+                self.0.size_hint()
             }
+        }
+
+        impl<'a> DoubleEndedIterator for #iter_mut_name<'a> {
+            #[inline]
+            fn next_back(&mut self) -> Option<#ref_mut_name<'a>> {
+                self.0.next_back().and_then(|#iter_pat|
+                    Some(#ref_mut_name{
+                        #(#fields_names,)*
+                    })
+                )
+            }
+        }
+        impl<'a> ExactSizeIterator for #iter_mut_name<'a> {
+            fn len(&self) -> usize {
+                self.0.len()
+            }
+        }
+
+        impl #vec_name {
+            /// Get a mutable iterator over the
+            #[doc = #ref_mut_doc_url]
+            /// in this vector
+            pub fn iter_mut(&mut self) -> #iter_mut_name {
+                self.as_mut_slice().into_iter()
+            }
+        }
+
+        impl<'a> #slice_mut_name<'a> {
+            /// Get an iterator over the
+            #[doc = #ref_doc_url]
+            /// in this vector
+            pub fn iter(&mut self) -> #iter_name {
+                self.as_ref().into_iter()
+            }
+
+            /// Get a mutable iterator over the
+            #[doc = #ref_mut_doc_url]
+            /// in this vector
+            pub fn iter_mut(&mut self) -> #iter_mut_name {
+                #iter_mut_name(#create_iter_mut)
+            }
+
+            /// Get a mutable iterator over the
+            #[doc = #ref_mut_doc_url]
+            /// in this vector
+            pub fn into_iter(self) -> #iter_mut_name<'a> {
+                #iter_mut_name(#create_mut_into_iter)
+            }
+        }
+
+        impl<'a> soa_derive::SoAIter<'a> for #name {
+            type Iter = #iter_name<'a>;
+            type IterMut = #iter_mut_name<'a>;
         }
 
         impl<'a> IntoIterator for #slice_name<'a> {
             type Item = #ref_name<'a>;
-            type IntoIter = #detail_mod::Iter<'a>;
+            type IntoIter = #iter_name<'a>;
 
             fn into_iter(self) -> Self::IntoIter {
-                #detail_mod::Iter(#create_into_iter)
+                #iter_name(#create_into_iter)
             }
         }
 
@@ -252,16 +243,16 @@ pub fn derive(input: &Input) -> TokenStream {
 
         impl<'a, 'b> IntoIterator for &'a #slice_name<'b> {
             type Item = #ref_name<'a>;
-            type IntoIter = #detail_mod::Iter<'a>;
+            type IntoIter = #iter_name<'a>;
 
             fn into_iter(self) -> Self::IntoIter {
-                #detail_mod::Iter(#create_into_iter)
+                #iter_name(#create_into_iter)
             }
         }
 
         impl<'a> IntoIterator for &'a #vec_name {
             type Item = #ref_name<'a>;
-            type IntoIter = #detail_mod::Iter<'a>;
+            type IntoIter = #iter_name<'a>;
 
             fn into_iter(self) -> Self::IntoIter {
                 self.as_slice().into_iter()
@@ -270,16 +261,16 @@ pub fn derive(input: &Input) -> TokenStream {
 
         impl<'a> IntoIterator for #slice_mut_name<'a> {
             type Item = #ref_mut_name<'a>;
-            type IntoIter = #detail_mod::IterMut<'a>;
+            type IntoIter = #iter_mut_name<'a>;
 
             fn into_iter(self) -> Self::IntoIter {
-                #detail_mod::IterMut(#create_mut_into_iter)
+                #iter_mut_name(#create_mut_into_iter)
             }
         }
 
         impl<'a> IntoIterator for &'a mut #vec_name {
             type Item = #ref_mut_name<'a>;
-            type IntoIter = #detail_mod::IterMut<'a>;
+            type IntoIter = #iter_mut_name<'a>;
 
             fn into_iter(self) -> Self::IntoIter {
                 self.as_mut_slice().into_iter()
