@@ -1,7 +1,6 @@
 use proc_macro2::{Span, TokenStream};
 use syn::{Ident, Visibility};
 
-use quote::TokenStreamExt;
 use quote::ToTokens;
 use quote::quote;
 
@@ -86,7 +85,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
     }).expect("should be Some");
 
-    let mut generated = quote! {
+    return quote! {
         #[allow(non_snake_case, dead_code)]
         mod #detail_mod {
             use super::*;
@@ -230,85 +229,79 @@ pub fn derive(input: &Input) -> TokenStream {
                 type IterMut = IterMut<'a>;
             }
         }
+
+        impl<'a> IntoIterator for #slice_name<'a> {
+            type Item = #ref_name<'a>;
+            type IntoIter = #detail_mod::Iter<'a>;
+
+            fn into_iter(self) -> Self::IntoIter {
+                #detail_mod::Iter(#create_into_iter)
+            }
+        }
+
+
+        impl std::iter::FromIterator<#name> for #vec_name {
+            fn from_iter<T: IntoIterator<Item=#name>>(iter: T) -> Self {
+                let mut result = #vec_name::new();
+                for element in iter {
+                    result.push(element);
+                }
+                result
+            }
+        }
+
+        impl<'a, 'b> IntoIterator for &'a #slice_name<'b> {
+            type Item = #ref_name<'a>;
+            type IntoIter = #detail_mod::Iter<'a>;
+
+            fn into_iter(self) -> Self::IntoIter {
+                #detail_mod::Iter(#create_into_iter)
+            }
+        }
+
+        impl<'a> IntoIterator for &'a #vec_name {
+            type Item = #ref_name<'a>;
+            type IntoIter = #detail_mod::Iter<'a>;
+
+            fn into_iter(self) -> Self::IntoIter {
+                self.as_slice().into_iter()
+            }
+        }
+
+        impl<'a> IntoIterator for #slice_mut_name<'a> {
+            type Item = #ref_mut_name<'a>;
+            type IntoIter = #detail_mod::IterMut<'a>;
+
+            fn into_iter(self) -> Self::IntoIter {
+                #detail_mod::IterMut(#create_mut_into_iter)
+            }
+        }
+
+        impl<'a> IntoIterator for &'a mut #vec_name {
+            type Item = #ref_mut_name<'a>;
+            type IntoIter = #detail_mod::IterMut<'a>;
+
+            fn into_iter(self) -> Self::IntoIter {
+                self.as_mut_slice().into_iter()
+            }
+        }
+
+        impl Extend<#name> for #vec_name {
+            fn extend<I: IntoIterator<Item = #name>>(&mut self, iter: I) {
+                for item in iter {
+                    self.push(item)
+                }
+            }
+        }
+
+        impl<'a> Extend<#ref_name<'a>> for #vec_name
+            // only expose if all fields are Clone
+            // https://github.com/rust-lang/rust/issues/48214#issuecomment-1150463333
+            where #( for<'b> #fields_types: Clone, )*
+        {
+            fn extend<I: IntoIterator<Item = #ref_name<'a>>>(&mut self, iter: I) {
+                self.extend(iter.into_iter().map(|item| item.to_owned()))
+            }
+        }
     };
-
-    if let Visibility::Public(_) = *visibility {
-        generated.append_all(quote!{
-            impl<'a> IntoIterator for #slice_name<'a> {
-                type Item = #ref_name<'a>;
-                type IntoIter = #detail_mod::Iter<'a>;
-
-                fn into_iter(self) -> Self::IntoIter {
-                    #detail_mod::Iter(#create_into_iter)
-                }
-            }
-
-
-            impl std::iter::FromIterator<#name> for #vec_name {
-                fn from_iter<T: IntoIterator<Item=#name>>(iter: T) -> Self {
-                    let mut result = #vec_name::new();
-                    for element in iter {
-                        result.push(element);
-                    }
-                    result
-                }
-            }
-
-            impl<'a, 'b> IntoIterator for &'a #slice_name<'b> {
-                type Item = #ref_name<'a>;
-                type IntoIter = #detail_mod::Iter<'a>;
-
-                fn into_iter(self) -> Self::IntoIter {
-                    #detail_mod::Iter(#create_into_iter)
-                }
-            }
-
-            impl<'a> IntoIterator for &'a #vec_name {
-                type Item = #ref_name<'a>;
-                type IntoIter = #detail_mod::Iter<'a>;
-
-                fn into_iter(self) -> Self::IntoIter {
-                    self.as_slice().into_iter()
-                }
-            }
-
-            impl<'a> IntoIterator for #slice_mut_name<'a> {
-                type Item = #ref_mut_name<'a>;
-                type IntoIter = #detail_mod::IterMut<'a>;
-
-                fn into_iter(self) -> Self::IntoIter {
-                    #detail_mod::IterMut(#create_mut_into_iter)
-                }
-            }
-
-            impl<'a> IntoIterator for &'a mut #vec_name {
-                type Item = #ref_mut_name<'a>;
-                type IntoIter = #detail_mod::IterMut<'a>;
-
-                fn into_iter(self) -> Self::IntoIter {
-                    self.as_mut_slice().into_iter()
-                }
-            }
-
-            impl Extend<#name> for #vec_name {
-                fn extend<I: IntoIterator<Item = #name>>(&mut self, iter: I) {
-                    for item in iter {
-                        self.push(item)
-                    }
-                }
-            }
-
-            impl<'a> Extend<#ref_name<'a>> for #vec_name
-                // only expose if all fields are Clone
-                // https://github.com/rust-lang/rust/issues/48214#issuecomment-1150463333
-                where #( for<'b> #fields_types: Clone, )*
-            {
-                fn extend<I: IntoIterator<Item = #ref_name<'a>>>(&mut self, iter: I) {
-                    self.extend(iter.into_iter().map(|item| item.to_owned()))
-                }
-            }
-        });
-    }
-
-    return generated;
 }
