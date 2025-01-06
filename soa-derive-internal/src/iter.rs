@@ -229,8 +229,6 @@ pub fn derive(input: &Input) -> TokenStream {
                 type Iter = Iter<'a>;
                 type IterMut = IterMut<'a>;
             }
-
-
         }
     };
 
@@ -250,9 +248,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 fn from_iter<T: IntoIterator<Item=#name>>(iter: T) -> Self {
                     let mut result = #vec_name::new();
                     for element in iter {
-                        #(
-                            (result.#fields_names).push(element.#fields_names);
-                        )*
+                        result.push(element);
                     }
                     result
                 }
