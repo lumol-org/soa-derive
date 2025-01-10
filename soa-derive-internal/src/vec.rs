@@ -459,6 +459,10 @@ pub fn derive(input: &Input) -> TokenStream {
             fn as_ptr(&self) -> <Self::Scalar as ::soa_derive::SoAPointers>::Ptr {
                 self.as_ptr()
             }
+
+            fn iter<'a>(&'a self) -> <<Self as ::soa_derive::SoACollection>::Scalar as ::soa_derive::SoAIter<'a>>::Iter where <Self as ::soa_derive::SoACollection>::Scalar: ::soa_derive::SoAIter<'a> {
+                self.iter()
+            }
         }
 
         impl ::soa_derive::SoACollectionMut for #vec_name {
@@ -528,10 +532,6 @@ pub fn derive(input: &Input) -> TokenStream {
 
             fn split_off(&mut self, at: usize) -> Self {
                 self.split_off(at)
-            }
-
-            fn iter<'a>(&'a self) -> <<Self as ::soa_derive::SoACollection>::Scalar as ::soa_derive::SoAIter<'a>>::Iter where <Self as ::soa_derive::SoACollection>::Scalar: ::soa_derive::SoAIter<'a> {
-                self.iter()
             }
         }
 

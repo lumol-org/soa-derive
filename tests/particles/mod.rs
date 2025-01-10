@@ -1,4 +1,4 @@
-use soa_derive::StructOfArray;
+use soa_derive::{StructOfArray, SoAArray, SoACollection};
 
 #[derive(Debug, Clone, PartialOrd, PartialEq, StructOfArray)]
 #[soa_derive(Debug, Clone, PartialOrd, PartialEq)]
@@ -15,3 +15,9 @@ impl Particle {
         }
     }
 }
+
+
+
+// fn may_i_do_this<T: SoAArray>(vec: &T) {
+//     let x = vec.get(0usize);
+// }

@@ -249,6 +249,10 @@ pub fn derive(input: &Input) -> TokenStream {
             fn as_ptr(&self) -> <Self::Scalar as ::soa_derive::SoAPointers>::Ptr {
                 self.as_ptr()
             }
+
+            fn iter<'b>(&'b self) -> <<Self as ::soa_derive::SoACollection>::Scalar as ::soa_derive::SoAIter<'b>>::Iter where <Self as ::soa_derive::SoACollection>::Scalar: ::soa_derive::SoAIter<'b> {
+                self.iter()
+            }
         }
     };
 
@@ -689,6 +693,11 @@ pub fn derive_mut(input: &Input) -> TokenStream {
 
             fn as_ptr(&self) -> <Self::Scalar as ::soa_derive::SoAPointers>::Ptr {
                 self.as_ptr()
+            }
+
+
+            fn iter<'b>(&'b self) -> <<Self as ::soa_derive::SoACollection>::Scalar as ::soa_derive::SoAIter<'b>>::Iter where <Self as ::soa_derive::SoACollection>::Scalar: ::soa_derive::SoAIter<'b> {
+                self.iter()
             }
         }
 

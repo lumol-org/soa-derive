@@ -392,6 +392,25 @@ pub trait SoAPointers {
     type MutPtr;
 }
 
+
+pub trait IsIndexed<'a>: 'a where
+    usize: SoAIndex<&'a Self>,
+    IdxRange: SoAIndex<&'a Self>,
+    RangeFull: SoAIndex<&'a Self> {}
+
+
+impl<'a, T: 'a> IsIndexed<'a> for T where usize: SoAIndex<&'a Self>, IdxRange: SoAIndex<&'a Self>, RangeFull: SoAIndex<&'a Self> {}
+
+
+pub trait IsIndexedMut<'a>: 'a where
+    usize: SoAIndexMut<&'a mut Self>,
+    IdxRange: SoAIndexMut<&'a mut Self>,
+    RangeFull: SoAIndexMut<&'a mut Self> {}
+
+
+impl<'a, T: 'a> IsIndexedMut<'a> for T where usize: SoAIndexMut<&'a mut Self>, IdxRange: SoAIndexMut<&'a mut Self>, RangeFull: SoAIndexMut<&'a mut Self> {}
+
+
 pub trait SoACollection {
     type Scalar: SoAPointers;
 
@@ -416,6 +435,8 @@ pub trait SoACollection {
     fn index<'a, I>(&'a self, index: I) -> <I as crate::SoAIndex<&'a Self>>::RefOutput where I: crate::SoAIndex<&'a Self> {
         index.index(self)
     }
+
+    fn iter<'a>(&'a self) -> <<Self as SoACollection>::Scalar as SoAIter<'a>>::Iter where <Self as SoACollection>::Scalar: SoAIter<'a>;
 
     fn as_ptr(&self) -> <Self::Scalar as SoAPointers>::Ptr;
 }
@@ -461,12 +482,6 @@ pub trait SoAArray: SoACollection + SoACollectionMut {
     fn append(&mut self, other: &mut Self);
     fn clear(&mut self);
     fn split_off(&mut self, at: usize) -> Self;
-
-    fn iter<'a>(&'a self) -> <<Self as SoACollection>::Scalar as SoAIter<'a>>::Iter where <Self as SoACollection>::Scalar: SoAIter<'a>;
-}
-
-pub trait SoACollectionIter<'a>: SoACollection where <Self as SoACollection>::Scalar: SoAIter<'a> {
-    // fn iter(&'a self) -> <<Self as SoACollection>::Scalar as SoAIter>::Iter;
 }
 
 
