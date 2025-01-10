@@ -445,6 +445,96 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
+        impl ::soa_derive::SoACollection for #vec_name {
+            type Scalar = #name;
+
+            fn len(&self) -> usize {
+                self.len()
+            }
+
+            fn is_empty(&self) -> bool {
+                self.is_empty()
+            }
+
+            fn as_ptr(&self) -> <Self::Scalar as ::soa_derive::SoAPointers>::Ptr {
+                self.as_ptr()
+            }
+        }
+
+        impl ::soa_derive::SoACollectionMut for #vec_name {
+            fn as_mut_ptr(&mut self) -> <Self::Scalar as ::soa_derive::SoAPointers>::MutPtr {
+                self.as_mut_ptr()
+            }
+        }
+        impl ::soa_derive::SoAArray for #vec_name {
+
+
+            fn new() -> Self {
+                Self::new()
+            }
+
+            fn with_capacity(capacity: usize) -> Self {
+                Self::with_capacity(capacity)
+            }
+
+            fn capacity(&self) -> usize {
+                self.capacity()
+            }
+
+            fn reserve(&mut self, additional: usize) {
+                self.reserve(additional)
+            }
+
+            fn reserve_exact(&mut self, additional: usize) {
+                self.reserve_exact(additional)
+            }
+
+            fn shrink_to_fit(&mut self) {
+                self.shrink_to_fit()
+            }
+
+            fn truncate(&mut self, len: usize) {
+                self.truncate(len)
+            }
+
+            fn push(&mut self, value: Self::Scalar) {
+                self.push(value)
+            }
+
+            fn swap_remove(&mut self, index: usize) -> Self::Scalar {
+                self.swap_remove(index)
+            }
+            fn insert(&mut self, index: usize, element: Self::Scalar) {
+                self.insert(index, element);
+            }
+            fn replace(&mut self, index: usize, element: Self::Scalar) -> Self::Scalar {
+                self.replace(index, element)
+            }
+            fn remove(&mut self, index: usize) -> Self::Scalar {
+                self.remove(index)
+            }
+
+            fn pop(&mut self) -> Option<Self::Scalar> {
+                self.pop()
+            }
+
+            fn append(&mut self, other: &mut Self) {
+                self.append(other)
+            }
+
+            fn clear(&mut self) {
+                self.clear()
+            }
+
+            fn split_off(&mut self, at: usize) -> Self {
+                self.split_off(at)
+            }
+
+            fn iter<'a>(&'a self) -> <<Self as ::soa_derive::SoACollection>::Scalar as ::soa_derive::SoAIter<'a>>::Iter where <Self as ::soa_derive::SoACollection>::Scalar: ::soa_derive::SoAIter<'a> {
+                self.iter()
+            }
+        }
+
         #[allow(clippy::drop_non_drop)]
         impl Drop for #vec_name {
             fn drop(&mut self) {

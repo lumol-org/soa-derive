@@ -7,6 +7,7 @@ use crate::input::Input;
 use crate::names;
 
 pub fn derive(input: &Input) -> TokenStream {
+    let name = &input.name;
     let visibility = &input.visibility;
     let slice_name = names::slice_name(&input.name);
     let attrs = &input.attrs.slice;
@@ -233,6 +234,22 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         }
+
+        impl<'a> ::soa_derive::SoACollection for #slice_name<'a> {
+            type Scalar = #name;
+
+            fn len(&self) -> usize {
+                self.len()
+            }
+
+            fn is_empty(&self) -> bool {
+                self.is_empty()
+            }
+
+            fn as_ptr(&self) -> <Self::Scalar as ::soa_derive::SoAPointers>::Ptr {
+                self.as_ptr()
+            }
+        }
     };
 
     if input.attrs.derive_clone {
@@ -255,6 +272,7 @@ pub fn derive(input: &Input) -> TokenStream {
 }
 
 pub fn derive_mut(input: &Input) -> TokenStream {
+    let name = &input.name;
     let visibility = &input.visibility;
     let slice_name = names::slice_name(&input.name);
     let slice_mut_name = names::slice_mut_name(&input.name);
@@ -655,6 +673,28 @@ pub fn derive_mut(input: &Input) -> TokenStream {
 
                 let mut permutation = Permutation::oneline(permutation).inverse();
                 self.apply_permutation(&mut permutation);
+            }
+        }
+
+        impl<'a> ::soa_derive::SoACollection for #slice_mut_name<'a> {
+            type Scalar = #name;
+
+            fn len(&self) -> usize {
+                self.len()
+            }
+
+            fn is_empty(&self) -> bool {
+                self.is_empty()
+            }
+
+            fn as_ptr(&self) -> <Self::Scalar as ::soa_derive::SoAPointers>::Ptr {
+                self.as_ptr()
+            }
+        }
+
+        impl<'a> ::soa_derive::SoACollectionMut for #slice_mut_name<'a> {
+            fn as_mut_ptr(&mut self) -> <Self::Scalar as ::soa_derive::SoAPointers>::MutPtr {
+                self.as_mut_ptr()
             }
         }
     };

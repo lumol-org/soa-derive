@@ -188,13 +188,13 @@
 //! # }
 //! # }
 //! ```
-//! 
+//!
 //! ## Nested Struct of Arrays
-//! 
+//!
 //! In order to nest a struct of arrays inside another struct of arrays, one can use the `#[nested_soa]` attribute.
-//! 
+//!
 //! For example, the following code
-//! 
+//!
 //! ```
 //! # mod cheese {
 //! # use soa_derive::StructOfArray;
@@ -211,9 +211,9 @@
 //! }
 //! # }
 //! ```
-//! 
+//!
 //! will generate structs that looks like this:
-//! 
+//!
 //! ```
 //! pub struct PointVec {
 //!     x: Vec<f32>,
@@ -224,7 +224,7 @@
 //!     mass: Vec<f32>
 //! }
 //! ```
-//! 
+//!
 //! All helper structs will be also nested, for example `PointSlice` will be nested in `ParticleSlice`.
 
 // The proc macro is implemented in soa_derive_internal, and re-exported by this
@@ -246,11 +246,11 @@ pub trait StructOfArray {
 }
 
 /// Any struct derived by StructOfArray will auto impl this trait.
-/// 
+///
 /// Useful for generic programming and implementation of attribute `nested_soa`.
-/// 
+///
 /// `CheeseVec::iter(&'a self)` returns an iterator which has a type `<Cheese as SoAIter<'a>>::Iter`
-/// 
+///
 /// `CheeseVec::iter_mut(&mut 'a self)` returns an iterator which has a type `<Cheese as SoAIter<'a>>::IterMut`
 pub trait SoAIter<'a> {
     type Iter: 'a;
@@ -383,6 +383,92 @@ macro_rules! soa_zip {
         $crate::soa_zip_impl!(@munch this, {$($fields)*} -> [] $($external ,)*)
     }};
 }
+
+type IdxRange = ::std::ops::Range<usize>;
+type RangeFull = ::std::ops::RangeFull;
+
+pub trait SoAPointers {
+    type Ptr;
+    type MutPtr;
+}
+
+pub trait SoACollection {
+    type Scalar: SoAPointers;
+
+    fn len(&self) -> usize;
+    fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    fn as_slice<'a>(&'a self) -> <RangeFull as crate::SoAIndex<&'a Self>>::RefOutput where RangeFull: crate::SoAIndex<&'a Self> {
+        (..).index(self)
+    }
+
+    fn slice<'a>(&'a self, range: IdxRange) -> <IdxRange as crate::SoAIndex<&'a Self>>::RefOutput where IdxRange: crate::SoAIndex<&'a Self> {
+        range.index(self)
+    }
+
+
+    fn get<'a, I>(&'a self, index: I) -> Option<<I as crate::SoAIndex<&'a Self>>::RefOutput> where I: crate::SoAIndex<&'a Self> {
+        index.get(self)
+    }
+
+    fn index<'a, I>(&'a self, index: I) -> <I as crate::SoAIndex<&'a Self>>::RefOutput where I: crate::SoAIndex<&'a Self> {
+        index.index(self)
+    }
+
+    fn as_ptr(&self) -> <Self::Scalar as SoAPointers>::Ptr;
+}
+
+
+pub trait SoACollectionMut: SoACollection {
+
+    fn slice_mut<'a>(&'a mut self, range: IdxRange) -> <IdxRange as crate::SoAIndexMut<&'a Self>>::MutOutput where IdxRange: crate::SoAIndexMut<&'a Self> {
+        range.index_mut(self)
+    }
+
+    fn get_mut<'a, I>(&'a mut self, index: I) -> Option<I::MutOutput> where I: crate::SoAIndexMut<&'a Self> {
+        index.get_mut(self)
+    }
+
+    fn index_mut<'a, I>(&'a mut self, index: I) -> I::MutOutput where I: crate::SoAIndexMut<&'a Self> {
+        index.index_mut(self)
+    }
+
+    fn as_mut_slice<'a>(&'a mut self) -> <RangeFull as crate::SoAIndexMut<&'a Self>>::MutOutput where RangeFull: crate::SoAIndexMut<&'a Self> {
+        (..).index_mut(self)
+    }
+
+    fn as_mut_ptr(&mut self) -> <Self::Scalar as SoAPointers>::MutPtr;
+}
+
+pub trait SoAArray: SoACollection + SoACollectionMut {
+
+    fn new() -> Self;
+    fn with_capacity(capacity: usize) -> Self;
+    fn capacity(&self) -> usize;
+    fn reserve(&mut self, additional: usize);
+    fn reserve_exact(&mut self, additional: usize);
+    fn shrink_to_fit(&mut self);
+    fn truncate(&mut self, len: usize);
+    fn push(&mut self, value: Self::Scalar);
+
+    fn swap_remove(&mut self, index: usize) -> Self::Scalar;
+    fn insert(&mut self, index: usize, element: Self::Scalar);
+    fn replace(&mut self, index: usize, element: Self::Scalar) -> Self::Scalar;
+    fn remove(&mut self, index: usize) -> Self::Scalar;
+    fn pop(&mut self) -> Option<Self::Scalar>;
+    fn append(&mut self, other: &mut Self);
+    fn clear(&mut self);
+    fn split_off(&mut self, at: usize) -> Self;
+
+    fn iter<'a>(&'a self) -> <<Self as SoACollection>::Scalar as SoAIter<'a>>::Iter where <Self as SoACollection>::Scalar: SoAIter<'a>;
+}
+
+pub trait SoACollectionIter<'a>: SoACollection where <Self as SoACollection>::Scalar: SoAIter<'a> {
+    // fn iter(&'a self) -> <<Self as SoACollection>::Scalar as SoAIter>::Iter;
+}
+
 
 #[macro_export]
 #[doc(hidden)]
