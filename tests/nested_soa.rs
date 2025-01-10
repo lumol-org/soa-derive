@@ -59,7 +59,7 @@ fn nested_soa() {
     });
 }
 
-fn generic_f<'a, T: SoATypes<'a>>(vec: &'a T::Vec) {
+fn generic_f<'a: 'b, 'b, T: SoATypes<'a, 'b>>(vec: &'a T::Vec) {
     assert_eq!(vec.len(), 2);
 }
 

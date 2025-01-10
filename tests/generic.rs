@@ -3,7 +3,7 @@ use soa_derive::prelude::*;
 mod particles;
 use self::particles::Particle;
 
-fn may_i_do_this<'a, T: SoATypes<'a>>(vec: &'a T::Vec) -> T::Iter {
+fn may_i_do_this<'a: 'b, 'b, T: SoATypes<'a, 'b>>(vec: &'a T::Vec) -> T::Iter {
     let x=  vec.iter();
     x
 }

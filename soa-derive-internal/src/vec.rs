@@ -445,7 +445,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoASlice<'a, #name> for #vec_name {
+        impl<'a: 'b, 'b> ::soa_derive::SoASlice<'a, 'b, #name> for #vec_name {
             type Ref = #ref_name<'a>;
             type Slice = #slice_name<'a>;
 
@@ -492,7 +492,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAMutSlice<'a, #name> for #vec_name {
+        impl<'a: 'b, 'b> ::soa_derive::SoAMutSlice<'a, 'b, #name> for #vec_name {
             type RefMut = #ref_mut_name<'a>;
 
             type SliceMut = #slice_mut_name<'a>;
@@ -530,10 +530,9 @@ pub fn derive(input: &Input) -> TokenStream {
             fn as_mut_ptr(&mut self) -> <#name as ::soa_derive::SoAPointers>::MutPtr {
                 self.as_mut_ptr()
             }
-
         }
 
-        impl<'a> ::soa_derive::SoAVec<'a, #name> for #vec_name {
+        impl<'a: 'b, 'b> ::soa_derive::SoAVec<'a, 'b, #name> for #vec_name {
             fn new() -> Self {
                 Self::new()
             }

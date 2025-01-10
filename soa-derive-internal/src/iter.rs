@@ -217,6 +217,8 @@ pub fn derive(input: &Input) -> TokenStream {
         }
 
         impl<'a> soa_derive::SoAIter<'a> for #name {
+            type Ref = #ref_name<'a>;
+            type RefMut = #ref_mut_name<'a>;
             type Iter = #iter_name<'a>;
             type IterMut = #iter_mut_name<'a>;
         }

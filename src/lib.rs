@@ -253,8 +253,10 @@ pub trait StructOfArray {
 ///
 /// `CheeseVec::iter_mut(&mut 'a self)` returns an iterator which has a type `<Cheese as SoAIter<'a>>::IterMut`
 pub trait SoAIter<'a> {
-    type Iter: 'a;
-    type IterMut: 'a;
+    type Ref;
+    type RefMut;
+    type Iter: 'a + Iterator<Item=Self::Ref> + IntoIterator;
+    type IterMut: 'a + Iterator<Item=Self::RefMut> + IntoIterator;
 }
 
 mod private_soa_indexes {
@@ -393,7 +395,7 @@ pub trait SoAProps<'a> : StructOfArray + SoAIter<'a> + SoAPointers {}
 
 impl<'a, T> SoAProps<'a> for T where T: StructOfArray + SoAIter<'a> + SoAPointers {}
 
-pub trait SoASlice<'a, T: SoAProps<'a>> {
+pub trait SoASlice<'a: 'b, 'b, T: SoAProps<'a>> {
     type Ref;
     type Slice;
 
@@ -409,7 +411,7 @@ pub trait SoASlice<'a, T: SoAProps<'a>> {
     fn as_ptr(&self) -> T::Ptr;
 }
 
-pub trait SoAMutSlice<'a, T: SoAProps<'a>>: SoASlice<'a, T> {
+pub trait SoAMutSlice<'a: 'b, 'b, T: SoAProps<'a>>: SoASlice<'a, 'b, T> {
     type RefMut;
     type SliceMut;
 
@@ -422,7 +424,13 @@ pub trait SoAMutSlice<'a, T: SoAProps<'a>>: SoASlice<'a, T> {
     fn as_mut_ptr(&mut self) -> T::MutPtr;
 }
 
-pub trait SoAVec<'a, T: SoAProps<'a>>: SoASlice<'a, T> + SoAMutSlice<'a, T> {
+// pub trait SoASort<'a, T: SoAProps<'a>>: SoAMutSlice<'a, 'b, T> {
+//     fn sort_by<F>(&mut self, f: F)
+//     where
+//         F: FnMut(Self::Ref, Self::Ref) -> std::cmp::Ordering;
+// }
+
+pub trait SoAVec<'a: 'b, 'b, T: SoAProps<'a>>: SoASlice<'a, 'b, T> + SoAMutSlice<'a, 'b, T> {
     fn new() -> Self;
     fn with_capacity(capacity: usize) -> Self;
     fn capacity(&self) -> usize;
@@ -442,10 +450,12 @@ pub trait SoAVec<'a, T: SoAProps<'a>>: SoASlice<'a, T> + SoAMutSlice<'a, T> {
     fn split_off(&mut self, at: usize) -> Self;
 }
 
-pub trait SoATypes<'a>: SoAProps<'a> + Sized {
-    type Vec: SoAVec<'a, Self>;
-    type Slice: SoASlice<'a, Self>;
-    type MutSlice: SoAMutSlice<'a, Self>;
+pub trait SoATypes<'a: 'b, 'b>: SoAProps<'a> + Sized {
+    type Vec: SoAVec<'a, 'b, Self>;
+    type Slice: SoASlice<'a, 'b, Self>;
+    type MutSlice: SoAMutSlice<'a, 'b, Self>;
+    type Ref: 'a;
+    type RefMut: 'a;
 }
 
 pub mod prelude {

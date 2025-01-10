@@ -235,7 +235,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoASlice<'a, #name> for #slice_name<'a> {
+        impl<'a: 'b, 'b> ::soa_derive::SoASlice<'a, 'b, #name> for #slice_name<'a> {
             type Ref = #ref_name<'a>;
             type Slice = #slice_name<'a>;
 
@@ -707,7 +707,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoASlice<'a, #name> for #slice_mut_name<'a> {
+        impl<'a: 'b, 'b> ::soa_derive::SoASlice<'a, 'b, #name> for #slice_mut_name<'a> {
             type Ref = #ref_name<'a>;
             type Slice = #slice_name<'a>;
 
@@ -754,7 +754,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAMutSlice<'a, #name> for #slice_mut_name<'a> {
+        impl<'a: 'b, 'b> ::soa_derive::SoAMutSlice<'a, 'b, #name> for #slice_mut_name<'a> {
             type RefMut = #ref_mut_name<'a>;
 
             type SliceMut = #slice_mut_name<'a>;
