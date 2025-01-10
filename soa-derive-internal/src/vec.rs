@@ -445,8 +445,9 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl ::soa_derive::SoACollection for #vec_name {
-            type Scalar = #name;
+        impl<'a> ::soa_derive::SoASlice<'a, #name> for #vec_name {
+            type Ref = #ref_name<'a>;
+            type Slice = #slice_name<'a>;
 
             fn len(&self) -> usize {
                 self.len()
@@ -456,23 +457,83 @@ pub fn derive(input: &Input) -> TokenStream {
                 self.is_empty()
             }
 
-            fn as_ptr(&self) -> <Self::Scalar as ::soa_derive::SoAPointers>::Ptr {
-                self.as_ptr()
+            fn as_slice(&'a self) -> Self::Slice {
+                self.as_slice()
             }
 
-            fn iter<'a>(&'a self) -> <<Self as ::soa_derive::SoACollection>::Scalar as ::soa_derive::SoAIter<'a>>::Iter where <Self as ::soa_derive::SoACollection>::Scalar: ::soa_derive::SoAIter<'a> {
+            fn slice(&'a self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice {
+                let start = match index.start_bound() {
+                    std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
+                    std::ops::Bound::Unbounded => 0,
+                };
+                let n = self.as_slice().len();
+                let end = match index.end_bound() {
+                    std::ops::Bound::Included(i) => (*i + 1).min(n),
+                    std::ops::Bound::Excluded(i) => *i,
+                    std::ops::Bound::Unbounded => self.as_slice().len(),
+                };
+                self.slice(start..end)
+            }
+
+            fn index(&'a self, index: usize) -> Self::Ref {
+                self.index(index)
+            }
+
+            fn get(&'a self, index: usize) -> Option<Self::Ref> {
+                self.get(index)
+            }
+
+            fn iter(&'a self) -> <#name as ::soa_derive::SoAIter<'a>>::Iter {
                 self.iter()
             }
-        }
 
-        impl ::soa_derive::SoACollectionMut for #vec_name {
-            fn as_mut_ptr(&mut self) -> <Self::Scalar as ::soa_derive::SoAPointers>::MutPtr {
-                self.as_mut_ptr()
+            fn as_ptr(&self) -> <#name as ::soa_derive::SoAPointers>::Ptr {
+                self.as_ptr()
             }
         }
-        impl ::soa_derive::SoAArray for #vec_name {
 
+        impl<'a> ::soa_derive::SoAMutSlice<'a, #name> for #vec_name {
+            type RefMut = #ref_mut_name<'a>;
 
+            type SliceMut = #slice_mut_name<'a>;
+
+            fn as_mut_slice(&'a mut self) -> Self::SliceMut {
+                self.as_mut_slice()
+            }
+
+            fn index_mut(&'a mut self, index: usize) -> Self::RefMut {
+                self.index_mut(index)
+            }
+
+            fn slice_mut(&'a mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut {
+                let start = match index.start_bound() {
+                    std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
+                    std::ops::Bound::Unbounded => 0,
+                };
+                let n = self.as_slice().len();
+                let end = match index.end_bound() {
+                    std::ops::Bound::Included(i) => (*i + 1).min(n),
+                    std::ops::Bound::Excluded(i) => *i,
+                    std::ops::Bound::Unbounded => self.as_slice().len(),
+                };
+                self.slice_mut(start..end)
+            }
+
+            fn get_mut(&'a mut self, index: usize) -> Option<Self::RefMut> {
+                self.get_mut(index)
+            }
+
+            fn iter_mut(&'a mut self) -> <#name as ::soa_derive::SoAIter<'a>>::IterMut {
+                self.iter_mut()
+            }
+
+            fn as_mut_ptr(&mut self) -> <#name as ::soa_derive::SoAPointers>::MutPtr {
+                self.as_mut_ptr()
+            }
+
+        }
+
+        impl<'a> ::soa_derive::SoAVec<'a, #name> for #vec_name {
             fn new() -> Self {
                 Self::new()
             }
@@ -501,24 +562,24 @@ pub fn derive(input: &Input) -> TokenStream {
                 self.truncate(len)
             }
 
-            fn push(&mut self, value: Self::Scalar) {
+            fn push(&mut self, value: #name) {
                 self.push(value)
             }
 
-            fn swap_remove(&mut self, index: usize) -> Self::Scalar {
+            fn swap_remove(&mut self, index: usize) -> #name {
                 self.swap_remove(index)
             }
-            fn insert(&mut self, index: usize, element: Self::Scalar) {
+            fn insert(&mut self, index: usize, element: #name) {
                 self.insert(index, element);
             }
-            fn replace(&mut self, index: usize, element: Self::Scalar) -> Self::Scalar {
+            fn replace(&mut self, index: usize, element: #name) -> #name {
                 self.replace(index, element)
             }
-            fn remove(&mut self, index: usize) -> Self::Scalar {
+            fn remove(&mut self, index: usize) -> #name {
                 self.remove(index)
             }
 
-            fn pop(&mut self) -> Option<Self::Scalar> {
+            fn pop(&mut self) -> Option<#name> {
                 self.pop()
             }
 

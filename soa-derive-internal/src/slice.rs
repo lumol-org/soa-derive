@@ -235,8 +235,9 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoACollection for #slice_name<'a> {
-            type Scalar = #name;
+        impl<'a> ::soa_derive::SoASlice<'a, #name> for #slice_name<'a> {
+            type Ref = #ref_name<'a>;
+            type Slice = #slice_name<'a>;
 
             fn len(&self) -> usize {
                 self.len()
@@ -246,12 +247,38 @@ pub fn derive(input: &Input) -> TokenStream {
                 self.is_empty()
             }
 
-            fn as_ptr(&self) -> <Self::Scalar as ::soa_derive::SoAPointers>::Ptr {
-                self.as_ptr()
+            fn as_slice(&'a self) -> Self::Slice {
+                self.as_slice()
             }
 
-            fn iter<'b>(&'b self) -> <<Self as ::soa_derive::SoACollection>::Scalar as ::soa_derive::SoAIter<'b>>::Iter where <Self as ::soa_derive::SoACollection>::Scalar: ::soa_derive::SoAIter<'b> {
+            fn slice(&'a self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice {
+                let start = match index.start_bound() {
+                    std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
+                    std::ops::Bound::Unbounded => 0,
+                };
+                let n = self.as_slice().len();
+                let end = match index.end_bound() {
+                    std::ops::Bound::Included(i) => (*i + 1).min(n),
+                    std::ops::Bound::Excluded(i) => *i,
+                    std::ops::Bound::Unbounded => self.as_slice().len(),
+                };
+                self.slice(start..end)
+            }
+
+            fn index(&'a self, index: usize) -> Self::Ref {
+                self.index(index)
+            }
+
+            fn get(&'a self, index: usize) -> Option<Self::Ref> {
+                self.get(index)
+            }
+
+            fn iter(&'a self) -> <#name as ::soa_derive::SoAIter<'a>>::Iter {
                 self.iter()
+            }
+
+            fn as_ptr(&self) -> <#name as ::soa_derive::SoAPointers>::Ptr {
+                self.as_ptr()
             }
         }
     };
@@ -680,8 +707,9 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoACollection for #slice_mut_name<'a> {
-            type Scalar = #name;
+        impl<'a> ::soa_derive::SoASlice<'a, #name> for #slice_mut_name<'a> {
+            type Ref = #ref_name<'a>;
+            type Slice = #slice_name<'a>;
 
             fn len(&self) -> usize {
                 self.len()
@@ -691,20 +719,80 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 self.is_empty()
             }
 
-            fn as_ptr(&self) -> <Self::Scalar as ::soa_derive::SoAPointers>::Ptr {
-                self.as_ptr()
+            fn as_slice(&'a self) -> Self::Slice {
+                self.as_slice()
             }
 
+            fn slice(&'a self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice {
+                let start = match index.start_bound() {
+                    std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
+                    std::ops::Bound::Unbounded => 0,
+                };
+                let n = self.as_slice().len();
+                let end = match index.end_bound() {
+                    std::ops::Bound::Included(i) => (*i + 1).min(n),
+                    std::ops::Bound::Excluded(i) => *i,
+                    std::ops::Bound::Unbounded => self.as_slice().len(),
+                };
+                self.slice(start..end)
+            }
 
-            fn iter<'b>(&'b self) -> <<Self as ::soa_derive::SoACollection>::Scalar as ::soa_derive::SoAIter<'b>>::Iter where <Self as ::soa_derive::SoACollection>::Scalar: ::soa_derive::SoAIter<'b> {
+            fn index(&'a self, index: usize) -> Self::Ref {
+                self.index(index)
+            }
+
+            fn get(&'a self, index: usize) -> Option<Self::Ref> {
+                self.get(index)
+            }
+
+            fn iter(&'a self) -> <#name as ::soa_derive::SoAIter<'a>>::Iter {
                 self.iter()
+            }
+
+            fn as_ptr(&self) -> <#name as ::soa_derive::SoAPointers>::Ptr {
+                self.as_ptr()
             }
         }
 
-        impl<'a> ::soa_derive::SoACollectionMut for #slice_mut_name<'a> {
-            fn as_mut_ptr(&mut self) -> <Self::Scalar as ::soa_derive::SoAPointers>::MutPtr {
+        impl<'a> ::soa_derive::SoAMutSlice<'a, #name> for #slice_mut_name<'a> {
+            type RefMut = #ref_mut_name<'a>;
+
+            type SliceMut = #slice_mut_name<'a>;
+
+            fn as_mut_slice(&'a mut self) -> Self::SliceMut {
+                self.as_mut_slice()
+            }
+
+            fn index_mut(&'a mut self, index: usize) -> Self::RefMut {
+                self.index_mut(index)
+            }
+
+            fn slice_mut(&'a mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut {
+                let start = match index.start_bound() {
+                    std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
+                    std::ops::Bound::Unbounded => 0,
+                };
+                let n = self.as_slice().len();
+                let end = match index.end_bound() {
+                    std::ops::Bound::Included(i) => (*i + 1).min(n),
+                    std::ops::Bound::Excluded(i) => *i,
+                    std::ops::Bound::Unbounded => self.as_slice().len(),
+                };
+                self.slice_mut(start..end)
+            }
+
+            fn get_mut(&'a mut self, index: usize) -> Option<Self::RefMut> {
+                self.get_mut(index)
+            }
+
+            fn iter_mut(&'a mut self) -> <#name as ::soa_derive::SoAIter<'a>>::IterMut {
+                self.iter_mut()
+            }
+
+            fn as_mut_ptr(&mut self) -> <#name as ::soa_derive::SoAPointers>::MutPtr {
                 self.as_mut_ptr()
             }
+
         }
     };
 

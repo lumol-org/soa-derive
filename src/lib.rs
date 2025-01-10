@@ -384,87 +384,45 @@ macro_rules! soa_zip {
     }};
 }
 
-type IdxRange = ::std::ops::Range<usize>;
-type RangeFull = ::std::ops::RangeFull;
-
 pub trait SoAPointers {
     type Ptr;
     type MutPtr;
 }
 
+pub trait SoAProps<'a> : StructOfArray + SoAIter<'a> + SoAPointers {}
 
-pub trait IsIndexed<'a>: 'a where
-    usize: SoAIndex<&'a Self>,
-    IdxRange: SoAIndex<&'a Self>,
-    RangeFull: SoAIndex<&'a Self> {}
+impl<'a, T> SoAProps<'a> for T where T: StructOfArray + SoAIter<'a> + SoAPointers {}
 
-
-impl<'a, T: 'a> IsIndexed<'a> for T where usize: SoAIndex<&'a Self>, IdxRange: SoAIndex<&'a Self>, RangeFull: SoAIndex<&'a Self> {}
-
-
-pub trait IsIndexedMut<'a>: 'a where
-    usize: SoAIndexMut<&'a mut Self>,
-    IdxRange: SoAIndexMut<&'a mut Self>,
-    RangeFull: SoAIndexMut<&'a mut Self> {}
-
-
-impl<'a, T: 'a> IsIndexedMut<'a> for T where usize: SoAIndexMut<&'a mut Self>, IdxRange: SoAIndexMut<&'a mut Self>, RangeFull: SoAIndexMut<&'a mut Self> {}
-
-
-pub trait SoACollection {
-    type Scalar: SoAPointers;
+pub trait SoASlice<'a, T: SoAProps<'a>> {
+    type Ref;
+    type Slice;
 
     fn len(&self) -> usize;
-    fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
+    fn is_empty(&self) -> bool;
 
-    fn as_slice<'a>(&'a self) -> <RangeFull as crate::SoAIndex<&'a Self>>::RefOutput where RangeFull: crate::SoAIndex<&'a Self> {
-        (..).index(self)
-    }
+    fn as_slice(&'a self) -> Self::Slice;
+    fn index(&'a self, index: usize) -> Self::Ref;
+    fn slice(&'a self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice;
+    fn get(&'a self, index: usize) -> Option<Self::Ref>;
+    fn iter(&'a self) -> T::Iter;
 
-    fn slice<'a>(&'a self, range: IdxRange) -> <IdxRange as crate::SoAIndex<&'a Self>>::RefOutput where IdxRange: crate::SoAIndex<&'a Self> {
-        range.index(self)
-    }
-
-
-    fn get<'a, I>(&'a self, index: I) -> Option<<I as crate::SoAIndex<&'a Self>>::RefOutput> where I: crate::SoAIndex<&'a Self> {
-        index.get(self)
-    }
-
-    fn index<'a, I>(&'a self, index: I) -> <I as crate::SoAIndex<&'a Self>>::RefOutput where I: crate::SoAIndex<&'a Self> {
-        index.index(self)
-    }
-
-    fn iter<'a>(&'a self) -> <<Self as SoACollection>::Scalar as SoAIter<'a>>::Iter where <Self as SoACollection>::Scalar: SoAIter<'a>;
-
-    fn as_ptr(&self) -> <Self::Scalar as SoAPointers>::Ptr;
+    fn as_ptr(&self) -> T::Ptr;
 }
 
+pub trait SoAMutSlice<'a, T: SoAProps<'a>>: SoASlice<'a, T> {
+    type RefMut;
+    type SliceMut;
 
-pub trait SoACollectionMut: SoACollection {
+    fn as_mut_slice(&'a mut self) -> Self::SliceMut;
+    fn index_mut(&'a mut self, index: usize) -> Self::RefMut;
+    fn slice_mut(&'a mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut;
+    fn get_mut(&'a mut self, index: usize) -> Option<Self::RefMut>;
+    fn iter_mut(&'a mut self) -> T::IterMut;
 
-    fn slice_mut<'a>(&'a mut self, range: IdxRange) -> <IdxRange as crate::SoAIndexMut<&'a Self>>::MutOutput where IdxRange: crate::SoAIndexMut<&'a Self> {
-        range.index_mut(self)
-    }
-
-    fn get_mut<'a, I>(&'a mut self, index: I) -> Option<I::MutOutput> where I: crate::SoAIndexMut<&'a Self> {
-        index.get_mut(self)
-    }
-
-    fn index_mut<'a, I>(&'a mut self, index: I) -> I::MutOutput where I: crate::SoAIndexMut<&'a Self> {
-        index.index_mut(self)
-    }
-
-    fn as_mut_slice<'a>(&'a mut self) -> <RangeFull as crate::SoAIndexMut<&'a Self>>::MutOutput where RangeFull: crate::SoAIndexMut<&'a Self> {
-        (..).index_mut(self)
-    }
-
-    fn as_mut_ptr(&mut self) -> <Self::Scalar as SoAPointers>::MutPtr;
+    fn as_mut_ptr(&mut self) -> T::MutPtr;
 }
 
-pub trait SoAArray: SoACollection + SoACollectionMut {
-
+pub trait SoAVec<'a, T: SoAProps<'a>>: SoASlice<'a, T> + SoAMutSlice<'a, T> {
     fn new() -> Self;
     fn with_capacity(capacity: usize) -> Self;
     fn capacity(&self) -> usize;
@@ -472,16 +430,26 @@ pub trait SoAArray: SoACollection + SoACollectionMut {
     fn reserve_exact(&mut self, additional: usize);
     fn shrink_to_fit(&mut self);
     fn truncate(&mut self, len: usize);
-    fn push(&mut self, value: Self::Scalar);
+    fn push(&mut self, value: T);
 
-    fn swap_remove(&mut self, index: usize) -> Self::Scalar;
-    fn insert(&mut self, index: usize, element: Self::Scalar);
-    fn replace(&mut self, index: usize, element: Self::Scalar) -> Self::Scalar;
-    fn remove(&mut self, index: usize) -> Self::Scalar;
-    fn pop(&mut self) -> Option<Self::Scalar>;
+    fn swap_remove(&mut self, index: usize) -> T;
+    fn insert(&mut self, index: usize, element: T);
+    fn replace(&mut self, index: usize, element: T) -> T;
+    fn remove(&mut self, index: usize) -> T;
+    fn pop(&mut self) -> Option<T>;
     fn append(&mut self, other: &mut Self);
     fn clear(&mut self);
     fn split_off(&mut self, at: usize) -> Self;
+}
+
+pub trait SoATypes<'a>: SoAProps<'a> + Sized {
+    type Vec: SoAVec<'a, Self>;
+    type Slice: SoASlice<'a, Self>;
+    type MutSlice: SoAMutSlice<'a, Self>;
+}
+
+pub mod prelude {
+    pub use super::{SoAVec, SoAIter, SoAProps, SoASlice, SoAMutSlice, SoAPointers, SoATypes, StructOfArray};
 }
 
 
