@@ -15,10 +15,3 @@ impl Particle {
         }
     }
 }
-
-
-impl ParticleVec {
-    fn my_iter(&self) -> <Particle as soa_derive::SoAIter>::Iter {
-        self.iter()
-    }
-}
