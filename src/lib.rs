@@ -395,69 +395,232 @@ pub trait SoAProps<'a> : StructOfArray + SoAIter<'a> + SoAPointers {}
 
 impl<'a, T> SoAProps<'a> for T where T: StructOfArray + SoAIter<'a> + SoAPointers {}
 
-pub trait SoASlice<'a: 'b, 'b, T: SoAProps<'a>> {
-    type Ref;
-    type Slice;
+
+/**
+ * The interface for the `Slice` immutable slice struct-of-arrays type.
+ */
+pub trait SoASlice<'a, T: SoAProps<'a>> {
+    type Ref<'t> where 'a: 't, Self: 't;
+    type Reborrow<'t> where 'a: 't, Self: 't;
 
     fn len(&self) -> usize;
     fn is_empty(&self) -> bool;
+    fn as_slice<'c>(&'c self) -> Self::Reborrow<'c> where 'a: 'c;
 
-    fn as_slice(&'a self) -> Self::Slice;
-    fn index(&'a self, index: usize) -> Self::Ref;
-    fn slice(&'a self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice;
-    fn get(&'a self, index: usize) -> Option<Self::Ref>;
+    /// Create a slice of this vector matching the given `range`. This
+    /// is analogous to `Index<Range<usize>>`.
+    fn slice<'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Reborrow<'c> where 'a: 'c;
+
+    /// Analogous to [`slice::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get)
+    fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>> where 'a: 'c;
+
+    /// Analogous to [`std::ops::Index::index()`] for `usize`
+    fn index<'c>(&'c self, index: usize) -> Self::Ref<'c> where 'a: 'c;
+
+    /// Create an immutable iterator
     fn iter(&'a self) -> T::Iter;
 
+    /// Analogous to [`slice::first()`](https://doc.rust-lang.org/std/primitive.slice.html#method.first)
+    fn first<'c>(&'c self) -> Option<Self::Ref<'c>> where 'a: 'c {
+        self.get(0)
+    }
+
+    /// Analogous to [`slice::last()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last)
+    fn last<'c>(&'c self) -> Option<Self::Ref<'c>> where 'a: 'c {
+        self.get(self.len().saturating_sub(1))
+    }
+
+    /// Obtain a `const` pointer type for this data
     fn as_ptr(&self) -> T::Ptr;
 }
 
-pub trait SoAMutSlice<'a: 'b, 'b, T: SoAProps<'a>>: SoASlice<'a, 'b, T> {
-    type RefMut;
-    type SliceMut;
+/**
+ * The interface for the `SliceMut` mutable slice struct-of-arrays type. A generalization of [`SoASlice`]
+ * whose methods can modify elements of the arrays
+ */
+pub trait SoAMutSlice<'a, T: SoAProps<'a>>: SoASlice<'a, T> {
+    type RefMut<'t> where 'a: 't, Self: 't;
+    type ReborrowMut<'t> where 'a: 't, Self: 't;
 
-    fn as_mut_slice(&'a mut self) -> Self::SliceMut;
-    fn index_mut(&'a mut self, index: usize) -> Self::RefMut;
-    fn slice_mut(&'a mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut;
-    fn get_mut(&'a mut self, index: usize) -> Option<Self::RefMut>;
+    /// Analogous to [`Vec::as_mut_slice()`]
+    fn as_mut_slice<'c>(&'c mut self) -> Self::ReborrowMut<'c> where 'a: 'c;
+
+    /// Create a mutable slice of this vector matching the given
+    /// `range`. This is analogous to `IndexMut<Range<usize>>`.
+    fn slice_mut<'c>(&'c mut self, index: impl core::ops::RangeBounds<usize>) -> Self::ReborrowMut<'c> where 'a: 'c;
+
+    /// Analogous to [`slice::get_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_mut)
+    fn get_mut<'c>(&'c mut self, index: usize) -> Option<Self::RefMut<'c>> where 'a: 'c;
+
+    /// Analogous to [`std::ops::IndexMut::index_mut()`] for `usize`
+    fn index_mut<'c>(&'c mut self, index: usize) -> Self::RefMut<'c> where 'a: 'c;
+
+    /// Creates a mutable iterator
     fn iter_mut(&'a mut self) -> T::IterMut;
 
+    /** Re-order the arrays using the provided indices. This is provided so that generic sorting methods
+     can be implemented because closure-passing trait methods encounter difficulties with lifetimes.
+
+    # Example
+
+    ```
+    use soa_derive::{StructOfArray, prelude::*};
+
+    #[derive(Debug, Clone, PartialOrd, PartialEq, StructOfArray)]
+    #[soa_derive(Debug, Clone, PartialOrd, PartialEq)]
+    pub struct Particle {
+        pub name: String,
+        pub mass: f64,
+    }
+    # fn may_sort(vec: &mut <Particle as SoATypes>::Vec) {
+    // vec: &mut <Particle as SoATypes>::Vec
+    let mut indices: Vec<_> = (0..vec.len()).collect();
+
+    indices.sort_by(|j, k| {
+        let a = vec.index(*j);
+        let b = vec.index(*k);
+        a.mass.total_cmp(b.mass).reverse()
+    });
+
+    vec.apply_index(&indices);
+    # }
+    ```
+     */
+    fn apply_index(&mut self, indices: &[usize]);
+
+    /// Analogous to [`slice::first_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.first_mut)
+    fn first_mut<'c>(&'c mut self) -> Option<Self::RefMut<'c>> where 'a: 'c {
+        self.get_mut(0)
+    }
+
+    /// Analogous to [`slice::last_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last_mut)
+    fn last_mut<'c>(&'c mut self) -> Option<Self::RefMut<'c>> where 'a: 'c {
+        self.get_mut(self.len().saturating_sub(1))
+    }
+
+    /// Obtain a `mut` pointer type for this data
     fn as_mut_ptr(&mut self) -> T::MutPtr;
 }
 
-// pub trait SoASort<'a, T: SoAProps<'a>>: SoAMutSlice<'a, 'b, T> {
-//     fn sort_by<F>(&mut self, f: F)
-//     where
-//         F: FnMut(Self::Ref, Self::Ref) -> std::cmp::Ordering;
-// }
-
-pub trait SoAVec<'a: 'b, 'b, T: SoAProps<'a>>: SoASlice<'a, 'b, T> + SoAMutSlice<'a, 'b, T> {
+/**
+ * The interface for the `Vec`-like struct-of-arrays type. A generalization of [`SoAMutSlice`] whose methods can
+ * also re-size the underlying arrays.
+ *
+ * **NOTE**: This interface is incomplete and additional methods may be added as needed.
+ */
+pub trait SoAVec<'a, T: SoAProps<'a>>: SoASlice<'a, T> + SoAMutSlice<'a, T> {
+    /// Create a new, empty struct of arrays
     fn new() -> Self;
+
+    /// Create a new, empty struct of arrays with the specified capacity
     fn with_capacity(capacity: usize) -> Self;
+
+    /// Analogous to [`Vec::capacity`]
     fn capacity(&self) -> usize;
+
+    /// Analogous to [`Vec::reserve`]
     fn reserve(&mut self, additional: usize);
+
+    /// Analogous to [`Vec::reserve_exact`]
     fn reserve_exact(&mut self, additional: usize);
+
+    /// Analogous to [`Vec::shrink_to_fit`]
     fn shrink_to_fit(&mut self);
+
+    /// Analogous to [`Vec::truncate`]
     fn truncate(&mut self, len: usize);
+
+    /// Add a singular value of `T` to the arrays. Analogous to [`Vec::push`]
     fn push(&mut self, value: T);
 
+    /// Analogous to [`Vec::swap_remove`]
     fn swap_remove(&mut self, index: usize) -> T;
+
+    /// Analogous to [`Vec::insert`]
     fn insert(&mut self, index: usize, element: T);
+
+    /// Analogous to [`Vec::replace`]
     fn replace(&mut self, index: usize, element: T) -> T;
+
+    /// Analogous to [`Vec::remove`]
     fn remove(&mut self, index: usize) -> T;
+
+    /// Analogous to [`Vec::pop`]
     fn pop(&mut self) -> Option<T>;
+
+    /// Analogous to [`Vec::append`]
     fn append(&mut self, other: &mut Self);
+
+    /// Analogous to [`Vec::clear`]
     fn clear(&mut self);
+
+    /// Analogous to [`Vec::split_off`]
     fn split_off(&mut self, at: usize) -> Self;
 }
 
-pub trait SoATypes<'a: 'b, 'b>: SoAProps<'a> + Sized {
-    type Vec: SoAVec<'a, 'b, Self>;
-    type Slice: SoASlice<'a, 'b, Self>;
-    type MutSlice: SoAMutSlice<'a, 'b, Self>;
+/** A collection of types that represent the different facets of a [`StructOfArray`] type.
+
+ It is a convenience type that can be used as a trait bound, but because it introduces
+ a lifetime, it is not folded directly into [`StructOfArray`] itself. It also ensures
+ that the associated types interlock between all facets.
+
+ # Example
+
+ Suppose one has a generic type that needs to be generic *over* [`StructOfArray`]
+ types. This trait is a convenient means of claiming all the appropriate behaviors
+ are available in one place:
+ ```
+use soa_derive::prelude::*;
+#[derive(Debug, Clone)]
+struct Swarm<'a, T: SoATypes<'a>> {
+    entries: T::Vec,
+}
+
+impl<'a, T: SoATypes<'a>> Swarm<'a, T> {
+    fn new() -> Self {
+        Self {
+            entries: T::Vec::new()
+        }
+    }
+
+    fn push(&mut self, value: T) {
+        self.entries.push(value);
+    }
+
+    fn iter(&'a self) -> T::Iter {
+        self.entries.iter()
+    }
+}
+ ```
+
+ Without this, the generic type wouldn't be able to access any methods of `self.entries` because
+ the associate type provided by [`StructOfArray`] has *no* bounds, which means it proves no methods
+ are available.
+*/
+pub trait SoATypes<'a>: SoAProps<'a> + Sized {
+    /// The [`Vec`]-like type
+    type Vec: SoAVec<'a, Self,
+        Ref<'a> = <Self as SoATypes<'a>>::Ref,
+        Reborrow<'a> = Self::Slice,
+        RefMut<'a> = <Self as SoATypes<'a>>::RefMut,
+        ReborrowMut<'a> = Self::SliceMut,
+    > + 'a;
+    /// The immutable `&[Self]`-like type
+    type Slice: SoASlice<'a, Self, Ref<'a> =<Self as SoATypes<'a>>::Ref, Reborrow<'a> = Self::Slice> + 'a;
+    /// The mutable `&[Self]`-like type
+    type SliceMut: SoAMutSlice<
+        'a, Self,
+        Ref<'a> =<Self as SoATypes<'a>>::Ref,
+        Reborrow<'a> = Self::Slice,
+        RefMut<'a> = <Self as SoATypes<'a>>::RefMut,
+        ReborrowMut<'a> = Self::SliceMut,
+    > + 'a;
+
     type Ref: 'a;
     type RefMut: 'a;
 }
 
+/// A collection of supporting traits for [`StructOfArray`] bundled in one place for ease-of-access
 pub mod prelude {
     pub use super::{SoAVec, SoAIter, SoAProps, SoASlice, SoAMutSlice, SoAPointers, SoATypes, StructOfArray};
 }
