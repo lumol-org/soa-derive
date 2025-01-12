@@ -597,33 +597,52 @@ impl<'a: 't, 't, T: SoATypes<'a, 't> + 'a> Swarm<'a, 't, T> {
  the associate type provided by [`StructOfArray`] has *no* bounds, which means it proves no methods
  are available.
 */
-pub trait SoATypes<'a: 't, 't>: SoAProps<'a> + Sized {
-    /// The [`Vec`]-like type
-    type Vec: SoAVec<'a, Self,
-        Ref<'a> = <Self as SoATypes<'a, 't>>::Ref,
-        Reborrow<'a> = Self::Slice,
-        RefMut<'a> = <Self as SoATypes<'a, 't>>::RefMut,
-        ReborrowMut<'a> = Self::SliceMut,
-    > + 'a where Self: 'a;
-    /// The immutable `&[Self]`-like type
-    type Slice: SoASlice<'a, Self, Ref<'a> =<Self as SoATypes<'a, 't>>::Ref, Reborrow<'a> = Self::Slice> + 'a where Self: 'a;
-    /// The mutable `&[Self]`-like type
-    type SliceMut: SoAMutSlice<
-        'a, Self,
-        Ref<'a> =<Self as SoATypes<'a, 't>>::Ref,
-        Reborrow<'a> = Self::Slice,
-        RefMut<'a> = <Self as SoATypes<'a, 't>>::RefMut,
-        ReborrowMut<'a> = Self::SliceMut,
-    > + 'a where Self: 'a;
+// pub trait SoATypes<'a: 't, 't>: SoAProps<'a> + Sized {
+//     /// The [`Vec`]-like type
+//     type Vec: SoAVec<'a, Self> + 'a where Self: 'a;
+//     /// The immutable `&[Self]`-like type
+//     type Slice: SoASlice<
+//         'a,
+//         Self,
+//         Ref<'t> = <
+//             <Self as SoATypes<'a, 't>>::Vec
+//             as SoASlice<'a, Self>
+//         >::Ref<'t>,
+//         Reborrow<'t> = <
+//             <Self as SoATypes<'a, 't>>::Vec
+//             as SoASlice<'a, Self>
+//         >::Reborrow<'t>
+//     > + 'a where Self: 'a;
+//     /// The mutable `&[Self]`-like type
+//     type SliceMut: SoAMutSlice<
+//         'a, Self,
+//         Ref<'t> = <
+//             <Self as SoATypes<'a, 't>>::Vec
+//             as SoASlice<'a, Self>
+//         >::Ref<'t>,
+//         Reborrow<'t> = <
+//             <Self as SoATypes<'a, 't>>::Vec
+//             as SoASlice<'a, Self>
+//         >::Reborrow<'t>,
 
-    type Ref: 't;
-    type RefMut: 't;
+//         RefMut<'t> = <
+//             <Self as SoATypes<'a, 't>>::Vec
+//             as SoAMutSlice<'a, Self>
+//         >::RefMut<'t>,
+//         ReborrowMut<'t> = <
+//             <Self as SoATypes<'a, 't>>::Vec
+//             as SoAMutSlice<'a, Self>
+//         >::ReborrowMut<'t>,
+//     > + 'a where Self: 'a;
 
-}
+//     type Ref: 't;
+//     type RefMut: 't;
+
+// }
 
 /// A collection of supporting traits for [`StructOfArray`] bundled in one place for ease-of-access
 pub mod prelude {
-    pub use super::{SoAVec, SoAIter, SoAProps, SoASlice, SoAMutSlice, SoAPointers, SoATypes, StructOfArray};
+    // pub use super::{SoAVec, SoAIter, SoAProps, SoASlice, SoAMutSlice, SoAPointers, SoATypes, StructOfArray};
 }
 
 

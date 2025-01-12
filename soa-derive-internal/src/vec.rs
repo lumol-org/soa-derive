@@ -451,163 +451,164 @@ pub fn derive(input: &Input) -> TokenStream {
         }
 
 
-        impl<'a> ::soa_derive::SoASlice<'a, #name> for #vec_name {
-            type Ref<'t> = #ref_name<'t> where 'a: 't;
-            type Reborrow<'t> = #slice_name<'t> where 'a: 't;
+        // impl<'a> ::soa_derive::SoASlice<'a, #name> for #vec_name {
+        //     type Ref<'t> = #ref_name<'t> where 'a: 't;
+        //     type Reborrow<'t> = #slice_name<'t> where 'a: 't;
 
-            fn len(&self) -> usize {
-                self.len()
-            }
+        //     fn len(&self) -> usize {
+        //         self.len()
+        //     }
 
-            fn is_empty(&self) -> bool {
-                self.is_empty()
-            }
+        //     fn is_empty(&self) -> bool {
+        //         self.is_empty()
+        //     }
 
-            fn as_slice<'c>(&'c self) -> Self::Reborrow<'c> where 'a: 'c {
-                self.as_slice()
-            }
+        //     fn as_slice<'c>(&'c self) -> Self::Reborrow<'c> where 'a: 'c {
+        //         self.as_slice()
+        //     }
 
-            fn iter(&self) -> <#name as ::soa_derive::SoAIter>::Iter {
-                self.iter()
-            }
+        //     fn iter(&self) -> <#name as ::soa_derive::SoAIter>::Iter {
+        //         self.iter()
+        //     }
 
-            fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>> where 'a: 'c {
-                self.get(index)
-            }
+        //     fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>> where 'a: 'c {
+        //         self.get(index)
+        //     }
 
-            fn index<'c>(&'c self, index: usize) -> Self::Ref<'c> where 'a: 'c {
-                self.index(index)
-            }
+        //     fn index<'c>(&'c self, index: usize) -> Self::Ref<'c> where 'a: 'c {
+        //         let slice: #slice_name<'c> = self.as_slice();
+        //         ::soa_derive::SoAIndex::index(index, slice)
+        //     }
 
-            fn slice<'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Reborrow<'c> where 'a: 'c {
-                let start = match index.start_bound() {
-                    std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
-                    std::ops::Bound::Unbounded => 0,
-                };
-                let n = self.len();
-                let end = match index.end_bound() {
-                    std::ops::Bound::Included(i) => (*i + 1).min(n),
-                    std::ops::Bound::Excluded(i) => *i,
-                    std::ops::Bound::Unbounded => n,
-                };
-                self.index(start..end)
-            }
+        //     fn slice<'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Reborrow<'c> where 'a: 'c {
+        //         let start = match index.start_bound() {
+        //             std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
+        //             std::ops::Bound::Unbounded => 0,
+        //         };
+        //         let n = self.len();
+        //         let end = match index.end_bound() {
+        //             std::ops::Bound::Included(i) => (*i + 1).min(n),
+        //             std::ops::Bound::Excluded(i) => *i,
+        //             std::ops::Bound::Unbounded => n,
+        //         };
+        //         self.index(start..end)
+        //     }
 
-            fn as_ptr(&self) -> <#name as ::soa_derive::SoAPointers>::Ptr {
-                self.as_ptr()
-            }
-        }
+        //     fn as_ptr(&self) -> <#name as ::soa_derive::SoAPointers>::Ptr {
+        //         self.as_ptr()
+        //     }
+        // }
 
-        impl<'a> ::soa_derive::SoAMutSlice<'a, #name> for #vec_name {
-            type RefMut<'t> = #ref_mut_name<'t> where 'a: 't, Self: 't;
+        // impl<'a> ::soa_derive::SoAMutSlice<'a, #name> for #vec_name {
+        //     type RefMut<'t> = #ref_mut_name<'t> where 'a: 't, Self: 't;
 
-            type ReborrowMut<'t> = #slice_mut_name<'t> where 'a: 't, Self: 't;
+        //     type ReborrowMut<'t> = #slice_mut_name<'t> where 'a: 't, Self: 't;
 
-            fn slice_mut<'c>(&'c mut self, index: impl core::ops::RangeBounds<usize>) -> Self::ReborrowMut<'c> where 'a: 'c {
-                let start = match index.start_bound() {
-                    std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
-                    std::ops::Bound::Unbounded => 0,
-                };
-                let n = self.len();
-                let end = match index.end_bound() {
-                    std::ops::Bound::Included(i) => (*i + 1).min(n),
-                    std::ops::Bound::Excluded(i) => *i,
-                    std::ops::Bound::Unbounded => n,
-                };
-                self.index_mut(start..end)
-            }
+        //     fn slice_mut<'c>(&'c mut self, index: impl core::ops::RangeBounds<usize>) -> Self::ReborrowMut<'c> where 'a: 'c {
+        //         let start = match index.start_bound() {
+        //             std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
+        //             std::ops::Bound::Unbounded => 0,
+        //         };
+        //         let n = self.len();
+        //         let end = match index.end_bound() {
+        //             std::ops::Bound::Included(i) => (*i + 1).min(n),
+        //             std::ops::Bound::Excluded(i) => *i,
+        //             std::ops::Bound::Unbounded => n,
+        //         };
+        //         self.index_mut(start..end)
+        //     }
 
-            fn get_mut<'c>(&'c mut self, index: usize) -> Option<Self::RefMut<'c>> where 'a: 'c {
-                self.get_mut(index)
-            }
+        //     fn get_mut<'c>(&'c mut self, index: usize) -> Option<Self::RefMut<'c>> where 'a: 'c {
+        //         self.get_mut(index)
+        //     }
 
-            fn index_mut<'c>(&'c mut self, index: usize) -> Self::RefMut<'c> where 'a: 'c {
-                self.index_mut(index)
-            }
+        //     fn index_mut<'c>(&'c mut self, index: usize) -> Self::RefMut<'c> where 'a: 'c {
+        //         self.index_mut(index)
+        //     }
 
-            fn as_mut_slice<'c>(&'c mut self) -> Self::ReborrowMut<'c> where 'a: 'c {
-                self.as_mut_slice()
-            }
+        //     fn as_mut_slice<'c>(&'c mut self) -> Self::ReborrowMut<'c> where 'a: 'c {
+        //         self.as_mut_slice()
+        //     }
 
-            fn apply_index(&mut self, indices: &[usize]) {
-                let mut perm = soa_derive::Permutation::oneline(indices).inverse();
-                self.as_mut_slice().apply_permutation(&mut perm);
-            }
+        //     fn apply_index(&mut self, indices: &[usize]) {
+        //         let mut perm = soa_derive::Permutation::oneline(indices).inverse();
+        //         self.as_mut_slice().apply_permutation(&mut perm);
+        //     }
 
-            fn iter_mut(&mut self) -> <#name as ::soa_derive::SoAIter>::IterMut {
-                self.iter_mut()
-            }
+        //     fn iter_mut(&mut self) -> <#name as ::soa_derive::SoAIter>::IterMut {
+        //         self.iter_mut()
+        //     }
 
-            fn as_mut_ptr(&mut self) -> <#name as ::soa_derive::SoAPointers>::MutPtr {
-                self.as_mut_ptr()
-            }
-        }
+        //     fn as_mut_ptr(&mut self) -> <#name as ::soa_derive::SoAPointers>::MutPtr {
+        //         self.as_mut_ptr()
+        //     }
+        // }
 
-        impl<'a> ::soa_derive::SoAVec<'a, #name> for #vec_name {
-            fn new() -> Self {
-                Self::new()
-            }
+        // impl<'a> ::soa_derive::SoAVec<'a, #name> for #vec_name {
+        //     fn new() -> Self {
+        //         Self::new()
+        //     }
 
-            fn with_capacity(capacity: usize) -> Self {
-                Self::with_capacity(capacity)
-            }
+        //     fn with_capacity(capacity: usize) -> Self {
+        //         Self::with_capacity(capacity)
+        //     }
 
-            fn capacity(&self) -> usize {
-                self.capacity()
-            }
+        //     fn capacity(&self) -> usize {
+        //         self.capacity()
+        //     }
 
-            fn reserve(&mut self, additional: usize) {
-                self.reserve(additional);
-            }
+        //     fn reserve(&mut self, additional: usize) {
+        //         self.reserve(additional);
+        //     }
 
-            fn reserve_exact(&mut self, additional: usize) {
-                self.reserve_exact(additional);
-            }
+        //     fn reserve_exact(&mut self, additional: usize) {
+        //         self.reserve_exact(additional);
+        //     }
 
-            fn shrink_to_fit(&mut self) {
-                self.shrink_to_fit();
-            }
+        //     fn shrink_to_fit(&mut self) {
+        //         self.shrink_to_fit();
+        //     }
 
-            fn truncate(&mut self, len: usize) {
-                self.truncate(len);
-            }
+        //     fn truncate(&mut self, len: usize) {
+        //         self.truncate(len);
+        //     }
 
-            fn push(&mut self, value: #name) {
-                self.push(value);
-            }
+        //     fn push(&mut self, value: #name) {
+        //         self.push(value);
+        //     }
 
-            fn swap_remove(&mut self, index: usize) -> #name {
-                self.swap_remove(index)
-            }
+        //     fn swap_remove(&mut self, index: usize) -> #name {
+        //         self.swap_remove(index)
+        //     }
 
-            fn insert(&mut self, index: usize, element: #name) {
-                self.insert(index, element);
-            }
+        //     fn insert(&mut self, index: usize, element: #name) {
+        //         self.insert(index, element);
+        //     }
 
-            fn replace(&mut self, index: usize, element: #name) -> #name {
-                self.replace(index, element)
-            }
+        //     fn replace(&mut self, index: usize, element: #name) -> #name {
+        //         self.replace(index, element)
+        //     }
 
-            fn remove(&mut self, index: usize) -> #name {
-                self.remove(index)
-            }
+        //     fn remove(&mut self, index: usize) -> #name {
+        //         self.remove(index)
+        //     }
 
-            fn pop(&mut self) -> Option<#name> {
-                self.pop()
-            }
+        //     fn pop(&mut self) -> Option<#name> {
+        //         self.pop()
+        //     }
 
-            fn append(&mut self, other: &mut Self) {
-                self.append(other);
-            }
+        //     fn append(&mut self, other: &mut Self) {
+        //         self.append(other);
+        //     }
 
-            fn clear(&mut self) {
-                self.clear();
-            }
+        //     fn clear(&mut self) {
+        //         self.clear();
+        //     }
 
-            fn split_off(&mut self, at: usize) -> Self {
-                self.split_off(at)
-            }
-        }
+        //     fn split_off(&mut self, at: usize) -> Self {
+        //         self.split_off(at)
+        //     }
+        // }
 
         #[allow(clippy::drop_non_drop)]
         impl Drop for #vec_name {

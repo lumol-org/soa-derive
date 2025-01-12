@@ -42,22 +42,22 @@ use quote::quote;
 fn derive_trait(input: &Input) -> TokenStream {
     let name = &input.name;
     let vec_name = names::vec_name(name);
-    let slice_name = names::slice_name(name);
-    let slice_mut_name = names::slice_mut_name(name);
-    let ref_name = names::ref_name(name);
-    let ref_mut_name = names::ref_mut_name(name);
+    // let slice_name = names::slice_name(name);
+    // let slice_mut_name = names::slice_mut_name(name);
+    // let ref_name = names::ref_name(name);
+    // let ref_mut_name = names::ref_mut_name(name);
 
     quote! {
         impl soa_derive::StructOfArray for #name {
             type Type = #vec_name;
         }
 
-        impl<'a: 't, 't> soa_derive::SoATypes<'a, 't> for #name {
-            type Vec = #vec_name;
-            type Slice = #slice_name<'a>;
-            type SliceMut = #slice_mut_name<'a>;
-            type Ref = #ref_name<'a>;
-            type RefMut = #ref_mut_name<'a>;
-        }
+        // impl<'a: 't, 't> soa_derive::SoATypes<'a, 't> for #name {
+        //     type Vec = #vec_name;
+        //     type Slice = #slice_name<'a>;
+        //     type SliceMut = #slice_mut_name<'a>;
+        //     type Ref = #ref_name<'a>;
+        //     type RefMut = #ref_mut_name<'a>;
+        // }
     }
 }

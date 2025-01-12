@@ -59,23 +59,23 @@ fn nested_soa() {
     });
 }
 
-fn generic_f<'a, 't, T: SoATypes<'a, 't>>(vec: &'a T::Vec) {
-    assert_eq!(vec.len(), 2);
-}
+// fn generic_f<'a, 't, T: SoATypes<'a, 't>>(vec: &'a T::Vec) {
+//     assert_eq!(vec.len(), 2);
+// }
 
-#[test]
-fn test_nested_generic() {
-    let mut particle_vec = ParticleVec::new();
-    particle_vec.push(Particle {
-        point: Point { x: 1.0, y: 2.0 },
-        color: Color { r: 255, g: 0, b: 0, a: 255 },
-        mass: 1.0,
-    });
-    particle_vec.push(Particle {
-        point: Point { x: 2.0, y: 3.0 },
-        color: Color { r: 128, g: 255, b: 100, a: 23 },
-        mass: 2.0,
-    });
+// #[test]
+// fn test_nested_generic() {
+//     let mut particle_vec = ParticleVec::new();
+//     particle_vec.push(Particle {
+//         point: Point { x: 1.0, y: 2.0 },
+//         color: Color { r: 255, g: 0, b: 0, a: 255 },
+//         mass: 1.0,
+//     });
+//     particle_vec.push(Particle {
+//         point: Point { x: 2.0, y: 3.0 },
+//         color: Color { r: 128, g: 255, b: 100, a: 23 },
+//         mass: 2.0,
+//     });
 
-    generic_f::<Particle>(&particle_vec);
-}
+//     generic_f::<Particle>(&particle_vec);
+// }
