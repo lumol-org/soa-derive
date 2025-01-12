@@ -25,6 +25,18 @@ fn may_sort<'a: 't, 't>(vec: &mut <Particle as SoATypes<'a, 't>>::Vec) {
 }
 
 
+fn may_sort_generic<'a: 't, 't: 'c, 'c, T: SoATypes<'a, 't>>(vec: &'c mut <T as SoATypes<'a, 't>>::Vec) {
+    let mut indices: Vec<_> = (0..vec.len()).collect();
+
+    indices.sort_by(|j, k| {
+        let a = vec.index(*j);
+        let b = vec.index(*k);
+        std::cmp::Ordering::Equal
+    });
+
+}
+
+
 fn may_closure_sort<'a: 't, 't, F>(vec: &mut <Particle as SoATypes<'a, 't>>::Vec, mut f: F) where F: FnMut(<Particle as SoAIter>::Ref, <Particle as SoAIter>::Ref) -> std::cmp::Ordering {
     let mut indices: Vec<_> = (0..vec.len()).collect();
 

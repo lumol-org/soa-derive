@@ -67,6 +67,11 @@ pub fn derive(input: &Input) -> TokenStream {
         |ident, _| quote! { ::std::mem::replace(&mut self.#ident[index], field) },
     ).collect::<Vec<_>>();
 
+    #[allow(unused)]
+    let iter_name = names::iter_name(name);
+    #[allow(unused)]
+    let iter_mut_name = names::iter_mut_name(name);
+
     let mut generated = quote! {
         /// An analog to `
         #[doc = #vec_name_str]

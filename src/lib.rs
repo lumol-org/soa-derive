@@ -617,7 +617,7 @@ pub trait SoATypes<'a: 't, 't>: SoAProps<'a> + Sized {
     > + 'a where Self: 'a;
 
     type Ref: 't;
-    type RefMut: 'a;
+    type RefMut: 't;
 
 }
 
