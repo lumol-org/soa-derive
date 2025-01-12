@@ -52,7 +52,7 @@ fn derive_trait(input: &Input) -> TokenStream {
             type Type = #vec_name;
         }
 
-        impl<'a> soa_derive::SoATypes<'a> for #name {
+        impl<'a: 't, 't> soa_derive::SoATypes<'a, 't> for #name {
             type Vec = #vec_name;
             type Slice = #slice_name<'a>;
             type SliceMut = #slice_mut_name<'a>;

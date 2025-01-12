@@ -255,8 +255,8 @@ pub trait StructOfArray {
 pub trait SoAIter<'a> {
     type Ref;
     type RefMut;
-    type Iter: 'a + Iterator<Item=Self::Ref> + IntoIterator;
-    type IterMut: 'a + Iterator<Item=Self::RefMut> + IntoIterator;
+    type Iter: 'a + Iterator<Item=Self::Ref>;
+    type IterMut: 'a + Iterator<Item=Self::RefMut>;
 }
 
 mod private_soa_indexes {
@@ -472,8 +472,8 @@ pub trait SoAMutSlice<'a, T: SoAProps<'a>>: SoASlice<'a, T> {
         pub name: String,
         pub mass: f64,
     }
-    # fn may_sort(vec: &mut <Particle as SoATypes>::Vec) {
-    // vec: &mut <Particle as SoATypes>::Vec
+    # fn may_sort<'a>(vec: &mut <Particle as SoATypes<'a, 'a>>::Vec) {
+    // vec: &mut <Particle as SoATypes<'_, '_>>::Vec
     let mut indices: Vec<_> = (0..vec.len()).collect();
 
     indices.sort_by(|j, k| {
@@ -572,11 +572,11 @@ pub trait SoAVec<'a, T: SoAProps<'a>>: SoASlice<'a, T> + SoAMutSlice<'a, T> {
  ```
 use soa_derive::prelude::*;
 #[derive(Debug, Clone)]
-struct Swarm<'a, T: SoATypes<'a>> {
+struct Swarm<'a: 't, 't, T: SoATypes<'a, 't> + 'a> {
     entries: T::Vec,
 }
 
-impl<'a, T: SoATypes<'a>> Swarm<'a, T> {
+impl<'a: 't, 't, T: SoATypes<'a, 't> + 'a> Swarm<'a, 't, T> {
     fn new() -> Self {
         Self {
             entries: T::Vec::new()
@@ -597,27 +597,28 @@ impl<'a, T: SoATypes<'a>> Swarm<'a, T> {
  the associate type provided by [`StructOfArray`] has *no* bounds, which means it proves no methods
  are available.
 */
-pub trait SoATypes<'a>: SoAProps<'a> + Sized {
+pub trait SoATypes<'a: 't, 't>: SoAProps<'a> + Sized {
     /// The [`Vec`]-like type
     type Vec: SoAVec<'a, Self,
-        Ref<'a> = <Self as SoATypes<'a>>::Ref,
+        Ref<'a> = <Self as SoATypes<'a, 't>>::Ref,
         Reborrow<'a> = Self::Slice,
-        RefMut<'a> = <Self as SoATypes<'a>>::RefMut,
+        RefMut<'a> = <Self as SoATypes<'a, 't>>::RefMut,
         ReborrowMut<'a> = Self::SliceMut,
-    > + 'a;
+    > + 'a where Self: 'a;
     /// The immutable `&[Self]`-like type
-    type Slice: SoASlice<'a, Self, Ref<'a> =<Self as SoATypes<'a>>::Ref, Reborrow<'a> = Self::Slice> + 'a;
+    type Slice: SoASlice<'a, Self, Ref<'a> =<Self as SoATypes<'a, 't>>::Ref, Reborrow<'a> = Self::Slice> + 'a where Self: 'a;
     /// The mutable `&[Self]`-like type
     type SliceMut: SoAMutSlice<
         'a, Self,
-        Ref<'a> =<Self as SoATypes<'a>>::Ref,
+        Ref<'a> =<Self as SoATypes<'a, 't>>::Ref,
         Reborrow<'a> = Self::Slice,
-        RefMut<'a> = <Self as SoATypes<'a>>::RefMut,
+        RefMut<'a> = <Self as SoATypes<'a, 't>>::RefMut,
         ReborrowMut<'a> = Self::SliceMut,
-    > + 'a;
+    > + 'a where Self: 'a;
 
-    type Ref: 'a;
+    type Ref: 't;
     type RefMut: 'a;
+
 }
 
 /// A collection of supporting traits for [`StructOfArray`] bundled in one place for ease-of-access

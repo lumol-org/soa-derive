@@ -3,16 +3,16 @@ use soa_derive::prelude::*;
 mod particles;
 use self::particles::Particle;
 
-fn may_iter<'a, T: SoATypes<'a>>(vec: &'a T::Vec) -> T::Iter {
+fn may_iter<'a: 't, 't, T: SoATypes<'a, 't>>(vec: &'a T::Vec) -> T::Iter {
     let x=  vec.iter();
     x
 }
 
-fn may_push<'a, T: SoATypes<'a>>(vec: &'a mut T::Vec, val: T) {
+fn may_push<'a: 't, 't, T: SoATypes<'a, 't>>(vec: &'a mut T::Vec, val: T) {
     vec.push(val);
 }
 
-fn may_sort(vec: &mut <Particle as SoATypes>::Vec) {
+fn may_sort<'a: 't, 't>(vec: &mut <Particle as SoATypes<'a, 't>>::Vec) {
     let mut indices: Vec<_> = (0..vec.len()).collect();
 
     indices.sort_by(|j, k| {
@@ -25,7 +25,7 @@ fn may_sort(vec: &mut <Particle as SoATypes>::Vec) {
 }
 
 
-fn may_closure_sort<F>(vec: &mut <Particle as SoATypes>::Vec, mut f: F) where F: FnMut(<Particle as SoATypes>::Ref, <Particle as SoATypes>::Ref) -> std::cmp::Ordering {
+fn may_closure_sort<'a: 't, 't, F>(vec: &mut <Particle as SoATypes<'a, 't>>::Vec, mut f: F) where F: FnMut(<Particle as SoAIter>::Ref, <Particle as SoAIter>::Ref) -> std::cmp::Ordering {
     let mut indices: Vec<_> = (0..vec.len()).collect();
 
     indices.sort_by(|j, k| {
@@ -64,11 +64,11 @@ fn test_generic_type_behavior() {
 
 
 #[derive(Debug, Clone)]
-struct Swarm<'a, T: soa_derive::SoATypes<'a>> {
+struct Swarm<'a: 't, 't, T: soa_derive::SoATypes<'a, 't> + 'a> {
     entries: T::Vec,
 }
 
-impl<'a, T: soa_derive::SoATypes<'a>> Swarm<'a, T> {
+impl<'a: 't, 't, T: soa_derive::SoATypes<'a, 't>> Swarm<'a, 't, T> {
     fn new() -> Self {
         Self {
             entries: T::Vec::new()
@@ -90,7 +90,7 @@ impl<'a, T: soa_derive::SoATypes<'a>> Swarm<'a, T> {
 
 #[test]
 fn test_wrapped() {
-    let mut this: Swarm<'_, Particle> = Swarm::new();
+    let mut this: Swarm<'_, '_, Particle> = Swarm::new();
     let x= Particle::new("foo".into(), 100.0);
     this.push(x);
     let x = Particle::new("bar".into(), 1000.0);
