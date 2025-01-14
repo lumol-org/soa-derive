@@ -1,7 +1,7 @@
 // use soa_derive::prelude::*;
 
-// mod particles;
-// use self::particles::Particle;
+mod particles;
+use self::particles::Particle;
 
 // fn may_iter<'a: 't, 't, T: SoATypes<'a, 't>>(vec: &'a T::Vec) -> T::Iter {
 //     let x=  vec.iter();

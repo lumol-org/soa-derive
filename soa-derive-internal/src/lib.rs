@@ -39,25 +39,43 @@ pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
 use crate::input::Input;
 use quote::quote;
+
+#[allow(unused)]
 fn derive_trait(input: &Input) -> TokenStream {
     let name = &input.name;
     let vec_name = names::vec_name(name);
-    // let slice_name = names::slice_name(name);
-    // let slice_mut_name = names::slice_mut_name(name);
-    // let ref_name = names::ref_name(name);
-    // let ref_mut_name = names::ref_mut_name(name);
+    let slice_name = names::slice_name(name);
+    let slice_mut_name = names::slice_mut_name(name);
+    let ref_name = names::ref_name(name);
+    let ref_mut_name = names::ref_mut_name(name);
+    let ptr_name = names::ptr_name(name);
+    let ptr_mut_name = names::ptr_mut_name(name);
 
     quote! {
         impl soa_derive::StructOfArray for #name {
             type Type = #vec_name;
         }
 
-        // impl<'a: 't, 't> soa_derive::SoATypes<'a, 't> for #name {
-        //     type Vec = #vec_name;
-        //     type Slice = #slice_name<'a>;
-        //     type SliceMut = #slice_mut_name<'a>;
-        //     type Ref = #ref_name<'a>;
-        //     type RefMut = #ref_mut_name<'a>;
-        // }
+        /*
+        impl<'a> ::soa_derive::SoATypes<'a>  for #name {
+            type Ptr = #ptr_name;
+
+            type PtrMut = #ptr_mut_name;
+
+            type Vec<'t> = #vec_name  where 'a: 't, Self: 'a;
+
+            type Ref<'t>  = #ref_name<'t>  where Self: 't, Self: 'a, 'a: 't;
+
+            type Iter<'t> = <#vec_name as ::soa_derive::SoAVec<'a, Self>>::Iter<'t> where <Self as ::soa_derive::SoATypes<'a>>::Vec<'t>: 't, Self: 'a, 'a: 't;
+
+            type Slice<'t> = #slice_name<'t> where Self: 'a, Self::Vec<'t>: 't, 'a: 't;
+
+            type RefMut<'t> = #ref_mut_name<'t>  where Self: 't, Self: 'a, 'a: 't;
+
+            type SliceMut<'t> = #slice_mut_name<'t> where Self: 'a, Self::Vec<'t>: 't, 'a: 't;
+
+            type IterMut<'t> = <#vec_name as ::soa_derive::SoAVec<'a, Self>>::IterMut<'t> where <Self as ::soa_derive::SoATypes<'a>>::Vec<'t>: 't, Self: 'a, 'a: 't;
+        }
+         */
     }
 }
