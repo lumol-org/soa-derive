@@ -50,23 +50,11 @@ mod impls {
         })
     }
 
-    fn iter_max_generic_slice<T: StructOfArray, S: SoASlice<T>>(vec: &S) -> Option<S::Ref<'_>> where for<'t> S::Ref<'t>: PartialOrd {
-        let mut indices: Vec<_> = (0..vec.len()).collect();
-        indices.sort_by(|j, k| {
-            let a = vec.index(*j);
-            let b = vec.index(*k);
-            a.partial_cmp(&b).unwrap()
-        });
-        let i = indices.iter().position(|x| *x == 0).unwrap();
-        vec.get(i)
-    }
-
     fn slice_ref_len<'a, T: StructOfArray, V: SoAVec<T>>(vec: &V) -> usize where for<'t> <<V as SoAVec<T>>::Slice<'t> as SoASlice<T>>::Ref<'t>: PartialOrd {
         let view = vec.as_slice();
         // let _ = iter_max_generic_slice(&view);
         view.iter().count()
     }
-
 
     pub struct VWrap<T: StructOfArray, V: SoAVec<T>> {
         data: V,

@@ -1,38 +1,10 @@
-[package]
-name = "soa_derive"
-version = "0.13.0"
-edition = "2018"
-rust-version = "1.63"
-
-authors = ["Guillaume Fraux <guillaume.fraux@epfl.ch>"]
-license = "MIT/Apache-2.0"
-
-readme = "README.md"
-description = "Automatic Struct of Array generation"
-repository = "https://github.com/lumol-org/soa-derive"
-homepage = "https://github.com/lumol-org/soa-derive"
-documentation = "https://docs.rs/soa_derive/"
-
 [workspace]
+
+resolver = "2"
+
 members = [
     "soa-derive-internal",
+    "soa-derive",
     "example",
 ]
 
-[features]
-default_features = ["generic_traits"]
-
-generic_traits = ["soa_derive_internal/generic_traits"]
-
-[dependencies]
-soa_derive_internal = {path = "soa-derive-internal", version = "0.13"}
-permutation = "0.4.0"
-
-[dev-dependencies]
-bencher = "0.1"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-
-[[bench]]
-name = "soa"
-harness = false
