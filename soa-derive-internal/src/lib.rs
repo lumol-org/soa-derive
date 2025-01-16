@@ -6,7 +6,7 @@
 
 extern crate proc_macro;
 
-use proc_macro2::{TokenStream};
+use proc_macro2::TokenStream;
 use quote::TokenStreamExt;
 
 mod index;
@@ -17,10 +17,11 @@ mod ptr;
 mod refs;
 mod slice;
 mod vec;
+mod generic;
 
 pub(crate) mod names;
 
-#[proc_macro_derive(StructOfArray, attributes(soa_derive, soa_attr, nested_soa))]
+#[proc_macro_derive(StructOfArray, attributes(soa_derive, soa_attr, nested_soa, generate_traits))]
 pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let ast = syn::parse(input).unwrap();
     let input = input::Input::new(ast);
@@ -34,6 +35,19 @@ pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     generated.append_all(index::derive(&input));
     generated.append_all(iter::derive(&input));
     generated.append_all(derive_trait(&input));
+
+    #[cfg(feature = "generic_traits")]
+    if input.generate_traits {
+        generated.append_all(
+            generic::derive_slice(&input)
+        );
+        generated.append_all(
+            generic::derive_slice_mut(&input)
+        );
+        generated.append_all(
+            generic::derive_vec(&input)
+        );
+    }
     generated.into()
 }
 

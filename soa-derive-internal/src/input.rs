@@ -18,6 +18,9 @@ pub struct Input {
     /// Additional attributes requested with `#[soa_attr(...)]` or
     /// `#[soa_derive()]`
     pub attrs: ExtraAttributes,
+    /// Whether or not to generate extra trait implementations that make the SoA types usable
+    /// in a generic context
+    pub generate_traits: bool,
 }
 
 pub struct ExtraAttributes {
@@ -109,6 +112,7 @@ impl Input {
         assert!(!fields.is_empty(), "#[derive(StructOfArray)] only supports struct with fields");
 
         let mut extra_attrs = ExtraAttributes::new();
+        let mut generate_traits: bool = false;
 
         for attr in input.attrs {
             if attr.path().is_ident("soa_derive") {
@@ -163,6 +167,10 @@ impl Input {
                     None => panic!("expected one of the SoA type, got {}", quote!(#soa_type))
                 }
             }
+
+            if attr.path().is_ident("generate_traits") {
+                generate_traits = true;
+            }
         }
 
         Input {
@@ -170,7 +178,8 @@ impl Input {
             fields: fields,
             visibility: input.vis,
             attrs: extra_attrs,
-            field_is_nested
+            field_is_nested,
+            generate_traits: generate_traits,
         }
     }
 

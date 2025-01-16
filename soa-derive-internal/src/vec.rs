@@ -450,6 +450,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
+        /*
         impl ::soa_derive::SoAVec<#name> for #vec_name {
             type Ref<'t> = #ref_name<'t>;
             type Slice<'t> = #slice_name<'t>;
@@ -606,6 +607,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 self.as_mut_ptr()
             }
         }
+        */
 
         #[allow(clippy::drop_non_drop)]
         impl Drop for #vec_name {

@@ -17,6 +17,9 @@ documentation = "https://docs.rs/soa_derive/"
 [lib]
 proc-macro = true
 
+[features]
+generic_traits = []
+
 [dependencies]
 syn = {version = "2", features = ["derive", "extra-traits"]}
 quote = "1"

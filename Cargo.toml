@@ -19,6 +19,11 @@ members = [
     "example",
 ]
 
+[features]
+default_features = ["generic_traits"]
+
+generic_traits = ["soa_derive_internal/generic_traits"]
+
 [dependencies]
 soa_derive_internal = {path = "soa-derive-internal", version = "0.13"}
 permutation = "0.4.0"

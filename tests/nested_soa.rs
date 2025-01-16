@@ -1,4 +1,4 @@
-use soa_derive::{StructOfArray, prelude::*};
+use soa_derive::StructOfArray;
 
 #[derive(Debug, Clone, PartialEq, StructOfArray)]
 pub struct Point {
@@ -58,24 +58,3 @@ fn nested_soa() {
         a: vec![255, 23],
     });
 }
-
-// fn generic_f<'a, T: SoATypes<'a>>(vec: &'a T::Vec<'a>) {
-//     assert_eq!(vec.len(), 2);
-// }
-
-// #[test]
-// fn test_nested_generic() {
-//     let mut particle_vec = ParticleVec::new();
-//     particle_vec.push(Particle {
-//         point: Point { x: 1.0, y: 2.0 },
-//         color: Color { r: 255, g: 0, b: 0, a: 255 },
-//         mass: 1.0,
-//     });
-//     particle_vec.push(Particle {
-//         point: Point { x: 2.0, y: 3.0 },
-//         color: Color { r: 128, g: 255, b: 100, a: 23 },
-//         mass: 2.0,
-//     });
-
-//     generic_f::<Particle>(&particle_vec);
-// }
