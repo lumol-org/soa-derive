@@ -77,7 +77,6 @@ pub fn derive_slice_mut(input: &Input) -> TokenStream {
     let iter_name = names::iter_name(name);
     let iter_mut_name = names::iter_mut_name(name);
 
-
     let generated = quote! {
 
         impl<'a> ::soa_derive::SoASliceMut<#name> for #slice_mut_name<'a> {
@@ -172,6 +171,7 @@ pub fn derive_slice_mut(input: &Input) -> TokenStream {
             }
         }
     };
+
     return generated
 }
 

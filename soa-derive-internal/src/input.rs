@@ -18,8 +18,9 @@ pub struct Input {
     /// Additional attributes requested with `#[soa_attr(...)]` or
     /// `#[soa_derive()]`
     pub attrs: ExtraAttributes,
+    #[allow(unused)]
     /// Whether or not to generate extra trait implementations that make the SoA types usable
-    /// in a generic context
+    /// in a generic context enabled by the `generic_traits` feature.
     pub generate_traits: bool,
 }
 

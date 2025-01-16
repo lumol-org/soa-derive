@@ -17,6 +17,7 @@ mod ptr;
 mod refs;
 mod slice;
 mod vec;
+#[cfg(feature = "generic_traits")]
 mod generic;
 
 pub(crate) mod names;

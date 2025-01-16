@@ -242,7 +242,7 @@ pub use permutation::permutation::*;
 /// `CheeseVec`; This will helpful in generics programing that generate struct
 /// can be expressed as `<T as StructOfArray>::Type`
 pub trait StructOfArray {
-    type Type;//: SoAVec<Self> where Self: Sized;
+    type Type;
 }
 
 /// Any struct derived by StructOfArray will auto impl this trait.

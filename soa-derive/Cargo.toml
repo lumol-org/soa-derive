@@ -7,7 +7,7 @@ rust-version = "1.63"
 authors = ["Guillaume Fraux <guillaume.fraux@epfl.ch>"]
 license = "MIT/Apache-2.0"
 
-readme = "README.md"
+readme = "../README.md"
 description = "Automatic Struct of Array generation"
 repository = "https://github.com/lumol-org/soa-derive"
 homepage = "https://github.com/lumol-org/soa-derive"
