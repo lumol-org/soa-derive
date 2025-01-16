@@ -55,27 +55,5 @@ fn derive_trait(input: &Input) -> TokenStream {
         impl soa_derive::StructOfArray for #name {
             type Type = #vec_name;
         }
-
-        /*
-        impl<'a> ::soa_derive::SoATypes<'a>  for #name {
-            type Ptr = #ptr_name;
-
-            type PtrMut = #ptr_mut_name;
-
-            type Vec<'t> = #vec_name  where 'a: 't, Self: 'a;
-
-            type Ref<'t>  = #ref_name<'t>  where Self: 't, Self: 'a, 'a: 't;
-
-            type Iter<'t> = <#vec_name as ::soa_derive::SoAVec<'a, Self>>::Iter<'t> where <Self as ::soa_derive::SoATypes<'a>>::Vec<'t>: 't, Self: 'a, 'a: 't;
-
-            type Slice<'t> = #slice_name<'t> where Self: 'a, Self::Vec<'t>: 't, 'a: 't;
-
-            type RefMut<'t> = #ref_mut_name<'t>  where Self: 't, Self: 'a, 'a: 't;
-
-            type SliceMut<'t> = #slice_mut_name<'t> where Self: 'a, Self::Vec<'t>: 't, 'a: 't;
-
-            type IterMut<'t> = <#vec_name as ::soa_derive::SoAVec<'a, Self>>::IterMut<'t> where <Self as ::soa_derive::SoATypes<'a>>::Vec<'t>: 't, Self: 'a, 'a: 't;
-        }
-         */
     }
 }

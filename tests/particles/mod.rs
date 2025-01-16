@@ -1,5 +1,8 @@
-use soa_derive::{Permutation, SoATypes, StructOfArray};
-use soa_derive::{SoAIndex, SoAIndexMut, SoASliceMut, SoASlice, SoAVec};
+use std::cmp::Ordering;
+use std::fmt::Debug;
+use std::marker::PhantomData;
+
+use soa_derive::prelude::*;
 
 #[derive(Debug, Clone, PartialOrd, PartialEq, StructOfArray)]
 #[soa_derive(Debug, Clone, PartialOrd, PartialEq)]
@@ -17,69 +20,12 @@ impl Particle {
     }
 }
 
-
 /*
-impl<'a> SoASlice<'a, Particle> for ParticleSlice<'a> {
+impl<'a> SoASlice<Particle> for ParticleSlice<'a> {
     type Ref<'t>  = ParticleRef<'t> where Self: 't, 'a: 't;
     type Slice<'t> = ParticleSlice<'t> where Self: 't, 'a: 't;
     type Iter<'t> = ParticleIter<'t> where Self: 't, 'a: 't;
     type Ptr = ParticlePtr;
-*/
-
-//     fn len(&self) -> usize {
-//         self.len()
-//     }
-
-//     fn is_empty(&self) -> bool {
-//         self.is_empty()
-//     }
-
-//     fn as_slice<'c>(&'c self) -> Self::Slice<'c> where 'a: 'c {
-//         self.reborrow::<'c>()
-//     }
-
-//     fn slice<'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice<'c> where 'a: 'c {
-//         let start = match index.start_bound() {
-//             std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
-//             std::ops::Bound::Unbounded => 0,
-//         };
-//         let n = self.len();
-//         let end = match index.end_bound() {
-//             std::ops::Bound::Included(i) => (*i + 1).min(n),
-//             std::ops::Bound::Excluded(i) => *i,
-//             std::ops::Bound::Unbounded => n,
-//         };
-//         self.index(start..end)
-//     }
-
-//     fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>> where 'a: 'c {
-//         self.get(index)
-//     }
-
-//     fn index<'c>(&'c self, index: usize) -> Self::Ref<'c> where 'a: 'c {
-//         self.index(index)
-//     }
-
-//     fn iter<'c>(&'c self) -> Self::Iter<'c> where 'a: 'c {
-//         self.iter()
-//     }
-
-//     fn as_ptr(&self) -> Self::Ptr {
-//         self.as_ptr()
-//     }
-// }
-
-/*
-impl<'a> SoASliceMut<'a, Particle> for ParticleSliceMut<'a> {
-    type Ref<'t>  = ParticleRef<'t> where Self: 't, 'a: 't;
-    type Slice<'t> = ParticleSlice<'t> where Self: 't, 'a: 't;
-    type Iter<'t> = ParticleIter<'t> where Self: 't, 'a: 't;
-    type Ptr = ParticlePtr;
-
-    type RefMut<'t> = ParticleRefMut<'t> where 'a: 't, Self: 't;
-    type SliceMut<'t> = ParticleSliceMut<'t> where 'a: 't, Self: 't;
-    type IterMut<'t> = ParticleIterMut<'t> where 'a: 't, Self: 't;
-    type PtrMut = ParticlePtrMut;
 
     fn len(&self) -> usize {
         self.len()
@@ -89,11 +35,11 @@ impl<'a> SoASliceMut<'a, Particle> for ParticleSliceMut<'a> {
         self.is_empty()
     }
 
-    fn as_slice<'c>(&'c self) -> Self::Slice<'c> where 'a: 'c {
-        self.as_slice()
+    fn as_slice<'c>(&'c self) -> Self::Slice<'c> {
+        self.reborrow::<'c>()
     }
 
-    fn slice<'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice<'c> where 'a: 'c {
+    fn slice<'c, 'b: 'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice<'c> where Self: 'b {
         let start = match index.start_bound() {
             std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
             std::ops::Bound::Unbounded => 0,
@@ -107,23 +53,79 @@ impl<'a> SoASliceMut<'a, Particle> for ParticleSliceMut<'a> {
         self.index(start..end)
     }
 
-    fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>> where 'a: 'c {
+    fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>> {
         self.get(index)
     }
 
-    fn index<'c>(&'c self, index: usize) -> Self::Ref<'c> where 'a: 'c {
+    fn index<'c>(&'c self, index: usize) -> Self::Ref<'c> {
         self.index(index)
     }
 
-    fn iter<'c>(&'c self) -> Self::Iter<'c> where 'a: 'c {
+    fn iter<'c>(&'c self) -> Self::Iter<'c> {
+        self.iter()
+    }
+
+    fn as_ptr(&self) -> Self::Ptr {
+        self.as_ptr()
+    }
+}
+*/
+
+/*
+impl<'a> SoASliceMut<Particle> for ParticleSliceMut<'a> {
+    type Ref<'t>  = ParticleRef<'t> where Self: 't;
+    type Slice<'t> = ParticleSlice<'t> where Self: 't;
+    type Iter<'t> = ParticleIter<'t> where Self: 't;
+    type Ptr = ParticlePtr;
+
+    type RefMut<'t> = ParticleRefMut<'t> where Self: 't;
+    type SliceMut<'t> = ParticleSliceMut<'t> where Self: 't;
+    type IterMut<'t> = ParticleIterMut<'t> where Self: 't;
+    type PtrMut = ParticlePtrMut;
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn as_slice<'c>(&'c self) -> Self::Slice<'c> {
+        self.as_slice()
+    }
+
+    fn slice<'c, 'b: 'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice<'c> where Self: 'b {
+        let start = match index.start_bound() {
+            std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
+            std::ops::Bound::Unbounded => 0,
+        };
+        let n = self.len();
+        let end = match index.end_bound() {
+            std::ops::Bound::Included(i) => (*i + 1).min(n),
+            std::ops::Bound::Excluded(i) => *i,
+            std::ops::Bound::Unbounded => n,
+        };
+        self.index(start..end)
+    }
+
+    fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>> {
+        self.get(index)
+    }
+
+    fn index<'c>(&'c self, index: usize) -> Self::Ref<'c> {
+        self.index(index)
+    }
+
+    fn iter<'c>(&'c self) -> Self::Iter<'c> {
         self.as_ref().into_iter()
     }
 
-    fn as_mut_slice<'c>(&'c mut self) -> Self::SliceMut<'c> where 'a: 'c {
+    fn as_mut_slice<'c: 'b, 'b>(&'c mut self) -> Self::SliceMut<'c> where Self: 'b {
         self.reborrow()
     }
 
-    fn slice_mut<'c>(&'c mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut<'c> where 'a: 'c {
+    fn slice_mut<'c>(&'c mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut<'c> {
         let start = match index.start_bound() {
             std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
             std::ops::Bound::Unbounded => 0,
@@ -137,15 +139,15 @@ impl<'a> SoASliceMut<'a, Particle> for ParticleSliceMut<'a> {
         self.index_mut(start..end)
     }
 
-    fn get_mut<'c>(&'c mut self, index: usize) -> Option<Self::RefMut<'c>> where 'a: 'c {
+    fn get_mut<'c>(&'c mut self, index: usize) -> Option<Self::RefMut<'c>> {
         self.get_mut(index)
     }
 
-    fn index_mut<'c>(&'c mut self, index: usize) -> Self::RefMut<'c> where 'a: 'c {
+    fn index_mut<'c>(&'c mut self, index: usize) -> Self::RefMut<'c> {
         self.index_mut(index)
     }
 
-    fn iter_mut<'c>(&'c mut self) -> Self::IterMut<'c> where 'a: 'c {
+    fn iter_mut<'c>(&'c mut self) -> Self::IterMut<'c> {
         self.iter_mut()
     }
 
@@ -161,20 +163,19 @@ impl<'a> SoASliceMut<'a, Particle> for ParticleSliceMut<'a> {
         self.as_mut_ptr()
     }
 }
-     */
+*/
 
-impl<'a> SoAVec<'a, Particle> for ParticleVec {
-    type Ref<'t> = ParticleRef<'t> where 'a: 't;
-    type Slice<'t> = ParticleSlice<'t> where Self: 'a, 'a: 't;
-    type Iter<'t> = ParticleIter<'t> where Self: 'a, 'a: 't;
+/*
+impl SoAVec<Particle> for ParticleVec {
+    type Ref<'t> = ParticleRef<'t>;
+    type Slice<'t> = ParticleSlice<'t>;
+    type Iter<'t> = ParticleIter<'t>;
     type Ptr = ParticlePtr;
 
-    type RefMut<'t> = ParticleRefMut<'t> where Self: 'a, 'a: 't;
-    type SliceMut<'t> = ParticleSliceMut<'t> where Self: 'a, 'a: 't;
-    type IterMut<'t> = ParticleIterMut<'t> where Self: 'a, 'a: 't;
+    type RefMut<'t> = ParticleRefMut<'t>;
+    type SliceMut<'t> = ParticleSliceMut<'t>;
+    type IterMut<'t> = ParticleIterMut<'t>;
     type PtrMut = ParticlePtrMut;
-
-
 
     fn len(&self) -> usize {
         self.len()
@@ -184,11 +185,11 @@ impl<'a> SoAVec<'a, Particle> for ParticleVec {
         self.is_empty()
     }
 
-    fn as_slice<'c>(&'c self) -> Self::Slice<'c> where 'a: 'c {
+    fn as_slice<'c, 'a: 'c>(&'c self) -> Self::Slice<'c> where Self: 'a {
         self.as_slice()
     }
 
-    fn slice<'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice<'c> where 'a: 'c {
+    fn slice<'c, 'a: 'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice<'c> where Self: 'a {
         let start = match index.start_bound() {
             std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
             std::ops::Bound::Unbounded => 0,
@@ -202,23 +203,23 @@ impl<'a> SoAVec<'a, Particle> for ParticleVec {
         self.index(start..end)
     }
 
-    fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>> where 'a: 'c {
+    fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>> {
         self.get(index)
     }
 
-    fn index<'c>(&'c self, index: usize) -> Self::Ref<'c> where 'a: 'c {
+    fn index<'c>(&'c self, index: usize) -> Self::Ref<'c> {
         self.index(index)
     }
 
-    fn iter<'c>(&'c self) -> Self::Iter<'c> where 'a: 'c {
+    fn iter<'c>(&'c self) -> Self::Iter<'c> {
         self.iter()
     }
 
-    fn as_mut_slice<'c>(&'c mut self) -> Self::SliceMut<'c> where 'a: 'c {
+    fn as_mut_slice<'c, 'a: 'c>(&'c mut self) -> Self::SliceMut<'c> where Self: 'a {
         self.as_mut_slice()
     }
 
-    fn slice_mut<'c>(&'c mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut<'c> where 'a: 'c {
+    fn slice_mut<'c>(&'c mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut<'c> {
         let start = match index.start_bound() {
             std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
             std::ops::Bound::Unbounded => 0,
@@ -232,15 +233,15 @@ impl<'a> SoAVec<'a, Particle> for ParticleVec {
         self.index_mut(start..end)
     }
 
-    fn get_mut<'c>(&'c mut self, index: usize) -> Option<Self::RefMut<'c>> where 'a: 'c {
+    fn get_mut<'c>(&'c mut self, index: usize) -> Option<Self::RefMut<'c>> {
         self.get_mut(index)
     }
 
-    fn index_mut<'c>(&'c mut self, index: usize) -> Self::RefMut<'c> where 'a: 'c {
+    fn index_mut<'c>(&'c mut self, index: usize) -> Self::RefMut<'c> {
         self.index_mut(index)
     }
 
-    fn iter_mut<'c>(&'c mut self) -> Self::IterMut<'c> where 'a: 'c {
+    fn iter_mut<'c>(&'c mut self) -> Self::IterMut<'c> {
         self.iter_mut()
     }
 
@@ -320,48 +321,11 @@ impl<'a> SoAVec<'a, Particle> for ParticleVec {
         self.as_mut_ptr()
     }
 }
+*/
 
-
- impl<'a> SoATypes<'a>  for Particle {
-    type Ptr = ParticlePtr;
-
-    type PtrMut = ParticlePtrMut;
-
-    type Vec<'t> = ParticleVec where 'a: 't, Self: 'a;
-
-    type Ref<'t>  = ParticleRef<'t>  where Self: 'a, 'a: 't;
-
-    type Iter<'t> = ParticleIter<'t> where Self: 'a, 'a: 't;
-
-    type Slice<'t> = ParticleSlice<'t> where Self: 'a, 'a: 't;
-
-    type RefMut<'t> = ParticleRefMut<'t> where Self: 'a, 'a: 't;
-
-    type SliceMut<'t> = ParticleSliceMut<'t> where Self: 'a, 'a: 't;
-
-    type IterMut<'t> =  ParticleIterMut<'t> where Self: 'a, 'a: 't;
-}
-
-fn order_concrete<'a>(vec: &mut ParticleVec) {
-    let mut indices: Vec<_> = (0..vec.len()).collect();
-    indices.sort_by(|j, k| {
-        let a = vec.index(*j);
-        let b = vec.index(*k);
-        a.partial_cmp(&b).unwrap()
-    });
-}
-
-fn order_generic<'a, T: StructOfArray, V: SoASlice<'a, T> + 'a>(vec: &'a V) where V::Ref<'a>: PartialOrd {
-    let mut indices: Vec<_> = (0..vec.len()).collect();
-    indices.sort_by(|j, k| {
-        let a = vec.index(*j);
-        let b = vec.index(*k);
-        a.partial_cmp(&b).unwrap()
-    });
-}
-
-fn iter_max_generic<'a, T: StructOfArray, V: SoASlice<'a, T> + 'a>(vec: &'a V) -> Option<V::Ref<'a>> where V::Ref<'a>: PartialOrd {
+fn iter_max_generic<'a, T: StructOfArray, V: SoASlice<T> + 'a>(vec: &'a V) -> Option<V::Ref<'a>> where V::Ref<'a>: PartialOrd + Debug {
     let x= vec.iter().reduce(|a, b| {
+        eprintln!("{a:?}");
         if a.partial_cmp(&b).unwrap().is_ge() {
             a
         } else {
@@ -371,8 +335,8 @@ fn iter_max_generic<'a, T: StructOfArray, V: SoASlice<'a, T> + 'a>(vec: &'a V) -
     x
 }
 
-fn iter_max_generic_iter<'a, T: SoATypes<'a>>(it: T::Iter<'a>) -> Option<T::Ref<'a>> where T::Ref<'a>: PartialOrd {
-    it.reduce(|a: T::Ref<'_>, b: T::Ref<'_>| {
+fn iter_max_generic_iter<'a, T: StructOfArray, V: SoAVec<T>>(it: V::Iter<'a>) -> Option<V::Ref<'a>> where V::Ref<'a>: PartialOrd {
+    it.reduce(|a: V::Ref<'_>, b: V::Ref<'_>| {
         if a.partial_cmp(&b).unwrap().is_ge() {
             a
         } else {
@@ -381,7 +345,7 @@ fn iter_max_generic_iter<'a, T: SoATypes<'a>>(it: T::Iter<'a>) -> Option<T::Ref<
     })
 }
 
-fn iter_max_generic_slice<'a, V: StructOfArray, T: SoAVec<'a, V>>(vec: &'a mut T) -> Option<T::Ref<'a>> where T::Ref<'a>: PartialOrd {
+fn iter_max_generic_slice<T: StructOfArray, S: SoASlice<T>>(vec: &S) -> Option<S::Ref<'_>> where for<'t> S::Ref<'t>: PartialOrd {
     let mut indices: Vec<_> = (0..vec.len()).collect();
     indices.sort_by(|j, k| {
         let a = vec.index(*j);
@@ -392,26 +356,37 @@ fn iter_max_generic_slice<'a, V: StructOfArray, T: SoAVec<'a, V>>(vec: &'a mut T
     vec.get(i)
 }
 
-fn iter_max_concrete<'a>(vec: &'a mut ParticleVec) -> Option<<ParticleVec as SoAVec<'a, Particle>>::Ref<'a>> {
-    let mut indices: Vec<_> = (0..vec.len()).collect();
-    indices.sort_by(|j, k| {
-        let a = <ParticleVec as SoAVec<'a, Particle>>::index(&vec, *j);
-        let b = <ParticleVec as SoAVec<'a, Particle>>::index(&vec, *k);
-        a.partial_cmp(&b).unwrap()
-    });
-    let i = indices.iter().position(|x| *x == 0).unwrap();
-    vec.get(i)
+fn slice_ref_len<'a, T: StructOfArray, V: SoAVec<T>>(vec: &V) -> usize where for<'t> <<V as SoAVec<T>>::Slice<'t> as SoASlice<T>>::Ref<'t>: PartialOrd {
+    let view = vec.as_slice();
+    // let _ = iter_max_generic_slice(&view);
+    view.iter().count()
 }
 
-fn sort_generic<'a: 't, 't: 'c, 'c, T: StructOfArray, V: SoAVec<'t, T>>(vec: &'a mut V) where V::Ref<'t>: PartialOrd {
-    let mut indices: Vec<_> = (0..vec.len()).collect();
-    indices.sort_by(|j, k| {
-        let a: V::Ref<'c> = vec.index::<'c>(*j);
-        let b: V::Ref<'_> = vec.index(*k);
-        let r = a.partial_cmp(&b).unwrap();
-        r
-    });
+
+pub struct VWrap<T: StructOfArray, V: SoAVec<T>> {
+    data: V,
+    _t: PhantomData<T>
 }
+
+impl<T: StructOfArray, V: SoAVec<T>> VWrap<T, V> {
+    pub fn empty() -> Self {
+        let data = V::new();
+        Self { data, _t: PhantomData }
+    }
+
+    pub fn push(&mut self, value: T) {
+        self.data.push(value);
+    }
+
+    pub fn sort_by<F>(&mut self, f: F) where F: FnMut(V::Ref<'_>, V::Ref<'_>) -> Ordering {
+        self.data.sort_by(f);
+    }
+
+    pub fn first(&self) -> Option<V::Ref<'_>> {
+        self.data.first()
+    }
+}
+
 
 #[test]
 fn test_ops() {
@@ -419,13 +394,31 @@ fn test_ops() {
     vec.push(Particle::new("foo".into(), 100.0));
     vec.push(Particle::new("bar".into(), 1000.0));
     vec.push(Particle::new("baz".into(), 50.0));
+    // let x = iter_max_generic(&view);
+    // eprintln!("{x:?}");
+    let y = iter_max_generic_iter::<Particle, ParticleVec>(vec.iter());
+    eprintln!("{y:?}");
+    let k = slice_ref_len(&vec);
+    assert_eq!(k, 3);
+
+    let mut view = vec.as_mut_slice();
+    view.iter_mut().for_each(|f| {
+        *f.mass *= 2.0;
+    });
+
     let view = vec.as_slice();
-    let x = iter_max_generic(&view);
-    eprintln!("{x:?}");
-    let y = iter_max_generic_iter::<Particle>(vec.iter());
-    eprintln!("{y:?}");
-    let y = iter_max_generic_iter::<Particle>(view.iter());
-    eprintln!("{y:?}");
-    let y = iter_max_generic_slice::<Particle>(&view);
-    eprintln!("{y:?}");
+    let z = iter_max_generic(&view).unwrap();
+    assert_eq!(z.name, "foo");
+
+    let n = view.iter().count();
+    assert!(n > 0);
+
+    let mut pv = VWrap::<Particle, ParticleVec>::empty();
+    pv.push(Particle::new("foo".into(), 100.0));
+    pv.push(Particle::new("bar".into(), 1000.0));
+    pv.push(Particle::new("baz".into(), 50.0));
+    pv.sort_by(|a, b| a.mass.total_cmp(&b.mass));
+
+    assert_eq!(pv.first().unwrap().name, "baz");
+
 }

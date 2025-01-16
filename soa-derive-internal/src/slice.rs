@@ -238,7 +238,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoASlice<'a, #name> for #slice_name<'a> {
+        impl<'a> ::soa_derive::SoASlice<#name> for #slice_name<'a> {
             type Ref<'t>  = #ref_name<'t> where Self: 't, 'a: 't;
             type Slice<'t> = #slice_name<'t> where Self: 't, 'a: 't;
             type Iter<'t> = #iter_name<'t> where Self: 't, 'a: 't;
@@ -252,11 +252,11 @@ pub fn derive(input: &Input) -> TokenStream {
                 self.is_empty()
             }
 
-            fn as_slice<'c>(&'c self) -> Self::Slice<'c> where 'a: 'c {
+            fn as_slice<'c>(&'c self) -> Self::Slice<'c> {
                 self.reborrow::<'c>()
             }
 
-            fn slice<'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice<'c> where 'a: 'c {
+            fn slice<'c, 'b: 'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice<'c> where Self: 'b {
                 let start = match index.start_bound() {
                     std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
                     std::ops::Bound::Unbounded => 0,
@@ -270,15 +270,15 @@ pub fn derive(input: &Input) -> TokenStream {
                 self.index(start..end)
             }
 
-            fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>> where 'a: 'c {
+            fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>> {
                 self.get(index)
             }
 
-            fn index<'c>(&'c self, index: usize) -> Self::Ref<'c> where 'a: 'c {
+            fn index<'c>(&'c self, index: usize) -> Self::Ref<'c> {
                 self.index(index)
             }
 
-            fn iter<'c>(&'c self) -> Self::Iter<'c> where 'a: 'c {
+            fn iter<'c>(&'c self) -> Self::Iter<'c> {
                 self.iter()
             }
 
@@ -286,7 +286,6 @@ pub fn derive(input: &Input) -> TokenStream {
                 self.as_ptr()
             }
         }
-
     };
 
     if input.attrs.derive_clone {
@@ -718,15 +717,15 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoASliceMut<'a, #name> for #slice_mut_name<'a> {
-            type Ref<'t>  = #ref_name<'t> where Self: 't, 'a: 't;
-            type Slice<'t> = #slice_name<'t> where Self: 't, 'a: 't;
-            type Iter<'t> = #iter_name<'t> where Self: 't, 'a: 't;
+        impl<'a> ::soa_derive::SoASliceMut<#name> for #slice_mut_name<'a> {
+            type Ref<'t>  = #ref_name<'t> where Self: 't;
+            type Slice<'t> = #slice_name<'t> where Self: 't;
+            type Iter<'t> = #iter_name<'t> where Self: 't;
             type Ptr = #ptr_name;
 
-            type RefMut<'t> = #ref_mut_name<'t> where 'a: 't, Self: 't;
-            type SliceMut<'t> = #slice_mut_name<'t> where 'a: 't, Self: 't;
-            type IterMut<'t> = #iter_mut_name<'t> where 'a: 't, Self: 't;
+            type RefMut<'t> = #ref_mut_name<'t> where Self: 't;
+            type SliceMut<'t> = #slice_mut_name<'t> where Self: 't;
+            type IterMut<'t> = #iter_mut_name<'t> where Self: 't;
             type PtrMut = #ptr_mut_name;
 
             fn len(&self) -> usize {
@@ -737,11 +736,11 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 self.is_empty()
             }
 
-            fn as_slice<'c>(&'c self) -> Self::Slice<'c> where 'a: 'c {
+            fn as_slice<'c>(&'c self) -> Self::Slice<'c> {
                 self.as_slice()
             }
 
-            fn slice<'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice<'c> where 'a: 'c {
+            fn slice<'c, 'b: 'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice<'c> where Self: 'b {
                 let start = match index.start_bound() {
                     std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
                     std::ops::Bound::Unbounded => 0,
@@ -755,23 +754,23 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 self.index(start..end)
             }
 
-            fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>> where 'a: 'c {
+            fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>> {
                 self.get(index)
             }
 
-            fn index<'c>(&'c self, index: usize) -> Self::Ref<'c> where 'a: 'c {
+            fn index<'c>(&'c self, index: usize) -> Self::Ref<'c> {
                 self.index(index)
             }
 
-            fn iter<'c>(&'c self) -> Self::Iter<'c> where 'a: 'c {
+            fn iter<'c>(&'c self) -> Self::Iter<'c> {
                 self.as_ref().into_iter()
             }
 
-            fn as_mut_slice<'c>(&'c mut self) -> Self::SliceMut<'c> where 'a: 'c {
+            fn as_mut_slice<'c: 'b, 'b>(&'c mut self) -> Self::SliceMut<'c> where Self: 'b {
                 self.reborrow()
             }
 
-            fn slice_mut<'c>(&'c mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut<'c> where 'a: 'c {
+            fn slice_mut<'c>(&'c mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut<'c> {
                 let start = match index.start_bound() {
                     std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
                     std::ops::Bound::Unbounded => 0,
@@ -785,15 +784,15 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 self.index_mut(start..end)
             }
 
-            fn get_mut<'c>(&'c mut self, index: usize) -> Option<Self::RefMut<'c>> where 'a: 'c {
+            fn get_mut<'c>(&'c mut self, index: usize) -> Option<Self::RefMut<'c>> {
                 self.get_mut(index)
             }
 
-            fn index_mut<'c>(&'c mut self, index: usize) -> Self::RefMut<'c> where 'a: 'c {
+            fn index_mut<'c>(&'c mut self, index: usize) -> Self::RefMut<'c> {
                 self.index_mut(index)
             }
 
-            fn iter_mut<'c>(&'c mut self) -> Self::IterMut<'c> where 'a: 'c {
+            fn iter_mut<'c>(&'c mut self) -> Self::IterMut<'c> {
                 self.iter_mut()
             }
 
@@ -808,8 +807,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             fn as_mut_ptr(&mut self) -> Self::PtrMut {
                 self.as_mut_ptr()
             }
-        }
-
+}
     };
 
     if input.attrs.derive_clone {

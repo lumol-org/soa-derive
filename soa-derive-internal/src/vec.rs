@@ -450,18 +450,16 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-/*
-        impl<'a> ::soa_derive::SoAVec<'a, #name> for #vec_name {
-            type Ref<'t> = #ref_name<'t> where Self: 't, 'a: 't;
-            type Slice<'t> = #slice_name<'t> where Self: 't, 'a: 't;
-            type Iter<'t> = #iter_name<'t> where Self: 't, 'a: 't;
+        impl ::soa_derive::SoAVec<#name> for #vec_name {
+            type Ref<'t> = #ref_name<'t>;
+            type Slice<'t> = #slice_name<'t>;
+            type Iter<'t> = #iter_name<'t>;
             type Ptr = #ptr_name;
 
-            type RefMut<'t> = #ref_mut_name<'t> where Self: 't, 'a: 't;
-            type SliceMut<'t> = #slice_mut_name<'t> where Self: 't, 'a: 't;
-            type IterMut<'t> = #iter_mut_name<'t> where Self: 't, 'a: 't;
+            type RefMut<'t> = #ref_mut_name<'t>;
+            type SliceMut<'t> = #slice_mut_name<'t>;
+            type IterMut<'t> = #iter_mut_name<'t>;
             type PtrMut = #ptr_mut_name;
-
 
             fn len(&self) -> usize {
                 self.len()
@@ -471,11 +469,11 @@ pub fn derive(input: &Input) -> TokenStream {
                 self.is_empty()
             }
 
-            fn as_slice<'c>(&'c self) -> Self::Slice<'c> where 'a: 'c {
+            fn as_slice<'c, 'a: 'c>(&'c self) -> Self::Slice<'c> where Self: 'a {
                 self.as_slice()
             }
 
-            fn slice<'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice<'c> where 'a: 'c {
+            fn slice<'c, 'a: 'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice<'c> where Self: 'a {
                 let start = match index.start_bound() {
                     std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
                     std::ops::Bound::Unbounded => 0,
@@ -489,23 +487,23 @@ pub fn derive(input: &Input) -> TokenStream {
                 self.index(start..end)
             }
 
-            fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>> where 'a: 'c {
-                ::soa_derive::SoAIndex::get(index, self)
+            fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>> {
+                self.get(index)
             }
 
-            fn index<'c>(&'c self, index: usize) -> Self::Ref<'c> where 'a: 'c {
-                ::soa_derive::SoAIndex::index(index, self)
+            fn index<'c>(&'c self, index: usize) -> Self::Ref<'c> {
+                self.index(index)
             }
 
-            fn iter<'c>(&'c self) -> Self::Iter<'c> where 'a: 'c {
+            fn iter<'c>(&'c self) -> Self::Iter<'c> {
                 self.iter()
             }
 
-            fn as_mut_slice<'c>(&'c mut self) -> Self::SliceMut<'c> where 'a: 'c {
+            fn as_mut_slice<'c, 'a: 'c>(&'c mut self) -> Self::SliceMut<'c> where Self: 'a {
                 self.as_mut_slice()
             }
 
-            fn slice_mut<'c>(&'c mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut<'c> where 'a: 'c {
+            fn slice_mut<'c>(&'c mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut<'c> {
                 let start = match index.start_bound() {
                     std::ops::Bound::Included(i) | std::ops::Bound::Excluded(i) => *i,
                     std::ops::Bound::Unbounded => 0,
@@ -519,21 +517,21 @@ pub fn derive(input: &Input) -> TokenStream {
                 self.index_mut(start..end)
             }
 
-            fn get_mut<'c>(&'c mut self, index: usize) -> Option<Self::RefMut<'c>> where 'a: 'c {
+            fn get_mut<'c>(&'c mut self, index: usize) -> Option<Self::RefMut<'c>> {
                 self.get_mut(index)
             }
 
-            fn index_mut<'c>(&'c mut self, index: usize) -> Self::RefMut<'c> where 'a: 'c {
+            fn index_mut<'c>(&'c mut self, index: usize) -> Self::RefMut<'c> {
                 self.index_mut(index)
             }
 
-            fn iter_mut<'c>(&'c mut self) -> Self::IterMut<'c> where 'a: 'c {
+            fn iter_mut<'c>(&'c mut self) -> Self::IterMut<'c> {
                 self.iter_mut()
             }
 
             fn apply_index(&mut self, indices: &[usize]) {
-                let mut view = self.as_mut_slice();
-                ::soa_derive::SoASliceMut::apply_index(&mut view, indices);
+                use ::soa_derive::SoASliceMut;
+                self.as_mut_slice().apply_index(indices);
             }
 
             fn new() -> Self {
@@ -608,7 +606,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 self.as_mut_ptr()
             }
         }
-*/
+
         #[allow(clippy::drop_non_drop)]
         impl Drop for #vec_name {
             fn drop(&mut self) {
