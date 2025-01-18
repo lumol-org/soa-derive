@@ -433,7 +433,7 @@ mod generics {
         type Ref<'t> where Self: 't;
 
         /// The type representing immutable slices of elements
-        type Slice<'t>: SoASlice<T, Ref<'t> = Self::Ref<'t>> + IntoSoAIter<'t, T, Ref<'t> = Self::Ref<'t>> where Self: 't;
+        type Slice<'t>: SoASlice<T> + IntoSoAIter<'t, T, Ref<'t> = Self::Ref<'t>> where Self: 't;
 
         /// The type used for iteration over [`Self::Ref`]
         type Iter<'t>: Iterator<Item=Self::Ref<'t>> where Self: 't;
@@ -486,7 +486,7 @@ mod generics {
         type Ref<'t> where Self: 't;
 
         /// The type representing immutable slices of elements
-        type Slice<'t>: SoASlice<T, Ref<'t> = Self::Ref<'t>> + IntoSoAIter<'t, T, Ref<'t> = Self::Ref<'t>> where Self: 't;
+        type Slice<'t>: SoASlice<T> + IntoSoAIter<'t, T, Ref<'t> = Self::Ref<'t>> where Self: 't;
 
         /// The type used for iteration over [`Self::Ref`]
         type Iter<'t>: Iterator<Item=Self::Ref<'t>> where Self: 't;
@@ -606,7 +606,7 @@ mod generics {
         type Ref<'t> where Self: 't;
 
         /// The type representing immutable slices of elements
-        type Slice<'t>: SoASlice<T, Ref<'t> = Self::Ref<'t>> + IntoSoAIter<'t, T> where Self: 't;
+        type Slice<'t>: SoASlice<T> + IntoSoAIter<'t, T> where Self: 't;
 
         /// The type used for iteration over [`Self::Ref`]
         type Iter<'t>: Iterator<Item=Self::Ref<'t>> where Self: 't;
@@ -823,7 +823,7 @@ pub use generics::*;
 
 /// A collection of supporting traits for [`StructOfArray`] bundled in one place for ease-of-access
 pub mod prelude {
-    pub use super::{SoAVec, SoAIter, SoASlice, SoASliceMut, SoAPointers, StructOfArray, ToSoAVec, IntoSoAIter};
+    pub use super::{SoAVec, SoAIter, SoASlice, SoASliceMut, SoAPointers, StructOfArray, ToSoAVec, IntoSoAIter, SoAAppendVec};
 }
 
 
