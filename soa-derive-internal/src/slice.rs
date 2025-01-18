@@ -254,6 +254,18 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         });
+
+        if input.generate_traits {
+            generated.append_all(quote! {
+                impl<'a> ::soa_derive::ToSoAVec<#name> for #slice_name<'a> {
+                    type SoAVecType = #vec_name;
+
+                    fn to_vec(&self) -> Self::SoAVecType {
+                        self.to_vec()
+                    }
+                }
+            });
+        }
     }
 
     return generated;
@@ -684,6 +696,18 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 }
             }
         });
+
+        if input.generate_traits {
+            generated.append_all(quote! {
+                impl<'a> ::soa_derive::ToSoAVec<#name> for #slice_mut_name<'a> {
+                    type SoAVecType = #vec_name;
+
+                    fn to_vec(&self) -> Self::SoAVecType {
+                        self.to_vec()
+                    }
+                }
+            });
+        }
     }
 
     return generated;

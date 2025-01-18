@@ -1,5 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::quote;
+use quote::TokenStreamExt;
 
 use crate::input::{Input, TokenStreamIterator};
 use crate::names;
@@ -79,7 +80,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
     }).expect("should be Some");
 
-    return quote! {
+    let mut generated = quote! {
         /// Iterator over
         #[doc = #doc_url]
         #[allow(missing_debug_implementations)]
@@ -297,4 +298,14 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
     };
+
+    if input.generate_traits {
+        generated.append_all(quote! {
+
+            impl<'a> ::soa_derive::IntoSoAIter<'a, #name> for #slice_name<'a> {}
+
+        })
+    }
+
+    return generated;
 }

@@ -428,12 +428,12 @@ mod generics {
     /**
     The interface for the `Slice` immutable slice struct-of-arrays type.
     */
-    pub trait SoASlice<T> {
+    pub trait SoASlice<T: StructOfArray> {
         /// The type that elements will be proxied with as
         type Ref<'t> where Self: 't;
 
         /// The type representing immutable slices of elements
-        type Slice<'t>: SoASlice<T> where Self: 't;
+        type Slice<'t>: SoASlice<T, Ref<'t> = Self::Ref<'t>> + IntoSoAIter<'t, T, Ref<'t> = Self::Ref<'t>> where Self: 't;
 
         /// The type used for iteration over [`Self::Ref`]
         type Iter<'t>: Iterator<Item=Self::Ref<'t>> where Self: 't;
@@ -486,7 +486,7 @@ mod generics {
         type Ref<'t> where Self: 't;
 
         /// The type representing immutable slices of elements
-        type Slice<'t>: SoASlice<T> where Self: 't;
+        type Slice<'t>: SoASlice<T, Ref<'t> = Self::Ref<'t>> + IntoSoAIter<'t, T, Ref<'t> = Self::Ref<'t>> where Self: 't;
 
         /// The type used for iteration over [`Self::Ref`]
         type Iter<'t>: Iterator<Item=Self::Ref<'t>> where Self: 't;
@@ -596,7 +596,7 @@ mod generics {
     }
 
     /**
-     The interface for the `Vec`-like struct-of-arrays type. A generalization of [`SoASliceMut`] whose methods can
+    The interface for the `Vec`-like struct-of-arrays type. A generalization of [`SoASliceMut`] whose methods can
     also re-size the underlying arrays.
 
     **NOTE**: This interface is incomplete and additional methods may be added as needed.
@@ -606,7 +606,7 @@ mod generics {
         type Ref<'t> where Self: 't;
 
         /// The type representing immutable slices of elements
-        type Slice<'t>: SoASlice<T> where Self: 't;
+        type Slice<'t>: SoASlice<T, Ref<'t> = Self::Ref<'t>> + IntoSoAIter<'t, T> where Self: 't;
 
         /// The type used for iteration over [`Self::Ref`]
         type Iter<'t>: Iterator<Item=Self::Ref<'t>> where Self: 't;
@@ -762,6 +762,26 @@ mod generics {
         /// Analogous to [`Vec::split_off`]
         fn split_off(&mut self, at: usize) -> Self;
     }
+
+    /// A trait to implement `Clone`-dependent behavior to convert a non-owning SoA type into an
+    /// owning [`SoAVec`].
+    pub trait ToSoAVec<T: StructOfArray> {
+        type SoAVecType: SoAVec<T>;
+
+        /// Similar to [`slice::to_vec()`](https://doc.rust-lang.org/std/primitive.slice.html#method.to_vec)
+        fn to_vec(&self) -> Self::SoAVecType;
+    }
+
+    /// A trait to implement `Clone`-dependent behavior to extend an [`SoAVec`] with data copied
+    /// from its associated `Slice` type.
+    pub trait SoAAppendVec<T: StructOfArray>: SoAVec<T> {
+
+        /// Analogous to [`Vec::extend_from_slice`]
+        fn extend_from_slice(&mut self, other: Self::Slice<'_>);
+    }
+
+    /// A trait to express the [`IntoIterator`] guarantee of [`SoASlice`] types in the type system.
+    pub trait IntoSoAIter<'a, T: StructOfArray>: SoASlice<T> + IntoIterator<Item=Self::Ref<'a>> + 'a {}
 }
 
 #[cfg(not(feature = "generic_traits"))]
@@ -780,19 +800,30 @@ mod generics {
     pub trait SoASliceMut<T: StructOfArray> {}
 
     /**
-     The interface for the `Vec`-like struct-of-arrays type. A generalization of [`SoAMutSlice`] whose methods can
+    The interface for the `Vec`-like struct-of-arrays type. A generalization of [`SoAMutSlice`] whose methods can
     also re-size the underlying arrays.
 
     **NOTE**: This interface is incomplete and additional methods may be added as needed.
     */
     pub trait SoAVec<T: StructOfArray> {}
+
+    /// A trait to implement `Clone`-dependent behavior to convert a non-owning SoA type into an
+    /// owning [`SoAVec`].
+    pub trait ToSoAVec<T: StructOfArray> {}
+
+    /// A trait to implement `Clone`-dependent behavior to extend an [`SoAVec`] with data copied
+    /// from its associated `Slice` type.
+    pub trait SoAAppendVec<T: StructOfArray>: SoAVec<T> {}
+
+    /// A trait to express the [`IntoIterator`] guarantee of [`SoASlice`] types in the type system.
+    pub trait IntoSoAIter<'a, T: StructOfArray> {}
 }
 
 pub use generics::*;
 
 /// A collection of supporting traits for [`StructOfArray`] bundled in one place for ease-of-access
 pub mod prelude {
-    pub use super::{SoAVec, SoAIter, SoASlice, SoASliceMut, SoAPointers, StructOfArray};
+    pub use super::{SoAVec, SoAIter, SoASlice, SoASliceMut, SoAPointers, StructOfArray, ToSoAVec, IntoSoAIter};
 }
 
 

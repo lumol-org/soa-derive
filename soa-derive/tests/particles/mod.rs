@@ -50,10 +50,11 @@ mod impls {
         })
     }
 
-    fn slice_ref_len<'a, T: StructOfArray, V: SoAVec<T>>(vec: &V) -> usize where for<'t> <<V as SoAVec<T>>::Slice<'t> as SoASlice<T>>::Ref<'t>: PartialOrd {
+    fn slice_ref_len<'a, T: StructOfArray, V: SoAVec<T>>(vec: &V) -> usize {
         let view = vec.as_slice();
-        // let _ = iter_max_generic_slice(&view);
-        view.iter().count()
+        let n = view.iter().count();
+        assert_eq!(view.into_iter().count(), n);
+        n
     }
 
     pub struct VWrap<T: StructOfArray, V: SoAVec<T>> {
