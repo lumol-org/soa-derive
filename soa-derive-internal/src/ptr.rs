@@ -14,6 +14,7 @@ pub fn derive(input: &Input) -> TokenStream {
     let ptr_mut_name = names::ptr_mut_name(&input.name);
     let ref_name = names::ref_name(&input.name);
     let ref_mut_name = names::ref_mut_name(&input.name);
+    let crate_name = &input.soa_crate;
 
     let doc_url = format!("[`{0}`](struct.{0}.html)", name);
     let vec_doc_url = format!("[`{0}`](struct.{0}.html)", vec_name);
@@ -185,6 +186,11 @@ pub fn derive(input: &Input) -> TokenStream {
                     #(#fields_names: self.#fields_names.read_unaligned(), )*
                 }
             }
+        }
+
+        impl #crate_name::SoAPointers for #name {
+            type Ptr = #ptr_name;
+            type MutPtr = #ptr_mut_name;
         }
 
         #[allow(dead_code)]

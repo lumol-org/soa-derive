@@ -7,12 +7,14 @@ use crate::input::Input;
 use crate::names;
 
 pub fn derive(input: &Input) -> TokenStream {
+    let name = &input.name;
     let visibility = &input.visibility;
     let slice_name = names::slice_name(&input.name);
     let attrs = &input.attrs.slice;
     let vec_name = names::vec_name(&input.name);
     let ref_name = names::ref_name(&input.name);
     let ptr_name = names::ptr_name(&input.name);
+    let crate_name = &input.soa_crate;
 
     let slice_name_str = format!("[{}]", input.name);
     let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
@@ -53,6 +55,9 @@ pub fn derive(input: &Input) -> TokenStream {
         },
         |ident, _| quote! { ::std::slice::from_raw_parts(data.#ident, len) },
     ).collect::<Vec<_>>();
+
+    #[allow(unused)]
+    let iter_name = names::iter_name(name);
 
     let mut generated = quote! {
         /// A slice of
@@ -173,7 +178,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
             pub fn get<'b, I>(&'b self, index: I) -> Option<I::RefOutput>
             where
-                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
+                I: #crate_name::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.reborrow();
@@ -185,7 +190,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
             pub unsafe fn get_unchecked<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
+                I: #crate_name::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.reborrow();
@@ -200,7 +205,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// This is required because we cannot implement `std::ops::Index` directly since it requires returning a reference.
             pub fn index<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
+                I: #crate_name::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.reborrow();
@@ -233,6 +238,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         }
+
     };
 
     if input.attrs.derive_clone {
@@ -249,12 +255,25 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         });
+
+        if input.generate_traits {
+            generated.append_all(quote! {
+                impl<'a> #crate_name::ToSoAVec<#name> for #slice_name<'a> {
+                    type SoAVecType = #vec_name;
+
+                    fn to_vec(&self) -> Self::SoAVecType {
+                        self.to_vec()
+                    }
+                }
+            });
+        }
     }
 
     return generated;
 }
 
 pub fn derive_mut(input: &Input) -> TokenStream {
+    let name = &input.name;
     let visibility = &input.visibility;
     let slice_name = names::slice_name(&input.name);
     let slice_mut_name = names::slice_mut_name(&input.name);
@@ -264,6 +283,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
     let ref_mut_name = names::ref_mut_name(&input.name);
     let ptr_name = names::ptr_name(&input.name);
     let ptr_mut_name = names::ptr_mut_name(&input.name);
+    let crate_name = &input.soa_crate;
 
     let slice_name_str = format!("[{}]", input.name);
     let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
@@ -329,6 +349,11 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         |ident, _| quote! { self.#ident.apply_permutation(permutation) },
         |ident, _| quote! { permutation.apply_slice_in_place(&mut self.#ident) },
     ).collect::<Vec<_>>();
+
+    #[allow(unused)]
+    let iter_name = names::iter_name(name);
+    #[allow(unused)]
+    let iter_mut_name = names::iter_mut_name(name);
 
     let mut generated = quote! {
         /// A mutable slice of
@@ -481,7 +506,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
             pub fn get<'b, I>(&'b self, index: I) -> Option<I::RefOutput>
             where
-                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
+                I: #crate_name::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.as_slice();
@@ -493,7 +518,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
             pub unsafe fn get_unchecked<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
+                I: #crate_name::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.as_slice();
@@ -509,7 +534,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// This is required because we cannot implement that trait.
             pub fn index<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
+                I: #crate_name::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.as_slice();
@@ -521,7 +546,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::get_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_mut).
             pub fn get_mut<'b, I>(&'b mut self, index: I) -> Option<I::MutOutput>
             where
-                I: ::soa_derive::SoAIndexMut<#slice_mut_name<'b>>,
+                I: #crate_name::SoAIndexMut<#slice_mut_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_mut_name<'b> = self.reborrow();
@@ -533,7 +558,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::get_unchecked_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked_mut).
             pub unsafe fn get_unchecked_mut<'b, I>(&'b mut self, index: I) -> I::MutOutput
             where
-                I: ::soa_derive::SoAIndexMut<#slice_mut_name<'b>>,
+                I: #crate_name::SoAIndexMut<#slice_mut_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_mut_name<'b> = self.reborrow();
@@ -548,7 +573,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// This is required because we cannot implement `std::ops::IndexMut` directly since it requires returning a mutable reference.
             pub fn index_mut<'b, I>(&'b mut self, index: I) -> I::MutOutput
             where
-                I: ::soa_derive::SoAIndexMut<#slice_mut_name<'b>>,
+                I: #crate_name::SoAIndexMut<#slice_mut_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_mut_name<'b> = self.reborrow();
@@ -673,6 +698,18 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 }
             }
         });
+
+        if input.generate_traits {
+            generated.append_all(quote! {
+                impl<'a> #crate_name::ToSoAVec<#name> for #slice_mut_name<'a> {
+                    type SoAVecType = #vec_name;
+
+                    fn to_vec(&self) -> Self::SoAVecType {
+                        self.to_vec()
+                    }
+                }
+            });
+        }
     }
 
     return generated;

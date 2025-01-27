@@ -6,7 +6,7 @@
 
 extern crate proc_macro;
 
-use proc_macro2::{TokenStream};
+use proc_macro2::TokenStream;
 use quote::TokenStreamExt;
 
 mod index;
@@ -17,12 +17,14 @@ mod ptr;
 mod refs;
 mod slice;
 mod vec;
+#[cfg(feature = "generic_traits")]
+mod generic;
 
 pub(crate) mod names;
 
-#[proc_macro_derive(StructOfArray, attributes(soa_derive, soa_attr, nested_soa))]
+#[proc_macro_derive(StructOfArray, attributes(soa_derive, soa_attr, nested_soa, generate_traits, soa_crate))]
 pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let ast = syn::parse(input).unwrap();
+    let ast = syn::parse(input).expect("Failed to parse derive macro for StructOfArray");
     let input = input::Input::new(ast);
 
     let mut generated = TokenStream::new();
@@ -34,14 +36,35 @@ pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     generated.append_all(index::derive(&input));
     generated.append_all(iter::derive(&input));
     generated.append_all(derive_trait(&input));
+
+    #[cfg(feature = "generic_traits")]
+    if input.generate_traits {
+        generated.append_all(
+            generic::derive_slice(&input)
+        );
+        generated.append_all(
+            generic::derive_slice_mut(&input)
+        );
+        generated.append_all(
+            generic::derive_vec(&input)
+        );
+    }
     generated.into()
 }
 
 use crate::input::Input;
 use quote::quote;
+
+#[allow(unused)]
 fn derive_trait(input: &Input) -> TokenStream {
     let name = &input.name;
     let vec_name = names::vec_name(name);
+    let slice_name = names::slice_name(name);
+    let slice_mut_name = names::slice_mut_name(name);
+    let ref_name = names::ref_name(name);
+    let ref_mut_name = names::ref_mut_name(name);
+    let ptr_name = names::ptr_name(name);
+    let ptr_mut_name = names::ptr_mut_name(name);
 
     quote! {
         impl soa_derive::StructOfArray for #name {
