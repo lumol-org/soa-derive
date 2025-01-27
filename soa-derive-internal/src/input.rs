@@ -2,7 +2,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::quote;
 
 use syn::punctuated::Punctuated;
-use syn::{Attribute, Data, DeriveInput, Field, Path, Visibility, Token};
+use syn::{Attribute, Data, DeriveInput, Field, Path, Token, Visibility};
 use syn::{Meta, MetaList};
 
 /// Representing the struct we are deriving
@@ -18,10 +18,14 @@ pub struct Input {
     /// Additional attributes requested with `#[soa_attr(...)]` or
     /// `#[soa_derive()]`
     pub attrs: ExtraAttributes,
-    #[allow(unused)]
+
     /// Whether or not to generate extra trait implementations that make the SoA types usable
     /// in a generic context enabled by the `generic_traits` feature.
     pub generate_traits: bool,
+
+    /// The path to import the `soa_derive` crate from, in case the library is vendored or
+    /// internalized.
+    pub soa_crate: syn::Path,
 }
 
 pub struct ExtraAttributes {
@@ -114,6 +118,7 @@ impl Input {
 
         let mut extra_attrs = ExtraAttributes::new();
         let mut generate_traits: bool = false;
+        let mut soa_derive_crate: Option<Path> = Some(syn::parse_str("::soa_derive").unwrap());
 
         for attr in input.attrs {
             if attr.path().is_ident("soa_derive") {
@@ -172,6 +177,11 @@ impl Input {
             if attr.path().is_ident("generate_traits") {
                 generate_traits = true;
             }
+
+            if attr.path().is_ident("soa_crate") {
+                let args = attr.parse_args::<Path>().expect("expected an attribute like a path");
+                soa_derive_crate = Some(args);
+            }
         }
 
         Input {
@@ -181,6 +191,7 @@ impl Input {
             attrs: extra_attrs,
             field_is_nested,
             generate_traits: generate_traits,
+            soa_crate: soa_derive_crate.unwrap(),
         }
     }
 

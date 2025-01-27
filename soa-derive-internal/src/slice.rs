@@ -14,6 +14,7 @@ pub fn derive(input: &Input) -> TokenStream {
     let vec_name = names::vec_name(&input.name);
     let ref_name = names::ref_name(&input.name);
     let ptr_name = names::ptr_name(&input.name);
+    let crate_name = &input.soa_crate;
 
     let slice_name_str = format!("[{}]", input.name);
     let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
@@ -177,7 +178,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
             pub fn get<'b, I>(&'b self, index: I) -> Option<I::RefOutput>
             where
-                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
+                I: #crate_name::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.reborrow();
@@ -189,7 +190,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
             pub unsafe fn get_unchecked<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
+                I: #crate_name::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.reborrow();
@@ -204,7 +205,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// This is required because we cannot implement `std::ops::Index` directly since it requires returning a reference.
             pub fn index<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
+                I: #crate_name::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.reborrow();
@@ -257,7 +258,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
         if input.generate_traits {
             generated.append_all(quote! {
-                impl<'a> ::soa_derive::ToSoAVec<#name> for #slice_name<'a> {
+                impl<'a> #crate_name::ToSoAVec<#name> for #slice_name<'a> {
                     type SoAVecType = #vec_name;
 
                     fn to_vec(&self) -> Self::SoAVecType {
@@ -282,6 +283,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
     let ref_mut_name = names::ref_mut_name(&input.name);
     let ptr_name = names::ptr_name(&input.name);
     let ptr_mut_name = names::ptr_mut_name(&input.name);
+    let crate_name = &input.soa_crate;
 
     let slice_name_str = format!("[{}]", input.name);
     let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
@@ -504,7 +506,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
             pub fn get<'b, I>(&'b self, index: I) -> Option<I::RefOutput>
             where
-                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
+                I: #crate_name::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.as_slice();
@@ -516,7 +518,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::get_unchecked()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked).
             pub unsafe fn get_unchecked<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
+                I: #crate_name::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.as_slice();
@@ -532,7 +534,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// This is required because we cannot implement that trait.
             pub fn index<'b, I>(&'b self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoAIndex<#slice_name<'b>>,
+                I: #crate_name::SoAIndex<#slice_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_name<'b> = self.as_slice();
@@ -544,7 +546,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::get_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_mut).
             pub fn get_mut<'b, I>(&'b mut self, index: I) -> Option<I::MutOutput>
             where
-                I: ::soa_derive::SoAIndexMut<#slice_mut_name<'b>>,
+                I: #crate_name::SoAIndexMut<#slice_mut_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_mut_name<'b> = self.reborrow();
@@ -556,7 +558,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// ::get_unchecked_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_unchecked_mut).
             pub unsafe fn get_unchecked_mut<'b, I>(&'b mut self, index: I) -> I::MutOutput
             where
-                I: ::soa_derive::SoAIndexMut<#slice_mut_name<'b>>,
+                I: #crate_name::SoAIndexMut<#slice_mut_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_mut_name<'b> = self.reborrow();
@@ -571,7 +573,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             /// This is required because we cannot implement `std::ops::IndexMut` directly since it requires returning a mutable reference.
             pub fn index_mut<'b, I>(&'b mut self, index: I) -> I::MutOutput
             where
-                I: ::soa_derive::SoAIndexMut<#slice_mut_name<'b>>,
+                I: #crate_name::SoAIndexMut<#slice_mut_name<'b>>,
                 'a: 'b
             {
                 let slice: #slice_mut_name<'b> = self.reborrow();
@@ -699,7 +701,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
 
         if input.generate_traits {
             generated.append_all(quote! {
-                impl<'a> ::soa_derive::ToSoAVec<#name> for #slice_mut_name<'a> {
+                impl<'a> #crate_name::ToSoAVec<#name> for #slice_mut_name<'a> {
                     type SoAVecType = #vec_name;
 
                     fn to_vec(&self) -> Self::SoAVecType {

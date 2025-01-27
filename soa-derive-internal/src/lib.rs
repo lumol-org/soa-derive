@@ -22,9 +22,9 @@ mod generic;
 
 pub(crate) mod names;
 
-#[proc_macro_derive(StructOfArray, attributes(soa_derive, soa_attr, nested_soa, generate_traits))]
+#[proc_macro_derive(StructOfArray, attributes(soa_derive, soa_attr, nested_soa, generate_traits, soa_crate))]
 pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let ast = syn::parse(input).unwrap();
+    let ast = syn::parse(input).expect("Failed to parse derive macro for StructOfArray");
     let input = input::Input::new(ast);
 
     let mut generated = TokenStream::new();

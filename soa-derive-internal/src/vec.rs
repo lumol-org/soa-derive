@@ -17,6 +17,7 @@ pub fn derive(input: &Input) -> TokenStream {
     let ref_mut_name = names::ref_mut_name(&input.name);
     let ptr_name = names::ptr_name(&input.name);
     let ptr_mut_name = names::ptr_mut_name(&input.name);
+    let crate_name = &input.soa_crate;
 
     let doc_url = format!("[`{0}`](struct.{0}.html)", input.name);
 
@@ -367,7 +368,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::get<I>()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.get).
             pub fn get<'a, I>(&'a self, index: I) -> Option<I::RefOutput>
             where
-                I: ::soa_derive::SoAIndex<&'a #vec_name>
+                I: #crate_name::SoAIndex<&'a #vec_name>
             {
                 index.get(self)
             }
@@ -377,7 +378,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::get_unchecked<I>()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.get_unchecked).
             pub unsafe fn get_unchecked<'a, I>(&'a self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoAIndex<&'a #vec_name>
+                I: #crate_name::SoAIndex<&'a #vec_name>
             {
                 index.get_unchecked(self)
             }
@@ -387,7 +388,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::index<I>()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.index).
             pub fn index<'a, I>(&'a self, index: I) -> I::RefOutput
             where
-                I: ::soa_derive::SoAIndex<&'a #vec_name>
+                I: #crate_name::SoAIndex<&'a #vec_name>
             {
                 index.index(self)
             }
@@ -397,7 +398,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::get_mut<I>()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.get_mut).
             pub fn get_mut<'a, I>(&'a mut self, index: I) -> Option<I::MutOutput>
             where
-                I: ::soa_derive::SoAIndexMut<&'a mut #vec_name>
+                I: #crate_name::SoAIndexMut<&'a mut #vec_name>
             {
                 index.get_mut(self)
             }
@@ -407,7 +408,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::get_unchecked_mut<I>()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.get_unchecked_mut).
             pub unsafe fn get_unchecked_mut<'a, I>(&'a mut self, index: I) -> I::MutOutput
             where
-                I: ::soa_derive::SoAIndexMut<&'a mut #vec_name>
+                I: #crate_name::SoAIndexMut<&'a mut #vec_name>
             {
                 index.get_unchecked_mut(self)
             }
@@ -417,7 +418,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::index_mut<I>()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.index_mut).
             pub fn index_mut<'a, I>(&'a mut self, index: I) -> I::MutOutput
             where
-                I: ::soa_derive::SoAIndexMut<&'a mut #vec_name>
+                I: #crate_name::SoAIndexMut<&'a mut #vec_name>
             {
                 index.index_mut(self)
             }
@@ -477,7 +478,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
         if input.generate_traits {
             generated.append_all(quote! {
-                impl ::soa_derive::SoAAppendVec<#name> for #vec_name {
+                impl #crate_name::SoAAppendVec<#name> for #vec_name {
                     fn extend_from_slice(&mut self, other: Self::Slice<'_>) {
                         #(
                             self.#fields_names.extend_from_slice(other.#fields_names);

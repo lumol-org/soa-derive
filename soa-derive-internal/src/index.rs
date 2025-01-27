@@ -11,6 +11,7 @@ pub fn derive(input: &Input) -> TokenStream {
     let slice_mut_name = names::slice_mut_name(&input.name);
     let ref_name = names::ref_name(&input.name);
     let ref_mut_name = names::ref_mut_name(&input.name);
+    let crate_name = &input.soa_crate;
 
     let fields_names = &input.fields.iter()
         .map(|field| field.ident.clone().unwrap())
@@ -40,7 +41,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
     quote!{
         // usize
-        impl<'a> ::soa_derive::SoAIndex<&'a #vec_name> for usize {
+        impl<'a> #crate_name::SoAIndex<&'a #vec_name> for usize {
             type RefOutput = #ref_name<'a>;
 
             #[inline]
@@ -63,7 +64,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAIndexMut<&'a mut #vec_name> for usize {
+        impl<'a> #crate_name::SoAIndexMut<&'a mut #vec_name> for usize {
             type MutOutput = #ref_mut_name<'a>;
 
             #[inline]
@@ -89,7 +90,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
 
         // Range<usize>
-        impl<'a> ::soa_derive::SoAIndex<&'a #vec_name> for ::std::ops::Range<usize> {
+        impl<'a> #crate_name::SoAIndex<&'a #vec_name> for ::std::ops::Range<usize> {
             type RefOutput = #slice_name<'a>;
 
             #[inline]
@@ -112,7 +113,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAIndexMut<&'a mut #vec_name> for ::std::ops::Range<usize> {
+        impl<'a> #crate_name::SoAIndexMut<&'a mut #vec_name> for ::std::ops::Range<usize> {
             type MutOutput = #slice_mut_name<'a>;
 
             #[inline]
@@ -136,7 +137,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
 
         // RangeTo<usize>
-        impl<'a> ::soa_derive::SoAIndex<&'a #vec_name> for ::std::ops::RangeTo<usize> {
+        impl<'a> #crate_name::SoAIndex<&'a #vec_name> for ::std::ops::RangeTo<usize> {
             type RefOutput = #slice_name<'a>;
 
             #[inline]
@@ -155,7 +156,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAIndexMut<&'a mut #vec_name> for ::std::ops::RangeTo<usize> {
+        impl<'a> #crate_name::SoAIndexMut<&'a mut #vec_name> for ::std::ops::RangeTo<usize> {
             type MutOutput = #slice_mut_name<'a>;
 
             #[inline]
@@ -175,7 +176,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
 
         // RangeFrom<usize>
-        impl<'a> ::soa_derive::SoAIndex<&'a #vec_name> for ::std::ops::RangeFrom<usize> {
+        impl<'a> #crate_name::SoAIndex<&'a #vec_name> for ::std::ops::RangeFrom<usize> {
             type RefOutput = #slice_name<'a>;
 
             #[inline]
@@ -194,7 +195,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAIndexMut<&'a mut #vec_name> for ::std::ops::RangeFrom<usize> {
+        impl<'a> #crate_name::SoAIndexMut<&'a mut #vec_name> for ::std::ops::RangeFrom<usize> {
             type MutOutput = #slice_mut_name<'a>;
 
             #[inline]
@@ -214,7 +215,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
 
         // RangeFull
-        impl<'a> ::soa_derive::SoAIndex<&'a #vec_name> for ::std::ops::RangeFull {
+        impl<'a> #crate_name::SoAIndex<&'a #vec_name> for ::std::ops::RangeFull {
             type RefOutput = #slice_name<'a>;
 
             #[inline]
@@ -233,7 +234,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAIndexMut<&'a mut #vec_name> for ::std::ops::RangeFull {
+        impl<'a> #crate_name::SoAIndexMut<&'a mut #vec_name> for ::std::ops::RangeFull {
             type MutOutput = #slice_mut_name<'a>;
 
             #[inline]
@@ -253,7 +254,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
 
         // RangeInclusive<usize>
-        impl<'a> ::soa_derive::SoAIndex<&'a #vec_name> for ::std::ops::RangeInclusive<usize> {
+        impl<'a> #crate_name::SoAIndex<&'a #vec_name> for ::std::ops::RangeInclusive<usize> {
             type RefOutput = #slice_name<'a>;
 
             #[inline]
@@ -276,7 +277,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAIndexMut<&'a mut #vec_name> for ::std::ops::RangeInclusive<usize> {
+        impl<'a> #crate_name::SoAIndexMut<&'a mut #vec_name> for ::std::ops::RangeInclusive<usize> {
             type MutOutput = #slice_mut_name<'a>;
 
             #[inline]
@@ -300,7 +301,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
 
         // RangeToInclusive<usize>
-        impl<'a> ::soa_derive::SoAIndex<&'a #vec_name> for ::std::ops::RangeToInclusive<usize> {
+        impl<'a> #crate_name::SoAIndex<&'a #vec_name> for ::std::ops::RangeToInclusive<usize> {
             type RefOutput = #slice_name<'a>;
 
             #[inline]
@@ -319,7 +320,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAIndexMut<&'a mut #vec_name> for ::std::ops::RangeToInclusive<usize> {
+        impl<'a> #crate_name::SoAIndexMut<&'a mut #vec_name> for ::std::ops::RangeToInclusive<usize> {
             type MutOutput = #slice_mut_name<'a>;
 
             #[inline]
@@ -339,7 +340,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
 
         // usize
-        impl<'a> ::soa_derive::SoAIndex<#slice_name<'a>> for usize {
+        impl<'a> #crate_name::SoAIndex<#slice_name<'a>> for usize {
             type RefOutput = #ref_name<'a>;
 
             #[inline]
@@ -366,7 +367,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAIndexMut<#slice_mut_name<'a>> for usize {
+        impl<'a> #crate_name::SoAIndexMut<#slice_mut_name<'a>> for usize {
             type MutOutput = #ref_mut_name<'a>;
 
             #[inline]
@@ -396,7 +397,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
 
         // Range<usize>
-        impl<'a> ::soa_derive::SoAIndex<#slice_name<'a>> for ::std::ops::Range<usize> {
+        impl<'a> #crate_name::SoAIndex<#slice_name<'a>> for ::std::ops::Range<usize> {
             type RefOutput = #slice_name<'a>;
 
             #[inline]
@@ -423,7 +424,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAIndexMut<#slice_mut_name<'a>> for ::std::ops::Range<usize> {
+        impl<'a> #crate_name::SoAIndexMut<#slice_mut_name<'a>> for ::std::ops::Range<usize> {
             type MutOutput = #slice_mut_name<'a>;
 
             #[inline]
@@ -453,7 +454,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
 
         // RangeTo<usize>
-        impl<'a> ::soa_derive::SoAIndex<#slice_name<'a>> for ::std::ops::RangeTo<usize> {
+        impl<'a> #crate_name::SoAIndex<#slice_name<'a>> for ::std::ops::RangeTo<usize> {
             type RefOutput = #slice_name<'a>;
 
             #[inline]
@@ -472,7 +473,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAIndexMut<#slice_mut_name<'a>> for ::std::ops::RangeTo<usize> {
+        impl<'a> #crate_name::SoAIndexMut<#slice_mut_name<'a>> for ::std::ops::RangeTo<usize> {
             type MutOutput = #slice_mut_name<'a>;
 
             #[inline]
@@ -493,7 +494,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
 
         // RangeFrom<usize>
-        impl<'a> ::soa_derive::SoAIndex<#slice_name<'a>> for ::std::ops::RangeFrom<usize> {
+        impl<'a> #crate_name::SoAIndex<#slice_name<'a>> for ::std::ops::RangeFrom<usize> {
             type RefOutput = #slice_name<'a>;
 
             #[inline]
@@ -512,7 +513,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAIndexMut<#slice_mut_name<'a>> for ::std::ops::RangeFrom<usize> {
+        impl<'a> #crate_name::SoAIndexMut<#slice_mut_name<'a>> for ::std::ops::RangeFrom<usize> {
             type MutOutput = #slice_mut_name<'a>;
 
             #[inline]
@@ -533,7 +534,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
 
         // RangeFull
-        impl<'a> ::soa_derive::SoAIndex<#slice_name<'a>> for ::std::ops::RangeFull {
+        impl<'a> #crate_name::SoAIndex<#slice_name<'a>> for ::std::ops::RangeFull {
             type RefOutput = #slice_name<'a>;
 
             #[inline]
@@ -552,7 +553,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAIndexMut<#slice_mut_name<'a>> for ::std::ops::RangeFull {
+        impl<'a> #crate_name::SoAIndexMut<#slice_mut_name<'a>> for ::std::ops::RangeFull {
             type MutOutput = #slice_mut_name<'a>;
 
             #[inline]
@@ -573,7 +574,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
 
         // RangeInclusive<usize>
-        impl<'a> ::soa_derive::SoAIndex<#slice_name<'a>> for ::std::ops::RangeInclusive<usize> {
+        impl<'a> #crate_name::SoAIndex<#slice_name<'a>> for ::std::ops::RangeInclusive<usize> {
             type RefOutput = #slice_name<'a>;
 
             #[inline]
@@ -596,7 +597,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAIndexMut<#slice_mut_name<'a>> for ::std::ops::RangeInclusive<usize> {
+        impl<'a> #crate_name::SoAIndexMut<#slice_mut_name<'a>> for ::std::ops::RangeInclusive<usize> {
             type MutOutput = #slice_mut_name<'a>;
 
             #[inline]
@@ -621,7 +622,7 @@ pub fn derive(input: &Input) -> TokenStream {
 
 
         // RangeToInclusive<usize>
-        impl<'a> ::soa_derive::SoAIndex<#slice_name<'a>> for ::std::ops::RangeToInclusive<usize> {
+        impl<'a> #crate_name::SoAIndex<#slice_name<'a>> for ::std::ops::RangeToInclusive<usize> {
             type RefOutput = #slice_name<'a>;
 
             #[inline]
@@ -640,7 +641,7 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
-        impl<'a> ::soa_derive::SoAIndexMut<#slice_mut_name<'a>> for ::std::ops::RangeToInclusive<usize> {
+        impl<'a> #crate_name::SoAIndexMut<#slice_mut_name<'a>> for ::std::ops::RangeToInclusive<usize> {
             type MutOutput = #slice_mut_name<'a>;
 
             #[inline]
