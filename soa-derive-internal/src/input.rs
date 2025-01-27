@@ -179,7 +179,7 @@ impl Input {
             }
 
             if attr.path().is_ident("soa_crate") {
-                let args = attr.parse_args::<Path>().expect("expected an attribute like a path");
+                let args = attr.parse_args::<Path>().expect("expected an attribute like a module path, `#[soa_crate(::path::to::impl_of::soa_derive)]`");
                 soa_derive_crate = Some(args);
             }
         }
