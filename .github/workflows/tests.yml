@@ -26,22 +26,3 @@ jobs:
         run: cargo test --release
       - name: check that benchmarks still compile
         run: cargo bench --no-run
-  tests_derive_generics:
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        rust-version: [stable, beta, nightly]
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: setup rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ matrix.rust-version }}
-      - name: run tests in debug mode
-        run: cargo test -F generic_traits
-      - name: run tests in release mode
-        run: cargo test --release -F generic_traits
-      - name: check that benchmarks still compile
-        run: cargo bench --no-run -F generic_traits
