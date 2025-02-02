@@ -11,10 +11,9 @@ pub fn derive_slice(input: &Input) -> TokenStream {
     let ref_name = names::ref_name(&input.name);
     let ptr_name = names::ptr_name(&input.name);
     let iter_name = names::iter_name(name);
-    let crate_name = &input.soa_crate;
 
     let generated = quote! {
-        impl<'a> #crate_name::SoASlice<#name> for #slice_name<'a> {
+        impl<'a> ::soa_derive::SoASlice<#name> for #slice_name<'a> {
             type Ref<'t>  = #ref_name<'t> where Self: 't, 'a: 't;
             type Slice<'t> = #slice_name<'t> where Self: 't, 'a: 't;
             type Iter<'t> = #iter_name<'t> where Self: 't, 'a: 't;
@@ -77,11 +76,10 @@ pub fn derive_slice_mut(input: &Input) -> TokenStream {
     let ptr_mut_name = names::ptr_mut_name(&input.name);
     let iter_name = names::iter_name(name);
     let iter_mut_name = names::iter_mut_name(name);
-    let crate_name = &input.soa_crate;
 
     let generated = quote! {
 
-        impl<'a> #crate_name::SoASliceMut<#name> for #slice_mut_name<'a> {
+        impl<'a> ::soa_derive::SoASliceMut<#name> for #slice_mut_name<'a> {
             type Ref<'t>  = #ref_name<'t> where Self: 't;
             type Slice<'t> = #slice_name<'t> where Self: 't;
             type Iter<'t> = #iter_name<'t> where Self: 't;
@@ -161,7 +159,7 @@ pub fn derive_slice_mut(input: &Input) -> TokenStream {
             }
 
             fn apply_index(&mut self, indices: &[usize]) {
-                self.apply_permutation(&mut #crate_name::Permutation::oneline(indices).inverse());
+                self.apply_permutation(&mut ::soa_derive::Permutation::oneline(indices).inverse());
             }
 
             fn as_ptr(&self) -> Self::Ptr {
@@ -188,11 +186,10 @@ pub fn derive_vec(input: &Input) -> TokenStream {
     let ptr_mut_name = names::ptr_mut_name(&input.name);
     let iter_name = names::iter_name(name);
     let iter_mut_name = names::iter_mut_name(name);
-    let crate_name = &input.soa_crate;
 
     let generated = quote! {
 
-        impl #crate_name::SoAVec<#name> for #vec_name {
+        impl ::soa_derive::SoAVec<#name> for #vec_name {
             type Ref<'t> = #ref_name<'t>;
             type Slice<'t> = #slice_name<'t>;
             type Iter<'t> = #iter_name<'t>;
@@ -272,7 +269,7 @@ pub fn derive_vec(input: &Input) -> TokenStream {
             }
 
             fn apply_index(&mut self, indices: &[usize]) {
-                use #crate_name::SoASliceMut;
+                use ::soa_derive::SoASliceMut;
                 self.as_mut_slice().apply_index(indices);
             }
 

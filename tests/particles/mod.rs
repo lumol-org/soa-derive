@@ -4,7 +4,6 @@ use soa_derive::prelude::*;
 
 #[derive(Debug, Clone, PartialOrd, PartialEq, StructOfArray)]
 #[soa_derive(Debug, Clone, PartialOrd, PartialEq)]
-#[soa_crate(::soa_derive)]
 pub struct Particle {
     pub name: String,
     pub mass: f64,

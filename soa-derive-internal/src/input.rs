@@ -18,14 +18,6 @@ pub struct Input {
     /// Additional attributes requested with `#[soa_attr(...)]` or
     /// `#[soa_derive()]`
     pub attrs: ExtraAttributes,
-
-    /// Whether or not to generate extra trait implementations that make the SoA types usable
-    /// in a generic context enabled by the `generic_traits` feature.
-    pub generate_traits: bool,
-
-    /// The path to import the `soa_derive` crate from, in case the library is vendored or
-    /// internalized.
-    pub soa_crate: syn::Path,
 }
 
 pub struct ExtraAttributes {
@@ -117,8 +109,6 @@ impl Input {
         assert!(!fields.is_empty(), "#[derive(StructOfArray)] only supports struct with fields");
 
         let mut extra_attrs = ExtraAttributes::new();
-        let generate_traits: bool = true;
-        let mut soa_derive_crate: Option<Path> = Some(syn::parse_str("::soa_derive").unwrap());
 
         for attr in input.attrs {
             if attr.path().is_ident("soa_derive") {
@@ -173,11 +163,6 @@ impl Input {
                     None => panic!("expected one of the SoA type, got {}", quote!(#soa_type))
                 }
             }
-
-            if attr.path().is_ident("soa_crate") {
-                let args = attr.parse_args::<Path>().expect("expected an attribute like a module path, `#[soa_crate(::path::to::impl_of::soa_derive)]`");
-                soa_derive_crate = Some(args);
-            }
         }
 
         Input {
@@ -186,8 +171,6 @@ impl Input {
             visibility: input.vis,
             attrs: extra_attrs,
             field_is_nested,
-            generate_traits: generate_traits,
-            soa_crate: soa_derive_crate.unwrap(),
         }
     }
 
