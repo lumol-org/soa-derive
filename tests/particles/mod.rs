@@ -15,3 +15,10 @@ impl Particle {
         }
     }
 }
+
+impl ParticleVec {
+    pub fn extend(&mut self, other: &ParticleVec) {
+        self.name.extend_from_slice(&other.name);
+        self.mass.extend_from_slice(&other.mass);
+    }
+}
