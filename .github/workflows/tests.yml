@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        rust-version: ["1.65", stable, beta, nightly]
+        rust-version: ["1.68", "1.70", "1.75", "1.80", stable, beta, nightly]
     steps:
       - uses: actions/checkout@v3
         with:
