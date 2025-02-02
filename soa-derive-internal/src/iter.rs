@@ -293,7 +293,7 @@ pub fn derive(input: &Input) -> TokenStream {
             where #( for<'b> #fields_types: Clone, )*
         {
             fn extend<I: IntoIterator<Item = #ref_name<'a>>>(&mut self, iter: I) {
-                self.extend(iter.into_iter().map(|item| item.to_owned()))
+                <Self as Extend<#name>>::extend(self, iter.into_iter().map(|item| item.to_owned()))
             }
         }
 
