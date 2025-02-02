@@ -159,7 +159,7 @@ pub fn derive_slice_mut(input: &Input) -> TokenStream {
             }
 
             fn apply_index(&mut self, indices: &[usize]) {
-                self.apply_permutation(&mut ::soa_derive::Permutation::oneline(indices).inverse());
+                self.__private_apply_permutation(&mut ::soa_derive::Permutation::oneline(indices).inverse());
             }
 
             fn as_ptr(&self) -> Self::Ptr {
