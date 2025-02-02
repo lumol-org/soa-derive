@@ -4,7 +4,6 @@ use soa_derive::prelude::*;
 
 #[derive(Debug, Clone, PartialOrd, PartialEq, StructOfArray)]
 #[soa_derive(Debug, Clone, PartialOrd, PartialEq)]
-#[cfg_attr(feature = "generic_traits", generate_traits)]
 #[soa_crate(::soa_derive)]
 pub struct Particle {
     pub name: String,
@@ -21,8 +20,6 @@ impl Particle {
 }
 
 
-
-#[cfg(feature = "generic_traits")]
 mod impls {
     use std::cmp::Ordering;
     use std::marker::PhantomData;

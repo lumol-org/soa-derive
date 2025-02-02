@@ -1,6 +1,3 @@
-#![cfg(feature = "generic_traits")]
-// use soa_derive::prelude::*;
-
 mod particles;
 use std::marker::PhantomData;
 

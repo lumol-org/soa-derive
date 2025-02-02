@@ -117,7 +117,7 @@ impl Input {
         assert!(!fields.is_empty(), "#[derive(StructOfArray)] only supports struct with fields");
 
         let mut extra_attrs = ExtraAttributes::new();
-        let mut generate_traits: bool = false;
+        let generate_traits: bool = true;
         let mut soa_derive_crate: Option<Path> = Some(syn::parse_str("::soa_derive").unwrap());
 
         for attr in input.attrs {
@@ -172,10 +172,6 @@ impl Input {
                     }
                     None => panic!("expected one of the SoA type, got {}", quote!(#soa_type))
                 }
-            }
-
-            if attr.path().is_ident("generate_traits") {
-                generate_traits = true;
             }
 
             if attr.path().is_ident("soa_crate") {

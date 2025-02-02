@@ -421,7 +421,6 @@ pub trait SoAPointers {
 }
 
 
-#[cfg(feature = "generic_traits")]
 mod generics {
     use super::*;
 
@@ -783,42 +782,6 @@ mod generics {
     /// A trait to express the [`IntoIterator`] guarantee of [`SoASlice`] types in the type system.
     pub trait IntoSoAIter<'a, T: StructOfArray>: SoASlice<T> + IntoIterator<Item=Self::Ref<'a>> + 'a {}
 }
-
-#[cfg(not(feature = "generic_traits"))]
-mod generics {
-    use super::*;
-
-    /**
-    The interface for the `Slice` immutable slice struct-of-arrays type.
-    */
-    pub trait SoASlice<T: StructOfArray> {}
-
-    /**
-    The interface for the `SliceMut` mutable slice struct-of-arrays type. A generalization of [`SoASlice`]
-    whose methods can modify elements of the arrays
-    */
-    pub trait SoASliceMut<T: StructOfArray> {}
-
-    /**
-    The interface for the `Vec`-like struct-of-arrays type. A generalization of [`SoAMutSlice`] whose methods can
-    also re-size the underlying arrays.
-
-    **NOTE**: This interface is incomplete and additional methods may be added as needed.
-    */
-    pub trait SoAVec<T: StructOfArray> {}
-
-    /// A trait to implement `Clone`-dependent behavior to convert a non-owning SoA type into an
-    /// owning [`SoAVec`].
-    pub trait ToSoAVec<T: StructOfArray> {}
-
-    /// A trait to implement `Clone`-dependent behavior to extend an [`SoAVec`] with data copied
-    /// from its associated `Slice` type.
-    pub trait SoAAppendVec<T: StructOfArray>: SoAVec<T> {}
-
-    /// A trait to express the [`IntoIterator`] guarantee of [`SoASlice`] types in the type system.
-    pub trait IntoSoAIter<'a, T: StructOfArray> {}
-}
-
 pub use generics::*;
 
 /// A collection of supporting traits for [`StructOfArray`] bundled in one place for ease-of-access
