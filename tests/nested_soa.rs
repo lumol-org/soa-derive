@@ -6,14 +6,20 @@ pub struct Point {
     y: f32,
 }
 
-#[derive(Debug, Clone, PartialEq, StructOfArray)]
-#[soa_derive(Debug, Clone, PartialEq)]
-pub struct Color {
-    pub r: u8,
-    pub g: u8,
-    pub b: u8,
-    pub a: u8,
+mod other_mod {
+    use soa_derive::StructOfArray;
+
+    #[derive(Debug, Clone, PartialEq, StructOfArray)]
+    #[soa_derive(Debug, Clone, PartialEq)]
+    pub struct Color {
+        pub r: u8,
+        pub g: u8,
+        pub b: u8,
+        pub a: u8,
+    }
 }
+
+use other_mod::*;
 
 #[derive(Debug, Clone, PartialEq, StructOfArray)]
 #[soa_derive(Debug, Clone, PartialEq)]
