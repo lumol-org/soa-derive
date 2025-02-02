@@ -326,7 +326,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
     nested_ord.push(quote! { for<'b> #ref_name<'b>: Ord });
 
     let apply_permutation = input.map_fields_nested_or(
-        |ident, _| quote! { self.#ident.apply_permutation(permutation) },
+        |ident, _| quote! { self.#ident.__private_apply_permutation(permutation) },
         |ident, _| quote! { permutation.apply_slice_in_place(&mut self.#ident) },
     ).collect::<Vec<_>>();
 
@@ -601,7 +601,9 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             }
 
             #[doc(hidden)]
-            fn apply_permutation(&mut self, permutation: &mut soa_derive::Permutation) {
+            /// This is `pub` due to there will be compile-error if `#[nested_soa]` is used.
+            /// Do not use this method directly.
+            pub fn __private_apply_permutation(&mut self, permutation: &mut soa_derive::Permutation) {
                 #( #apply_permutation; )*
             }
 
@@ -618,7 +620,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 permutation.sort_by(|j, k| f(self.index(*j), self.index(*k)));
 
                 let mut permutation = Permutation::oneline(permutation).inverse();
-                self.apply_permutation(&mut permutation);
+                self.__private_apply_permutation(&mut permutation);
             }
 
             /// Similar to [`&mut
@@ -635,7 +637,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 permutation.sort_by_key(|i| f(self.index(*i)));
 
                 let mut permutation = Permutation::oneline(permutation).inverse();
-                self.apply_permutation(&mut permutation);
+                self.__private_apply_permutation(&mut permutation);
             }
         }
 
@@ -654,7 +656,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 permutation.sort_by_key(|i| self.index(*i));
 
                 let mut permutation = Permutation::oneline(permutation).inverse();
-                self.apply_permutation(&mut permutation);
+                self.__private_apply_permutation(&mut permutation);
             }
         }
     };
