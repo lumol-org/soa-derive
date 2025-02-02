@@ -1,7 +1,7 @@
 #![allow(clippy::float_cmp)]
 
 mod particles;
-use self::particles::{Particle, ParticleVec};
+use self::particles::*;
 
 #[test]
 fn iter() {
@@ -81,7 +81,15 @@ fn extend() {
     let particles_from_iter: ParticleVec = vec_with_particles.clone().into_iter().collect();
 
     let mut particles = ParticleVec::new();
-    particles.extend(vec_with_particles);
+    Extend::<Particle>::extend(&mut particles, vec_with_particles);
 
-    assert_eq!(particles, particles_from_iter)
+    assert_eq!(particles, particles_from_iter);
+
+    let mut particles = ParticleVec::new();
+    Extend::<ParticleRef>::extend(&mut particles, particles_from_iter.iter());
+    assert_eq!(particles, particles_from_iter);
+
+    let mut particles = ParticleVec::new();
+    particles.extend(&particles_from_iter);
+    assert_eq!(particles, particles_from_iter);
 }
