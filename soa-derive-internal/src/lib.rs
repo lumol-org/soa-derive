@@ -36,17 +36,9 @@ pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     generated.append_all(iter::derive(&input));
     generated.append_all(derive_trait(&input));
 
-    {
-        generated.append_all(
-            generic::derive_slice(&input)
-        );
-        generated.append_all(
-            generic::derive_slice_mut(&input)
-        );
-        generated.append_all(
-            generic::derive_vec(&input)
-        );
-    }
+    generated.append_all(generic::derive_slice(&input));
+    generated.append_all(generic::derive_slice_mut(&input));
+    generated.append_all(generic::derive_vec(&input));
     generated.into()
 }
 
