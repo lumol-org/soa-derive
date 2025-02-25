@@ -8,7 +8,7 @@ publish = false
 edition = "2021"
 
 [dependencies]
-soa_derive = { path = "..", features = []}
+soa_derive = { path = ".." }
 
 [lib]
 path = "lib.rs"
