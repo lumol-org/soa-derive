@@ -67,9 +67,6 @@ pub fn derive(input: &Input) -> TokenStream {
         |ident, _| quote! { ::std::mem::replace(&mut self.#ident[index], field) },
     ).collect::<Vec<_>>();
 
-    let iter_name = names::iter_name(name);
-    let iter_mut_name = names::iter_mut_name(name);
-
     let mut generated = quote! {
         /// An analog to `
         #[doc = #vec_name_str]
@@ -471,19 +468,15 @@ pub fn derive(input: &Input) -> TokenStream {
                     )*
                 }
             }
-        });
 
-        {
-            generated.append_all(quote! {
-                impl ::soa_derive::SoAAppendVec<#name> for #vec_name {
-                    fn extend_from_slice(&mut self, other: Self::Slice<'_>) {
-                        #(
-                            self.#fields_names.extend_from_slice(other.#fields_names);
-                        )*
-                    }
+            impl ::soa_derive::SoAAppendVec<#name> for #vec_name {
+                fn extend_from_slice(&mut self, other: Self::Slice<'_>) {
+                    #(
+                        self.#fields_names.extend_from_slice(other.#fields_names);
+                    )*
                 }
-            })
-        }
+            }
+        });
     }
 
     return generated;

@@ -55,8 +55,6 @@ pub fn derive(input: &Input) -> TokenStream {
         |ident, _| quote! { ::std::slice::from_raw_parts(data.#ident, len) },
     ).collect::<Vec<_>>();
 
-    let iter_name = names::iter_name(name);
-
     let mut generated = quote! {
         /// A slice of
         #[doc = #doc_url]
@@ -346,9 +344,6 @@ pub fn derive_mut(input: &Input) -> TokenStream {
         |ident, _| quote! { self.#ident.apply_permutation(permutation) },
         |ident, _| quote! { permutation.apply_slice_in_place(&mut self.#ident) },
     ).collect::<Vec<_>>();
-
-    let iter_name = names::iter_name(name);
-    let iter_mut_name = names::iter_mut_name(name);
 
     let mut generated = quote! {
         /// A mutable slice of

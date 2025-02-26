@@ -1,6 +1,5 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use quote::TokenStreamExt;
 
 use crate::input::{Input, TokenStreamIterator};
 use crate::names;
@@ -80,7 +79,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
     }).expect("should be Some");
 
-    let mut generated = quote! {
+    let generated = quote! {
         /// Iterator over
         #[doc = #doc_url]
         #[allow(missing_debug_implementations)]
@@ -134,14 +133,14 @@ pub fn derive(input: &Input) -> TokenStream {
             /// Get an iterator over the
             #[doc = #ref_doc_url]
             /// in this slice.
-            pub fn iter(&self) -> <#name as ::soa_derive::SoAIter>::Iter {
+            pub fn iter(&self) -> #iter_name {
                 #iter_name(#create_iter)
             }
 
             /// Get an iterator over the
             #[doc = #ref_doc_url]
             /// in this slice.
-            pub fn into_iter(self) -> <#name as ::soa_derive::SoAIter<'a>>::Iter {
+            pub fn into_iter(self) -> #iter_name<'a> {
                 #iter_name(#create_into_iter)
             }
         }
@@ -189,7 +188,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// Get a mutable iterator over the
             #[doc = #ref_mut_doc_url]
             /// in this vector
-            pub fn iter_mut(&mut self) -> <#name as ::soa_derive::SoAIter>::IterMut {
+            pub fn iter_mut(&mut self) -> #iter_mut_name {
                 self.as_mut_slice().into_iter()
             }
         }
@@ -198,21 +197,21 @@ pub fn derive(input: &Input) -> TokenStream {
             /// Get an iterator over the
             #[doc = #ref_doc_url]
             /// in this vector
-            pub fn iter(&mut self) -> <#name as ::soa_derive::SoAIter>::Iter {
+            pub fn iter(&mut self) -> #iter_name {
                 self.as_ref().into_iter()
             }
 
             /// Get a mutable iterator over the
             #[doc = #ref_mut_doc_url]
             /// in this vector
-            pub fn iter_mut(&mut self) -> <#name as ::soa_derive::SoAIter>::IterMut {
+            pub fn iter_mut(&mut self) -> #iter_mut_name {
                 #iter_mut_name(#create_iter_mut)
             }
 
             /// Get a mutable iterator over the
             #[doc = #ref_mut_doc_url]
             /// in this vector
-            pub fn into_iter(self) -> <#name as ::soa_derive::SoAIter<'a>>::IterMut {
+            pub fn into_iter(self) -> #iter_mut_name<'a> {
                 #iter_mut_name(#create_mut_into_iter)
             }
         }
@@ -297,15 +296,9 @@ pub fn derive(input: &Input) -> TokenStream {
                 self.extend(iter.into_iter().map(|item| item.to_owned()))
             }
         }
+
+        impl<'a> ::soa_derive::IntoSoAIter<'a, #name> for #slice_name<'a> {}
     };
-
-    {
-        generated.append_all(quote! {
-
-            impl<'a> ::soa_derive::IntoSoAIter<'a, #name> for #slice_name<'a> {}
-
-        })
-    }
 
     return generated;
 }
