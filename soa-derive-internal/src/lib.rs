@@ -45,16 +45,9 @@ pub fn soa_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 use crate::input::Input;
 use quote::quote;
 
-#[allow(unused)]
 fn derive_trait(input: &Input) -> TokenStream {
     let name = &input.name;
     let vec_name = names::vec_name(name);
-    let slice_name = names::slice_name(name);
-    let slice_mut_name = names::slice_mut_name(name);
-    let ref_name = names::ref_name(name);
-    let ref_mut_name = names::ref_mut_name(name);
-    let ptr_name = names::ptr_name(name);
-    let ptr_mut_name = names::ptr_mut_name(name);
 
     quote! {
         impl soa_derive::StructOfArray for #name {

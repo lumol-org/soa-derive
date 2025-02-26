@@ -27,7 +27,6 @@ mod impls {
 
     fn iter_max_generic<'a, T: StructOfArray, V: SoASlice<T> + 'a>(vec: &'a V) -> Option<V::Ref<'a>> where V::Ref<'a>: PartialOrd + Debug {
         let x= vec.iter().reduce(|a, b| {
-            eprintln!("{a:?}");
             if a.partial_cmp(&b).unwrap().is_ge() {
                 a
             } else {
