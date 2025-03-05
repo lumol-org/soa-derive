@@ -187,6 +187,11 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
+        impl ::soa_derive::SoAPointers for #name {
+            type Ptr = #ptr_name;
+            type MutPtr = #ptr_mut_name;
+        }
+
         #[allow(dead_code)]
         #[allow(clippy::forget_non_drop)]
         impl #ptr_mut_name {

@@ -2,7 +2,7 @@
 name = "soa_derive"
 version = "0.13.0"
 edition = "2018"
-rust-version = "1.63"
+rust-version = "1.78"
 
 authors = ["Guillaume Fraux <guillaume.fraux@epfl.ch>"]
 license = "MIT/Apache-2.0"

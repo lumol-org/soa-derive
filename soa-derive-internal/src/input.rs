@@ -2,7 +2,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::quote;
 
 use syn::punctuated::Punctuated;
-use syn::{Attribute, Data, DeriveInput, Field, Path, Visibility, Token};
+use syn::{Attribute, Data, DeriveInput, Field, Path, Token, Visibility};
 use syn::{Meta, MetaList};
 
 /// Representing the struct we are deriving
@@ -170,7 +170,7 @@ impl Input {
             fields: fields,
             visibility: input.vis,
             attrs: extra_attrs,
-            field_is_nested
+            field_is_nested,
         }
     }
 

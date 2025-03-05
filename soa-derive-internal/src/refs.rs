@@ -142,6 +142,18 @@ pub fn derive(input: &Input) -> TokenStream {
             }
         }
 
+        impl<'a>  From<#ref_name<'a>> for #name where #( for<'b> #fields_types: Clone, )* {
+            fn from(value: #ref_name<'a>) -> #name {
+                value.to_owned()
+            }
+        }
+
+        impl<'a>  From<&'a #ref_name<'a>> for #name where #( for<'b> #fields_types: Clone, )* {
+            fn from(value: &'a #ref_name<'a>) -> #name {
+                value.to_owned()
+            }
+        }
+
         impl<'a> #ref_mut_name<'a> {
             /// Convert a mutable reference to
             #[doc = #doc_url]
@@ -169,6 +181,18 @@ pub fn derive(input: &Input) -> TokenStream {
                 ::std::mem::forget(val);
 
                 #name{#(#fields_names: #fields_names_hygienic),*}
+            }
+        }
+
+        impl<'a>  From<#ref_mut_name<'a>> for #name where #( for<'b> #fields_types: Clone, )* {
+            fn from(value: #ref_mut_name<'a>) -> #name {
+                value.to_owned()
+            }
+        }
+
+        impl<'a>  From<&'a #ref_mut_name<'a>> for #name where #( for<'b> #fields_types: Clone, )* {
+            fn from(value: &'a #ref_mut_name<'a>) -> #name {
+                value.to_owned()
             }
         }
     }

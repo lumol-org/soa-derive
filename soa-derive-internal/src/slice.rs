@@ -7,6 +7,7 @@ use crate::input::Input;
 use crate::names;
 
 pub fn derive(input: &Input) -> TokenStream {
+    let name = &input.name;
     let visibility = &input.visibility;
     let slice_name = names::slice_name(&input.name);
     let attrs = &input.attrs.slice;
@@ -233,6 +234,7 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         }
+
     };
 
     if input.attrs.derive_clone {
@@ -249,12 +251,25 @@ pub fn derive(input: &Input) -> TokenStream {
                 }
             }
         });
+
+        {
+            generated.append_all(quote! {
+                impl<'a> ::soa_derive::ToSoAVec<#name> for #slice_name<'a> {
+                    type SoAVecType = #vec_name;
+
+                    fn to_vec(&self) -> Self::SoAVecType {
+                        self.to_vec()
+                    }
+                }
+            });
+        }
     }
 
     return generated;
 }
 
 pub fn derive_mut(input: &Input) -> TokenStream {
+    let name = &input.name;
     let visibility = &input.visibility;
     let slice_name = names::slice_name(&input.name);
     let slice_mut_name = names::slice_mut_name(&input.name);
@@ -673,6 +688,18 @@ pub fn derive_mut(input: &Input) -> TokenStream {
                 }
             }
         });
+
+        {
+            generated.append_all(quote! {
+                impl<'a> ::soa_derive::ToSoAVec<#name> for #slice_mut_name<'a> {
+                    type SoAVecType = #vec_name;
+
+                    fn to_vec(&self) -> Self::SoAVecType {
+                        self.to_vec()
+                    }
+                }
+            });
+        }
     }
 
     return generated;

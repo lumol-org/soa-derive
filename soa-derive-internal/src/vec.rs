@@ -468,6 +468,14 @@ pub fn derive(input: &Input) -> TokenStream {
                     )*
                 }
             }
+
+            impl ::soa_derive::SoAAppendVec<#name> for #vec_name {
+                fn extend_from_slice(&mut self, other: Self::Slice<'_>) {
+                    #(
+                        self.#fields_names.extend_from_slice(other.#fields_names);
+                    )*
+                }
+            }
         });
     }
 
