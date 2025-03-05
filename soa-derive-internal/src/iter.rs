@@ -124,7 +124,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// Get an iterator over the
             #[doc = #ref_doc_url]
             /// in this vector
-            pub fn iter(&self) -> <#name as ::soa_derive::SoAIter>::Iter {
+            pub fn iter(&self) -> #iter_name {
                 self.as_slice().into_iter()
             }
         }
