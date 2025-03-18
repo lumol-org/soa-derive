@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use soa_derive::prelude::*;
+use soa_derive::*;
 
 #[derive(Debug, Clone, PartialOrd, PartialEq, StructOfArray)]
 #[soa_derive(Debug, Clone, PartialOrd, PartialEq)]

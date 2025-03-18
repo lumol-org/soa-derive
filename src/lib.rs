@@ -785,11 +785,6 @@ mod generics {
 }
 pub use generics::*;
 
-/// A collection of supporting traits for [`StructOfArray`] bundled in one place for ease-of-access
-pub mod prelude {
-    pub use super::{SoAVec, SoAIter, SoASlice, SoASliceMut, SoAPointers, StructOfArray, ToSoAVec, IntoSoAIter, SoAAppendVec};
-}
-
 
 #[macro_export]
 #[doc(hidden)]
