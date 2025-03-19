@@ -448,28 +448,28 @@ mod generics {
         fn is_empty(&self) -> bool;
 
         /// Create an immutable slice of the arrays
-        fn as_slice<'c>(&'c self) -> Self::Slice<'c>;
+        fn as_slice(&self) -> Self::Slice<'_>;
 
         /// Create a slice of this vector matching the given `range`. This
         /// is analogous to `Index<Range<usize>>`.
         fn slice<'c, 'a: 'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice<'c> where Self: 'a;
 
         /// Analogous to [`slice::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get)
-        fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>>;
+        fn get(&self, index: usize) -> Option<Self::Ref<'_>>;
 
         /// Analogous to [`std::ops::Index::index()`] for `usize`
-        fn index<'c>(&'c self, index: usize) -> Self::Ref<'c>;
+        fn index(&self, index: usize) -> Self::Ref<'_>;
 
         /// Create an immutable iterator
-        fn iter<'c>(&'c self) -> Self::Iter<'c>;
+        fn iter(&self) -> Self::Iter<'_>;
 
         /// Analogous to [`slice::first()`](https://doc.rust-lang.org/std/primitive.slice.html#method.first)
-        fn first<'c>(&'c self) -> Option<Self::Ref<'c>> {
+        fn first(&self) -> Option<Self::Ref<'_>> {
             self.get(0)
         }
 
         /// Analogous to [`slice::last()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last)
-        fn last<'c>(&'c self) -> Option<Self::Ref<'c>> {
+        fn last(&self) -> Option<Self::Ref<'_>> {
             self.get(self.len().saturating_sub(1))
         }
 
@@ -513,28 +513,28 @@ mod generics {
         fn is_empty(&self) -> bool;
 
         /// Create an immutable slice of the arrays
-        fn as_slice<'c>(&'c self) -> Self::Slice<'c>;
+        fn as_slice(&self) -> Self::Slice<'_>;
 
         /// Create a slice of this vector matching the given `range`. This
         /// is analogous to `Index<Range<usize>>`.
         fn slice<'c, 'a: 'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice<'c> where Self: 'a;
 
         /// Analogous to [`slice::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get)
-        fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>>;
+        fn get(&self, index: usize) -> Option<Self::Ref<'_>>;
 
         /// Analogous to [`std::ops::Index::index()`] for `usize`
-        fn index<'c>(&'c self, index: usize) -> Self::Ref<'c>;
+        fn index(&self, index: usize) -> Self::Ref<'_>;
 
         /// Create an immutable iterator
-        fn iter<'c>(&'c self) -> Self::Iter<'c>;
+        fn iter(&self) -> Self::Iter<'_>;
 
         /// Analogous to [`slice::first()`](https://doc.rust-lang.org/std/primitive.slice.html#method.first)
-        fn first<'c>(&'c self) -> Option<Self::Ref<'c>> {
+        fn first(&self) -> Option<Self::Ref<'_>> {
             self.get(0)
         }
 
         /// Analogous to [`slice::last()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last)
-        fn last<'c>(&'c self) -> Option<Self::Ref<'c>> {
+        fn last(&self) -> Option<Self::Ref<'_>> {
             self.get(self.len().saturating_sub(1))
         }
 
@@ -546,16 +546,16 @@ mod generics {
 
         /// Create a mutable slice of this vector matching the given
         /// `range`. This is analogous to `IndexMut<Range<usize>>`.
-        fn slice_mut<'c>(&'c mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut<'c>;
+        fn slice_mut(&mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut<'_>;
 
         /// Analogous to [`slice::get_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_mut)
-        fn get_mut<'c>(&'c mut self, index: usize) -> Option<Self::RefMut<'c>>;
+        fn get_mut(&mut self, index: usize) -> Option<Self::RefMut<'_>>;
 
         /// Analogous to [`std::ops::IndexMut::index_mut()`] for `usize`
-        fn index_mut<'c>(&'c mut self, index: usize) -> Self::RefMut<'c>;
+        fn index_mut(&mut self, index: usize) -> Self::RefMut<'_>;
 
         /// Creates a mutable iterator
-        fn iter_mut<'c>(&'c mut self) -> Self::IterMut<'c>;
+        fn iter_mut(&mut self) -> Self::IterMut<'_>;
 
         /** Re-order the arrays using the provided indices. This is provided so that generic sorting methods
          can be implemented because closure-passing trait methods encounter difficulties with lifetimes.
@@ -582,12 +582,12 @@ mod generics {
         }
 
         /// Analogous to [`slice::first_mut()`](<https://doc.rust-lang.org/std/primitive.slice.html#method.first_mut>).
-        fn first_mut<'c>(&'c mut self) -> Option<Self::RefMut<'c>> {
+        fn first_mut(&mut self) -> Option<Self::RefMut<'_>> {
             self.get_mut(0)
         }
 
         /// Analogous to [`slice::last_mut()`](<https://doc.rust-lang.org/std/primitive.slice.html#method.last_mut>).
-        fn last_mut<'c>(&'c mut self) -> Option<Self::RefMut<'c>> {
+        fn last_mut(&mut self) -> Option<Self::RefMut<'_>> {
             self.get_mut(self.len().saturating_sub(1))
         }
 
@@ -640,21 +640,21 @@ mod generics {
         fn slice<'c, 'a: 'c>(&'c self, index: impl core::ops::RangeBounds<usize>) -> Self::Slice<'c> where Self: 'a;
 
         /// Analogous to [`slice::get()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get)
-        fn get<'c>(&'c self, index: usize) -> Option<Self::Ref<'c>>;
+        fn get(&self, index: usize) -> Option<Self::Ref<'_>>;
 
         /// Analogous to [`std::ops::Index::index()`] for `usize`
-        fn index<'c>(&'c self, index: usize) -> Self::Ref<'c>;
+        fn index(&self, index: usize) -> Self::Ref<'_>;
 
         /// Create an immutable iterator
-        fn iter<'c>(&'c self) -> Self::Iter<'c>;
+        fn iter(&self) -> Self::Iter<'_>;
 
         /// Analogous to [`slice::first()`](https://doc.rust-lang.org/std/primitive.slice.html#method.first)
-        fn first<'c>(&'c self) -> Option<Self::Ref<'c>> {
+        fn first(&self) -> Option<Self::Ref<'_>> {
             self.get(0)
         }
 
         /// Analogous to [`slice::last()`](https://doc.rust-lang.org/std/primitive.slice.html#method.last)
-        fn last<'c>(&'c self) -> Option<Self::Ref<'c>> {
+        fn last(&self) -> Option<Self::Ref<'_>> {
             self.get(self.len().saturating_sub(1))
         }
 
@@ -666,16 +666,16 @@ mod generics {
 
         /// Create a mutable slice of this vector matching the given
         /// `range`. This is analogous to `IndexMut<Range<usize>>`.
-        fn slice_mut<'c>(&'c mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut<'c>;
+        fn slice_mut(&mut self, index: impl core::ops::RangeBounds<usize>) -> Self::SliceMut<'_>;
 
         /// Analogous to [`slice::get_mut()`](https://doc.rust-lang.org/std/primitive.slice.html#method.get_mut)
-        fn get_mut<'c>(&'c mut self, index: usize) -> Option<Self::RefMut<'c>>;
+        fn get_mut(&mut self, index: usize) -> Option<Self::RefMut<'_>>;
 
         /// Analogous to [`std::ops::IndexMut::index_mut()`] for `usize`
-        fn index_mut<'c>(&'c mut self, index: usize) -> Self::RefMut<'c>;
+        fn index_mut(&mut self, index: usize) -> Self::RefMut<'_>;
 
         /// Creates a mutable iterator
-        fn iter_mut<'c>(&'c mut self) -> Self::IterMut<'c>;
+        fn iter_mut(&mut self) -> Self::IterMut<'_>;
 
         /** Re-order the arrays using the provided indices. This is provided so that generic sorting methods
          can be implemented because closure-passing trait methods encounter difficulties with lifetimes.
@@ -702,12 +702,12 @@ mod generics {
         }
 
         /// Analogous to [`slice::first_mut()`](<https://doc.rust-lang.org/std/primitive.slice.html#method.first_mut>)
-        fn first_mut<'c>(&'c mut self) -> Option<Self::RefMut<'c>> {
+        fn first_mut(&mut self) -> Option<Self::RefMut<'_>> {
             self.get_mut(0)
         }
 
         /// Analogous to [`slice::last_mut()`](<https://doc.rust-lang.org/std/primitive.slice.html#method.last_mut>)
-        fn last_mut<'c>(&'c mut self) -> Option<Self::RefMut<'c>> {
+        fn last_mut(&mut self) -> Option<Self::RefMut<'_>> {
             self.get_mut(self.len().saturating_sub(1))
         }
 
