@@ -52,7 +52,7 @@ mod impls {
         })
     }
 
-    fn slice_ref_len<'a, T: StructOfArray, V: SoAVec<T>>(vec: &V) -> usize {
+    fn slice_ref_len<T: StructOfArray, V: SoAVec<T>>(vec: &V) -> usize {
         let view = vec.as_slice();
         let n = view.iter().count();
         assert_eq!(view.into_iter().count(), n);
@@ -112,9 +112,8 @@ mod impls {
         pv.push(Particle::new("foo".into(), 100.0));
         pv.push(Particle::new("bar".into(), 1000.0));
         pv.push(Particle::new("baz".into(), 50.0));
-        pv.sort_by(|a, b| a.mass.total_cmp(&b.mass));
+        pv.sort_by(|a, b| a.mass.total_cmp(b.mass));
 
         assert_eq!(pv.first().unwrap().name, "baz");
-
     }
 }

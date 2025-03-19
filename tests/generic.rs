@@ -48,7 +48,7 @@ fn test_generic_type_behavior() {
     x.push(Particle::new("foo".into(), 100.0));
     let y: Vec<_> = may_iter::<Particle, ParticleVec>(&x).collect();
     assert_eq!(x.len(), y.len());
-    assert_eq!(x.get(0).as_ref(), y.get(0));
+    assert_eq!(x.first().as_ref(), y.first());
     drop(y);
 
     let z = Particle::new("bar".into(), 1000.0);
@@ -58,13 +58,13 @@ fn test_generic_type_behavior() {
     may_sort_generic(&mut x);
     assert_eq!(x.first().unwrap().name, "bar");
 
-    x.sort_by(|a, b| a.mass.total_cmp(&b.mass).reverse());
+    x.sort_by(|a, b| a.mass.total_cmp(b.mass).reverse());
     // may_sort(&mut x);
     let a = x.index(0);
     let b = x.index(1);
     assert!(a.mass > b.mass);
 
-    may_closure_sort(&mut x, |a, b| a.mass.total_cmp(&b.mass));
+    may_closure_sort(&mut x, |a, b| a.mass.total_cmp(b.mass));
 
     let a = x.index(0);
     let b = x.index(1);
