@@ -1,6 +1,6 @@
 [package]
 name = "soa_derive"
-version = "0.13.0"
+version = "0.14.0"
 edition = "2018"
 rust-version = "1.65"
 
@@ -20,7 +20,7 @@ members = [
 ]
 
 [dependencies]
-soa_derive_internal = {path = "soa-derive-internal", version = "0.13"}
+soa_derive_internal = {path = "soa-derive-internal", version = "0.14"}
 permutation = "0.4.0"
 
 [dev-dependencies]
