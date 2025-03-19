@@ -79,7 +79,7 @@ pub fn derive(input: &Input) -> TokenStream {
         }
     }).expect("should be Some");
 
-    return quote! {
+    let generated = quote! {
         /// Iterator over
         #[doc = #doc_url]
         #[allow(missing_debug_implementations)]
@@ -217,6 +217,8 @@ pub fn derive(input: &Input) -> TokenStream {
         }
 
         impl<'a> soa_derive::SoAIter<'a> for #name {
+            type Ref = #ref_name<'a>;
+            type RefMut = #ref_mut_name<'a>;
             type Iter = #iter_name<'a>;
             type IterMut = #iter_mut_name<'a>;
         }
@@ -294,5 +296,9 @@ pub fn derive(input: &Input) -> TokenStream {
                 self.extend(iter.into_iter().map(|item| item.to_owned()))
             }
         }
+
+        impl<'a> ::soa_derive::IntoSoAIter<'a, #name> for #slice_name<'a> {}
     };
+
+    return generated;
 }
