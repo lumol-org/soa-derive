@@ -1,3 +1,6 @@
+#![allow(unexpected_cfgs)]
+#![cfg(rustc_is_at_least_1_78)]
+
 mod particles;
 use std::marker::PhantomData;
 use std::fmt::Debug;
