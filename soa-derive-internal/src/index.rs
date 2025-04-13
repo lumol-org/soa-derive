@@ -19,22 +19,22 @@ pub fn derive(input: &Input) -> TokenStream {
 
 
     let get_unchecked = input.map_fields_nested_or(
-        |ident, _| quote! { self.clone().get_unchecked(slice.#ident) },
+        |ident, _| quote! { ::soa_derive::SoAIndex::get_unchecked(self.clone(), slice.#ident) },
         |ident, _| quote! { slice.#ident.get_unchecked(self.clone()) },
     ).collect::<Vec<_>>();
 
     let get_unchecked_mut = input.map_fields_nested_or(
-        |ident, _| quote! { self.clone().get_unchecked_mut(slice.#ident) },
+        |ident, _| quote! { ::soa_derive::SoAIndexMut::get_unchecked_mut(self.clone(), slice.#ident) },
         |ident, _| quote! { slice.#ident.get_unchecked_mut(self.clone()) },
     ).collect::<Vec<_>>();
 
     let index = input.map_fields_nested_or(
-        |ident, _| quote! { self.clone().index(slice.#ident) },
+        |ident, _| quote! { ::soa_derive::SoAIndex::index(self.clone(), slice.#ident) },
         |ident, _| quote! { & slice.#ident[self.clone()] },
     ).collect::<Vec<_>>();
 
     let index_mut = input.map_fields_nested_or(
-        |ident, _| quote! { self.clone().index_mut(slice.#ident) },
+        |ident, _| quote! { ::soa_derive::SoAIndexMut::index_mut(self.clone(), slice.#ident) },
         |ident, _| quote! { &mut slice.#ident[self.clone()] },
     ).collect::<Vec<_>>();
 
@@ -46,7 +46,7 @@ pub fn derive(input: &Input) -> TokenStream {
             #[inline]
             fn get(self, soa: &'a #vec_name) -> Option<Self::RefOutput> {
                 if self < soa.len() {
-                    Some(unsafe { self.get_unchecked(soa) })
+                    Some(unsafe { ::soa_derive::SoAIndex::get_unchecked(self, soa) })
                 } else {
                     None
                 }
@@ -54,12 +54,12 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             unsafe fn get_unchecked(self, soa: &'a #vec_name) -> Self::RefOutput {
-                self.get_unchecked(soa.as_slice())
+                ::soa_derive::SoAIndex::get_unchecked(self, soa.as_slice())
             }
 
             #[inline]
             fn index(self, soa: &'a #vec_name) -> Self::RefOutput {
-                self.index(soa.as_slice())
+                ::soa_derive::SoAIndex::index(self, soa.as_slice())
             }
         }
 
@@ -69,7 +69,7 @@ pub fn derive(input: &Input) -> TokenStream {
             #[inline]
             fn get_mut(self, soa: &'a mut #vec_name) -> Option<Self::MutOutput> {
                 if self < soa.len() {
-                    Some(unsafe { self.get_unchecked_mut(soa) })
+                    Some(unsafe { ::soa_derive::SoAIndexMut::get_unchecked_mut(self, soa) })
                 } else {
                     None
                 }
@@ -77,12 +77,12 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             unsafe fn get_unchecked_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                self.get_unchecked_mut(soa.as_mut_slice())
+                ::soa_derive::SoAIndexMut::get_unchecked_mut(self, soa.as_mut_slice())
             }
 
             #[inline]
             fn index_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                self.index_mut(soa.as_mut_slice())
+                ::soa_derive::SoAIndexMut::index_mut(self, soa.as_mut_slice())
             }
         }
 
@@ -95,7 +95,7 @@ pub fn derive(input: &Input) -> TokenStream {
             #[inline]
             fn get(self, soa: &'a #vec_name) -> Option<Self::RefOutput> {
                 if self.start <= self.end && self.end <= soa.len() {
-                    unsafe { Some(self.get_unchecked(soa)) }
+                    unsafe { Some(::soa_derive::SoAIndex::get_unchecked(self, soa)) }
                 } else {
                     None
                 }
@@ -103,12 +103,12 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             unsafe fn get_unchecked(self, soa: &'a #vec_name) -> Self::RefOutput {
-                self.get_unchecked(soa.as_slice())
+                ::soa_derive::SoAIndex::get_unchecked(self, soa.as_slice())
             }
 
             #[inline]
             fn index(self, soa: &'a #vec_name) -> Self::RefOutput {
-                self.index(soa.as_slice())
+                ::soa_derive::SoAIndex::index(self, soa.as_slice())
             }
         }
 
@@ -118,7 +118,7 @@ pub fn derive(input: &Input) -> TokenStream {
             #[inline]
             fn get_mut(self, soa: &'a mut #vec_name) -> Option<Self::MutOutput> {
                 if self.start <= self.end && self.end <= soa.len() {
-                    unsafe { Some(self.get_unchecked_mut(soa)) }
+                    unsafe { Some(::soa_derive::SoAIndexMut::get_unchecked_mut(self, soa)) }
                 } else {
                     None
                 }
@@ -126,12 +126,12 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             unsafe fn get_unchecked_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                self.get_unchecked_mut(soa.as_mut_slice())
+                ::soa_derive::SoAIndexMut::get_unchecked_mut(self, soa.as_mut_slice())
             }
 
             #[inline]
             fn index_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                self.index_mut(soa.as_mut_slice())
+               ::soa_derive::SoAIndexMut::index_mut(self, soa.as_mut_slice())
             }
         }
 
@@ -141,17 +141,17 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             fn get(self, soa: &'a #vec_name) -> Option<Self::RefOutput> {
-                (0..self.end).get(soa)
+                ::soa_derive::SoAIndex::get(0..self.end, soa)
             }
 
             #[inline]
             unsafe fn get_unchecked(self, soa: &'a #vec_name) -> Self::RefOutput {
-                (0..self.end).get_unchecked(soa)
+                ::soa_derive::SoAIndex::get_unchecked(0..self.end, soa)
             }
 
             #[inline]
             fn index(self, soa: &'a #vec_name) -> Self::RefOutput {
-                (0..self.end).index(soa)
+                ::soa_derive::SoAIndex::index(0..self.end, soa)
             }
         }
 
@@ -160,17 +160,17 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             fn get_mut(self, soa: &'a mut #vec_name) -> Option<Self::MutOutput> {
-                (0..self.end).get_mut(soa)
+                ::soa_derive::SoAIndexMut::get_mut(0..self.end, soa)
             }
 
             #[inline]
             unsafe fn get_unchecked_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                (0..self.end).get_unchecked_mut(soa)
+                ::soa_derive::SoAIndexMut::get_unchecked_mut(0..self.end, soa)
             }
 
             #[inline]
             fn index_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                (0..self.end).index_mut(soa)
+                ::soa_derive::SoAIndexMut::index_mut(0..self.end, soa)
             }
         }
 
@@ -180,17 +180,17 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             fn get(self, soa: &'a #vec_name) -> Option<Self::RefOutput> {
-                (self.start..soa.len()).get(soa)
+                ::soa_derive::SoAIndex::get(self.start..soa.len(), soa)
             }
 
             #[inline]
             unsafe fn get_unchecked(self, soa: &'a #vec_name) -> Self::RefOutput {
-                (self.start..soa.len()).get_unchecked(soa)
+                ::soa_derive::SoAIndex::get_unchecked(self.start..soa.len(), soa)
             }
 
             #[inline]
             fn index(self, soa: &'a #vec_name) -> Self::RefOutput {
-                (self.start..soa.len()).index(soa)
+                ::soa_derive::SoAIndex::index(self.start..soa.len(), soa)
             }
         }
 
@@ -199,17 +199,17 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             fn get_mut(self, soa: &'a mut #vec_name) -> Option<Self::MutOutput> {
-                (self.start..soa.len()).get_mut(soa)
+               ::soa_derive::SoAIndexMut::get_mut(self.start..soa.len(), soa)
             }
 
             #[inline]
             unsafe fn get_unchecked_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                (self.start..soa.len()).get_unchecked_mut(soa)
+                ::soa_derive::SoAIndexMut::get_unchecked_mut(self.start..soa.len(), soa)
             }
 
             #[inline]
             fn index_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                (self.start..soa.len()).index_mut(soa)
+                ::soa_derive::SoAIndexMut::index_mut(self.start..soa.len(), soa)
             }
         }
 
@@ -261,18 +261,18 @@ pub fn derive(input: &Input) -> TokenStream {
                 if *self.end() == usize::MAX {
                     None
                 } else {
-                    (*self.start()..self.end() + 1).get(soa)
+                    ::soa_derive::SoAIndex::get(*self.start()..self.end() + 1, soa)
                 }
             }
 
             #[inline]
             unsafe fn get_unchecked(self, soa: &'a #vec_name) -> Self::RefOutput {
-                (*self.start()..self.end() + 1).get_unchecked(soa)
+                ::soa_derive::SoAIndex::get_unchecked(*self.start()..self.end() + 1, soa)
             }
 
             #[inline]
             fn index(self, soa: &'a #vec_name) -> Self::RefOutput {
-                (*self.start()..self.end() + 1).index(soa)
+                ::soa_derive::SoAIndex::index(*self.start()..self.end() + 1, soa)
             }
         }
 
@@ -284,18 +284,18 @@ pub fn derive(input: &Input) -> TokenStream {
                 if *self.end() == usize::MAX {
                     None
                 } else {
-                    (*self.start()..self.end() + 1).get_mut(soa)
+                    ::soa_derive::SoAIndexMut::get_mut(*self.start()..self.end() + 1, soa)
                 }
             }
 
             #[inline]
             unsafe fn get_unchecked_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                (*self.start()..self.end() + 1).get_unchecked_mut(soa)
+                ::soa_derive::SoAIndexMut::get_unchecked_mut(*self.start()..self.end() + 1, soa)
             }
 
             #[inline]
             fn index_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                (*self.start()..self.end() + 1).index_mut(soa)
+                ::soa_derive::SoAIndexMut::index_mut(*self.start()..self.end() + 1, soa)
             }
         }
 
@@ -305,17 +305,17 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             fn get(self, soa: &'a #vec_name) -> Option<Self::RefOutput> {
-                (0..=self.end).get(soa)
+                ::soa_derive::SoAIndex::get(0..=self.end, soa)
             }
 
             #[inline]
             unsafe fn get_unchecked(self, soa: &'a #vec_name) -> Self::RefOutput {
-                (0..=self.end).get_unchecked(soa)
+                ::soa_derive::SoAIndex::get_unchecked(0..=self.end, soa)
             }
 
             #[inline]
             fn index(self, soa: &'a #vec_name) -> Self::RefOutput {
-                (0..=self.end).index(soa)
+                ::soa_derive::SoAIndex::index(0..=self.end, soa)
             }
         }
 
@@ -324,17 +324,17 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             fn get_mut(self, soa: &'a mut #vec_name) -> Option<Self::MutOutput> {
-                (0..=self.end).get_mut(soa)
+                ::soa_derive::SoAIndexMut::get_mut(0..=self.end, soa)
             }
 
             #[inline]
             unsafe fn get_unchecked_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                (0..=self.end).get_unchecked_mut(soa)
+                ::soa_derive::SoAIndexMut::get_unchecked_mut(0..=self.end, soa)
             }
 
             #[inline]
             fn index_mut(self, soa: &'a mut #vec_name) -> Self::MutOutput {
-                (0..=self.end).index_mut(soa)
+                ::soa_derive::SoAIndexMut::index_mut(0..=self.end, soa)
             }
         }
 
@@ -345,7 +345,7 @@ pub fn derive(input: &Input) -> TokenStream {
             #[inline]
             fn get(self, slice: #slice_name<'a>) -> Option<Self::RefOutput> {
                 if self < slice.#first_field_name.len() {
-                    Some(unsafe { self.get_unchecked(slice) })
+                    Some(unsafe { ::soa_derive::SoAIndex::get_unchecked(self, slice) })
                 } else {
                     None
                 }
@@ -372,7 +372,7 @@ pub fn derive(input: &Input) -> TokenStream {
             #[inline]
             fn get_mut(self, slice: #slice_mut_name<'a>) -> Option<Self::MutOutput> {
                 if self < slice.len() {
-                    Some(unsafe { self.get_unchecked_mut(slice) })
+                    Some(unsafe { ::soa_derive::SoAIndexMut::get_unchecked_mut(self, slice) })
                 } else {
                     None
                 }
@@ -402,7 +402,7 @@ pub fn derive(input: &Input) -> TokenStream {
             #[inline]
             fn get(self, slice: #slice_name<'a>) -> Option<Self::RefOutput> {
                 if self.start <= self.end && self.end <= slice.#first_field_name.len() {
-                    unsafe { Some(self.get_unchecked(slice)) }
+                    unsafe { Some(::soa_derive::SoAIndex::get_unchecked(self, slice)) }
                 } else {
                     None
                 }
@@ -429,7 +429,7 @@ pub fn derive(input: &Input) -> TokenStream {
             #[inline]
             fn get_mut(self, slice: #slice_mut_name<'a>) -> Option<Self::MutOutput> {
                 if self.start <= self.end && self.end <= slice.#first_field_name.len() {
-                    unsafe { Some(self.get_unchecked_mut(slice)) }
+                    unsafe { Some(::soa_derive::SoAIndexMut::get_unchecked_mut(self, slice)) }
                 } else {
                     None
                 }
@@ -458,17 +458,17 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             fn get(self, slice: #slice_name<'a>) -> Option<Self::RefOutput> {
-                (0..self.end).get(slice)
+                ::soa_derive::SoAIndex::get(0..self.end, slice)
             }
 
             #[inline]
             unsafe fn get_unchecked(self, slice: #slice_name<'a>) -> Self::RefOutput {
-                (0..self.end).get_unchecked(slice)
+                ::soa_derive::SoAIndex::get_unchecked(0..self.end, slice)
             }
 
             #[inline]
             fn index(self, slice: #slice_name<'a>) -> Self::RefOutput {
-                (0..self.end).index(slice)
+                ::soa_derive::SoAIndex::index(0..self.end, slice)
             }
         }
 
@@ -477,17 +477,17 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             fn get_mut(self, slice: #slice_mut_name<'a>) -> Option<Self::MutOutput> {
-                (0..self.end).get_mut(slice)
+                ::soa_derive::SoAIndexMut::get_mut(0..self.end, slice)
             }
 
             #[inline]
             unsafe fn get_unchecked_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
-                (0..self.end).get_unchecked_mut(slice)
+                ::soa_derive::SoAIndexMut::get_unchecked_mut(0..self.end, slice)
             }
 
             #[inline]
             fn index_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
-                (0..self.end).index_mut(slice)
+                ::soa_derive::SoAIndexMut::index_mut(0..self.end, slice)
             }
         }
 
@@ -498,17 +498,17 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             fn get(self, slice: #slice_name<'a>) -> Option<Self::RefOutput> {
-                (self.start..slice.len()).get(slice)
+                ::soa_derive::SoAIndex::get(self.start..slice.len(), slice)
             }
 
             #[inline]
             unsafe fn get_unchecked(self, slice: #slice_name<'a>) -> Self::RefOutput {
-                (self.start..slice.len()).get_unchecked(slice)
+                ::soa_derive::SoAIndex::get_unchecked(self.start..slice.len(), slice)
             }
 
             #[inline]
             fn index(self, slice: #slice_name<'a>) -> Self::RefOutput {
-                (self.start..slice.len()).index(slice)
+                ::soa_derive::SoAIndex::index(self.start..slice.len(), slice)
             }
         }
 
@@ -517,17 +517,17 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             fn get_mut(self, slice: #slice_mut_name<'a>) -> Option<Self::MutOutput> {
-                (self.start..slice.len()).get_mut(slice)
+                ::soa_derive::SoAIndexMut::get_mut(self.start..slice.len(), slice)
             }
 
             #[inline]
             unsafe fn get_unchecked_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
-                (self.start..slice.len()).get_unchecked_mut(slice)
+                ::soa_derive::SoAIndexMut::get_unchecked_mut(self.start..slice.len(), slice)
             }
 
             #[inline]
             fn index_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
-                (self.start..slice.len()).index_mut(slice)
+                ::soa_derive::SoAIndexMut::index_mut(self.start..slice.len(), slice)
             }
         }
 
@@ -581,18 +581,18 @@ pub fn derive(input: &Input) -> TokenStream {
                 if *self.end() == usize::MAX {
                     None
                 } else {
-                    (*self.start()..self.end() + 1).get(slice)
+                    ::soa_derive::SoAIndex::get(*self.start()..self.end() + 1, slice)
                 }
             }
 
             #[inline]
             unsafe fn get_unchecked(self, slice: #slice_name<'a>) -> Self::RefOutput {
-                (*self.start()..self.end() + 1).get_unchecked(slice)
+                ::soa_derive::SoAIndex::get_unchecked(*self.start()..self.end() + 1, slice)
             }
 
             #[inline]
             fn index(self, slice: #slice_name<'a>) -> Self::RefOutput {
-                (*self.start()..self.end() + 1).index(slice)
+                ::soa_derive::SoAIndex::index(*self.start()..self.end() + 1, slice)
             }
         }
 
@@ -604,18 +604,18 @@ pub fn derive(input: &Input) -> TokenStream {
                 if *self.end() == usize::MAX {
                     None
                 } else {
-                    (*self.start()..self.end() + 1).get_mut(slice)
+                    ::soa_derive::SoAIndexMut::get_mut(*self.start()..self.end() + 1, slice)
                 }
             }
 
             #[inline]
             unsafe fn get_unchecked_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
-                (*self.start()..self.end() + 1).get_unchecked_mut(slice)
+                ::soa_derive::SoAIndexMut::get_unchecked_mut(*self.start()..self.end() + 1, slice)
             }
 
             #[inline]
             fn index_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
-                (*self.start()..self.end() + 1).index_mut(slice)
+                ::soa_derive::SoAIndexMut::index_mut(*self.start()..self.end() + 1, slice)
             }
         }
 
@@ -626,17 +626,17 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             fn get(self, slice: #slice_name<'a>) -> Option<Self::RefOutput> {
-                (0..=self.end).get(slice)
+                ::soa_derive::SoAIndex::get(0..=self.end, slice)
             }
 
             #[inline]
             unsafe fn get_unchecked(self, slice: #slice_name<'a>) -> Self::RefOutput {
-                (0..=self.end).get_unchecked(slice)
+                ::soa_derive::SoAIndex::get_unchecked(0..=self.end, slice)
             }
 
             #[inline]
             fn index(self, slice: #slice_name<'a>) -> Self::RefOutput {
-                (0..=self.end).index(slice)
+                ::soa_derive::SoAIndex::index(0..=self.end, slice)
             }
         }
 
@@ -645,17 +645,17 @@ pub fn derive(input: &Input) -> TokenStream {
 
             #[inline]
             fn get_mut(self, slice: #slice_mut_name<'a>) -> Option<Self::MutOutput> {
-                (0..=self.end).get_mut(slice)
+                ::soa_derive::SoAIndexMut::get_mut(0..=self.end, slice)
             }
 
             #[inline]
             unsafe fn get_unchecked_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
-                (0..=self.end).get_unchecked_mut(slice)
+                ::soa_derive::SoAIndexMut::get_unchecked_mut(0..=self.end, slice)
             }
 
             #[inline]
             fn index_mut(self, slice: #slice_mut_name<'a>) -> Self::MutOutput {
-                (0..=self.end).index_mut(slice)
+                ::soa_derive::SoAIndexMut::index_mut(0..=self.end, slice)
             }
         }
     }
