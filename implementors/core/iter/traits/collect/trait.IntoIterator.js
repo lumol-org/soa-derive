@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["soa_derive_example"] = [{"text":"impl&lt;'a&gt; IntoIterator for ParticleSlice&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a, 'b&gt; IntoIterator for &amp;'a ParticleSlice&lt;'b&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; IntoIterator for &amp;'a ParticleVec","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; IntoIterator for ParticleSliceMut&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; IntoIterator for &amp;'a mut ParticleVec","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
