@@ -8,14 +8,12 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         rust-version: ["1.65", stable, beta, nightly]
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
+      - uses: actions/checkout@v6
       - name: setup rust
         uses: dtolnay/rust-toolchain@master
         with:
