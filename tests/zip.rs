@@ -129,11 +129,11 @@ impl Wrapper {
         }
     }
 
-    fn particles(&self) -> ParticleSlice {
+    fn particles(&self) -> ParticleSlice<'_> {
         self.particles.as_slice()
     }
 
-    fn particles_mut(&mut self) -> ParticleSliceMut {
+    fn particles_mut(&mut self) -> ParticleSliceMut<'_> {
         self.particles.as_mut_slice()
     }
 }

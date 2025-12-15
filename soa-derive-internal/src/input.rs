@@ -104,7 +104,7 @@ impl Input {
                 }
             }
             _ => panic!("#[derive(StructOfArray)] only supports struct"),
-        };
+        }
 
         assert!(!fields.is_empty(), "#[derive(StructOfArray)] only supports struct with fields");
 
