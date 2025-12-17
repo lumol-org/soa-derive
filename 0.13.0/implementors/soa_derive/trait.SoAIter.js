@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"soa_derive_example":[["impl&lt;'a&gt; SoAIter&lt;'a&gt; for <a class=\"struct\" href=\"soa_derive_example/struct.Particle.html\" title=\"struct soa_derive_example::Particle\">Particle</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Particle","ParticlePtr","ParticlePtrMut","ParticleRef","ParticleRefMut","ParticleSlice","ParticleSliceMut","ParticleVec"]};

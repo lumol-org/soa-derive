@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["soa_derive_example"] = [{"text":"impl&lt;'a&gt; Clone for ParticleRef&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl Clone for ParticlePtr","synthetic":false,"types":[]},{"text":"impl Clone for ParticlePtrMut","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Clone for ParticleSlice&lt;'a&gt;","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,0 +1,1 @@
+rd_("Absoa_derive_example")

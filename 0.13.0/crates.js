@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["soa_derive_example"];
