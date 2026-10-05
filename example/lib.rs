@@ -36,8 +36,6 @@
 // Other allow by default lints that need to stay allowed
 #![allow(unsafe_code, single_use_lifetimes, elided_lifetimes_in_paths)]
 
-#![deny(warnings)]
-
 #[macro_use]
 extern crate soa_derive;
 

@@ -364,7 +364,7 @@ pub fn derive_mut(input: &Input) -> TokenStream {
             )*
         }
 
-        #[allow(dead_code)]
+        #[allow(dead_code, clippy::redundant_field_names)]
         impl<'a> #slice_mut_name<'a> {
             /// Convert a
             #[doc = #slice_mut_doc_url]
